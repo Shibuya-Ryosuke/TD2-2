@@ -5,7 +5,7 @@ using namespace RyoEngine;
 
 namespace App {
 	void Application::Initialize() {
-		// ImGui で調整した値の保存先を設定して、読み込む
+		// ImGuiで調整した値の保存先を設定して、読み込む
 		const std::string jsonFolder = "Resources/ApplicationResources/Json/";
 		ParamEditor::SetFolderPath(jsonFolder);
 		LightManager::SetFolderPath(jsonFolder);
