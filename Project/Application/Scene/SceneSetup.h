@@ -2,10 +2,10 @@
 #include <RyoEngine.h>
 
 // 各シーン
-#include "Title.h"
-#include "Game.h"
-#include "Clear.h"
-#include "GameOver.h"
+#include "Title/Title.h"
+#include "Game/Game.h"
+#include "Clear/Clear.h"
+#include "GameOver/GameOver.h"
 
 namespace App
 {

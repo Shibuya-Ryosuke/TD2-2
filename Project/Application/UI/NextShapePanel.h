@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "../Stage/Cell.h"
+#include "../Stage/Grid/Cell.h"
 
 namespace App
 {

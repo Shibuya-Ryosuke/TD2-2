@@ -1,6 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{4228bbb2-6d69-4265-90f8-5348801dc2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Camera">
+      <UniqueIdentifier>{ce0d8392-13b5-4e85-823a-68bb1560d6d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Config">
+      <UniqueIdentifier>{a882b9f5-3915-476d-ac5a-2375a667c6b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Input">
+      <UniqueIdentifier>{ed27626c-4bc3-457f-aa84-7d793a5e08d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object">
+      <UniqueIdentifier>{aff69638-1be3-4c8d-afc8-a1b8e0f4bb88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Boss">
+      <UniqueIdentifier>{935b398d-032c-423b-81b4-cab0bb4b64d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Item">
+      <UniqueIdentifier>{ec78f93c-cffd-4238-8399-a3f7b3f695da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Player">
+      <UniqueIdentifier>{0f5af640-dd42-4628-b8cb-84a8e8f695c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Player\Shape">
+      <UniqueIdentifier>{9d279091-47ae-457c-9df7-36930d6ee078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene">
+      <UniqueIdentifier>{06f49617-459b-4193-a563-8ecb57f3d19d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene\Clear">
+      <UniqueIdentifier>{aa0966d8-6aad-400a-940a-4171b3f147f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene\Game">
+      <UniqueIdentifier>{5b055ce5-560a-42b1-b9fb-50a3850ecc98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene\GameOver">
+      <UniqueIdentifier>{7bd208c0-6e0a-4516-8170-7cd0283d0904}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene\Title">
+      <UniqueIdentifier>{6b7d2288-f351-4ba3-acac-1e3da823b8e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Stage">
+      <UniqueIdentifier>{76241b74-bdfe-41e9-afd8-5f3cc3b2af03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Stage\Floor">
+      <UniqueIdentifier>{e2d241a8-ba64-407d-a7b4-a318c70fdf66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Stage\Grid">
+      <UniqueIdentifier>{384fac93-9b02-4c72-aea0-10f1fea28001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\UI">
+      <UniqueIdentifier>{bcfc15f4-6a12-4623-86be-d4e6ad79429f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{410416bb-c79b-4e16-94ed-8ae276e5fd76}</UniqueIdentifier>
     </Filter>
@@ -93,30 +147,6 @@
     </Filter>
     <Filter Include="Engine\Object">
       <UniqueIdentifier>{fc8b7b1a-a47e-468a-97c9-477267c67454}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application">
-      <UniqueIdentifier>{4228bbb2-6d69-4265-90f8-5348801dc2fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Scene">
-      <UniqueIdentifier>{06f49617-459b-4193-a563-8ecb57f3d19d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Camera">
-      <UniqueIdentifier>{ce0d8392-13b5-4e85-823a-68bb1560d6d4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Game">
-      <UniqueIdentifier>{ef817554-9b0e-4855-86e1-57d3e524ebce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Input">
-      <UniqueIdentifier>{ed27626c-4bc3-457f-aa84-7d793a5e08d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Object">
-      <UniqueIdentifier>{aff69638-1be3-4c8d-afc8-a1b8e0f4bb88}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\UI">
-      <UniqueIdentifier>{bcfc15f4-6a12-4623-86be-d4e6ad79429f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Stage">
-      <UniqueIdentifier>{76241b74-bdfe-41e9-afd8-5f3cc3b2af03}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Graphics\Particle">
       <UniqueIdentifier>{946c5ad2-d450-4f52-b4e6-a4ea88af25af}</UniqueIdentifier>
@@ -291,96 +321,6 @@
     </ClCompile>
     <ClCompile Include="Engine\Graphics\Particle\ParticleTemplates.cpp">
       <Filter>Engine\Graphics\Particle</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Application.cpp">
-      <Filter>Application</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Scene\Game.cpp">
-      <Filter>Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Scene\Title.cpp">
-      <Filter>Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Camera\StageCamera.cpp">
-      <Filter>Application\Camera</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Input\GameInput.cpp">
-      <Filter>Application\Input</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Object\Boss.cpp">
-      <Filter>Application\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Object\Player.cpp">
-      <Filter>Application\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Scene\Clear.cpp">
-      <Filter>Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Scene\GameOver.cpp">
-      <Filter>Application\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\Floor.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\BreakShape.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\UI\NextShapePanel.cpp">
-      <Filter>Application\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\GridDirection.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\FloorCsv.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\FloorGrid.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\FloorPathFinder.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Stage\FloorView.cpp">
-      <Filter>Application\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Object\BossView.cpp">
-      <Filter>Application\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Object\FieldItem.cpp">
-      <Filter>Application\Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\ItemManager.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\ShapeController.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\LayerFloors.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\DescentSequence.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\TileBarrage.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\PlayerHealth.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\BossContact.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\BossBattle.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Game\BossFallFlow.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\UI\GameHud.cpp">
-      <Filter>Application\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Camera\NearFadeSwitch.cpp">
-      <Filter>Application\Camera</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Graphics\3D\Animator.cpp">
       <Filter>Engine\Graphics\3D</Filter>
@@ -591,18 +531,6 @@
     <ClInclude Include="Engine\Graphics\Particle\ParticleTypes.h">
       <Filter>Engine\Graphics\Particle</Filter>
     </ClInclude>
-    <ClInclude Include="Application\Application.h">
-      <Filter>Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\Scene\SceneSetup.h">
-      <Filter>Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\Scene\Game.h">
-      <Filter>Application\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\Scene\Title.h">
-      <Filter>Application\Scene</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\EngineResources\HLSL\Particle\Particle.hlsli">
@@ -712,5 +640,217 @@
     <FxCompile Include="Resources\EngineResources\HLSL\Model\Skinning.CS.hlsl">
       <Filter>HLSL\Model</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\Application.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Application.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Camera\NearFadeSwitch.cpp">
+      <Filter>Application\Camera</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Camera\NearFadeSwitch.h">
+      <Filter>Application\Camera</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Camera\StageCamera.cpp">
+      <Filter>Application\Camera</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Camera\StageCamera.h">
+      <Filter>Application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\GameConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Input\GameInput.cpp">
+      <Filter>Application\Input</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Input\GameInput.h">
+      <Filter>Application\Input</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Boss\Boss.cpp">
+      <Filter>Application\Object\Boss</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Boss\Boss.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\BossTuning.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Boss\BossView.cpp">
+      <Filter>Application\Object\Boss</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Boss\BossView.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Item\FieldItem.cpp">
+      <Filter>Application\Object\Item</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Item\FieldItem.h">
+      <Filter>Application\Object\Item</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Item\ItemManager.cpp">
+      <Filter>Application\Object\Item</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Item\ItemManager.h">
+      <Filter>Application\Object\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Item\ItemType.h">
+      <Filter>Application\Object\Item</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Player\Player.cpp">
+      <Filter>Application\Object\Player</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\Player.h">
+      <Filter>Application\Object\Player</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Player\PlayerHealth.cpp">
+      <Filter>Application\Object\Player</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\PlayerHealth.h">
+      <Filter>Application\Object\Player</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Player\Shape\BreakShape.cpp">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\Shape\BreakShape.h">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Player\Shape\BreakShapeQueue.cpp">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\Shape\BreakShapeQueue.h">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Player\Shape\BreakShapeType.h">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Player\Shape\ShapeController.cpp">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\Shape\ShapeController.h">
+      <Filter>Application\Object\Player\Shape</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Clear\Clear.cpp">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Clear\Clear.h">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\BossBattle.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\BossBattle.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\BossContact.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\BossContact.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\BossFallFlow.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\BossFallFlow.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\DescentSequence.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\DescentSequence.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\Game.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\Game.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\GameHud.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\GameHud.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\GamePhase.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\TileBarrage.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\TileBarrage.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\GameOver\GameOver.cpp">
+      <Filter>Application\Scene\GameOver</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\GameOver\GameOver.h">
+      <Filter>Application\Scene\GameOver</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\SceneSetup.h">
+      <Filter>Application\Scene</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Title\Title.cpp">
+      <Filter>Application\Scene\Title</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Title\Title.h">
+      <Filter>Application\Scene\Title</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Floor\Floor.cpp">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Floor\Floor.h">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Floor\FloorCsv.cpp">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Floor\FloorCsv.h">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\Floor\FloorTile.h">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Floor\FloorView.cpp">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Floor\FloorView.h">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\Grid\Cell.h">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Grid\FloorGrid.cpp">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Grid\FloorGrid.h">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Grid\FloorPathFinder.cpp">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Grid\FloorPathFinder.h">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\Grid\GridDirection.cpp">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Grid\GridDirection.h">
+      <Filter>Application\Stage\Grid</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Stage\LayerFloors.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\LayerFloors.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\UI\NextShapePanel.cpp">
+      <Filter>Application\UI</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\UI\NextShapePanel.h">
+      <Filter>Application\UI</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

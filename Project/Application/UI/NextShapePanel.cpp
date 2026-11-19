@@ -1,7 +1,7 @@
 #include "NextShapePanel.h"
 #include "../Camera/StageCamera.h"
-#include "../Game/BreakShape.h"
-#include "../Game/GameConfig.h"
+#include "../Object/Player/Shape/BreakShape.h"
+#include "../Config/GameConfig.h"
 #include <algorithm>
 
 using namespace RyoEngine;

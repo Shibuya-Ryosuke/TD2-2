@@ -15,36 +15,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application\Application.cpp" />
-    <ClCompile Include="Application\Scene\Game.cpp" />
-    <ClCompile Include="Application\Scene\Title.cpp" />
-    <ClCompile Include="Application\Camera\StageCamera.cpp" />
-    <ClCompile Include="Application\Input\GameInput.cpp" />
-    <ClCompile Include="Application\Object\Boss.cpp" />
-    <ClCompile Include="Application\Object\Player.cpp" />
-    <ClCompile Include="Application\Scene\Clear.cpp" />
-    <ClCompile Include="Application\Scene\GameOver.cpp" />
-    <ClCompile Include="Application\Stage\Floor.cpp" />
-    <ClCompile Include="Application\Game\BreakShape.cpp" />
-    <ClCompile Include="Application\UI\NextShapePanel.cpp" />
-    <ClCompile Include="Application\Stage\GridDirection.cpp" />
-    <ClCompile Include="Application\Stage\FloorCsv.cpp" />
-    <ClCompile Include="Application\Stage\FloorGrid.cpp" />
-    <ClCompile Include="Application\Stage\FloorPathFinder.cpp" />
-    <ClCompile Include="Application\Stage\FloorView.cpp" />
-    <ClCompile Include="Application\Object\BossView.cpp" />
-    <ClCompile Include="Application\Object\FieldItem.cpp" />
-    <ClCompile Include="Application\Game\ItemManager.cpp" />
-    <ClCompile Include="Application\Game\ShapeController.cpp" />
-    <ClCompile Include="Application\Game\LayerFloors.cpp" />
-    <ClCompile Include="Application\Game\DescentSequence.cpp" />
-    <ClCompile Include="Application\Game\TileBarrage.cpp" />
-    <ClCompile Include="Application\Game\PlayerHealth.cpp" />
-    <ClCompile Include="Application\Game\BossContact.cpp" />
-    <ClCompile Include="Application\Game\BossBattle.cpp" />
-    <ClCompile Include="Application\Game\BossFallFlow.cpp" />
-    <ClCompile Include="Application\UI\GameHud.cpp" />
-    <ClCompile Include="Application\Camera\NearFadeSwitch.cpp" />
     <ClCompile Include="Engine\Graphics\3D\Animator.cpp" />
     <ClCompile Include="Engine\Graphics\3D\SkinningManager.cpp" />
     <ClCompile Include="Engine\Graphics\Particle\ParticleCommon.cpp" />
@@ -104,15 +74,11 @@
     <ClCompile Include="Engine\Test\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application\Application.h" />
-    <ClInclude Include="Application\Scene\Game.h" />
-    <ClInclude Include="Application\Scene\Title.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleCommon.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleEmitter.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleManager.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleTemplates.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleTypes.h" />
-    <ClInclude Include="Application\Scene\SceneSetup.h" />
     <ClInclude Include="Engine\Camera\CameraManager.h" />
     <ClInclude Include="Engine\Core\Asset\AssetRegistry.h" />
     <ClInclude Include="Engine\Core\Base\BindingRegistry.h" />
@@ -524,6 +490,80 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
 copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dxil.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\Application.cpp" />
+    <ClCompile Include="Application\Camera\NearFadeSwitch.cpp" />
+    <ClCompile Include="Application\Camera\StageCamera.cpp" />
+    <ClCompile Include="Application\Input\GameInput.cpp" />
+    <ClCompile Include="Application\Object\Boss\Boss.cpp" />
+    <ClCompile Include="Application\Object\Boss\BossView.cpp" />
+    <ClCompile Include="Application\Object\Item\FieldItem.cpp" />
+    <ClCompile Include="Application\Object\Item\ItemManager.cpp" />
+    <ClCompile Include="Application\Object\Player\Player.cpp" />
+    <ClCompile Include="Application\Object\Player\PlayerHealth.cpp" />
+    <ClCompile Include="Application\Object\Player\Shape\BreakShape.cpp" />
+    <ClCompile Include="Application\Object\Player\Shape\BreakShapeQueue.cpp" />
+    <ClCompile Include="Application\Object\Player\Shape\ShapeController.cpp" />
+    <ClCompile Include="Application\Scene\Clear\Clear.cpp" />
+    <ClCompile Include="Application\Scene\Game\BossBattle.cpp" />
+    <ClCompile Include="Application\Scene\Game\BossContact.cpp" />
+    <ClCompile Include="Application\Scene\Game\BossFallFlow.cpp" />
+    <ClCompile Include="Application\Scene\Game\DescentSequence.cpp" />
+    <ClCompile Include="Application\Scene\Game\Game.cpp" />
+    <ClCompile Include="Application\Scene\Game\GameHud.cpp" />
+    <ClCompile Include="Application\Scene\Game\TileBarrage.cpp" />
+    <ClCompile Include="Application\Scene\GameOver\GameOver.cpp" />
+    <ClCompile Include="Application\Scene\Title\Title.cpp" />
+    <ClCompile Include="Application\Stage\Floor\Floor.cpp" />
+    <ClCompile Include="Application\Stage\Floor\FloorCsv.cpp" />
+    <ClCompile Include="Application\Stage\Floor\FloorView.cpp" />
+    <ClCompile Include="Application\Stage\Grid\FloorGrid.cpp" />
+    <ClCompile Include="Application\Stage\Grid\FloorPathFinder.cpp" />
+    <ClCompile Include="Application\Stage\Grid\GridDirection.cpp" />
+    <ClCompile Include="Application\Stage\LayerFloors.cpp" />
+    <ClCompile Include="Application\UI\NextShapePanel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application\Application.h" />
+    <ClInclude Include="Application\Camera\NearFadeSwitch.h" />
+    <ClInclude Include="Application\Camera\StageCamera.h" />
+    <ClInclude Include="Application\Config\GameConfig.h" />
+    <ClInclude Include="Application\Input\GameInput.h" />
+    <ClInclude Include="Application\Object\Boss\Boss.h" />
+    <ClInclude Include="Application\Object\Boss\BossTuning.h" />
+    <ClInclude Include="Application\Object\Boss\BossView.h" />
+    <ClInclude Include="Application\Object\Item\FieldItem.h" />
+    <ClInclude Include="Application\Object\Item\ItemManager.h" />
+    <ClInclude Include="Application\Object\Item\ItemType.h" />
+    <ClInclude Include="Application\Object\Player\Player.h" />
+    <ClInclude Include="Application\Object\Player\PlayerHealth.h" />
+    <ClInclude Include="Application\Object\Player\Shape\BreakShape.h" />
+    <ClInclude Include="Application\Object\Player\Shape\BreakShapeQueue.h" />
+    <ClInclude Include="Application\Object\Player\Shape\BreakShapeType.h" />
+    <ClInclude Include="Application\Object\Player\Shape\ShapeController.h" />
+    <ClInclude Include="Application\Scene\Clear\Clear.h" />
+    <ClInclude Include="Application\Scene\Game\BossBattle.h" />
+    <ClInclude Include="Application\Scene\Game\BossContact.h" />
+    <ClInclude Include="Application\Scene\Game\BossFallFlow.h" />
+    <ClInclude Include="Application\Scene\Game\DescentSequence.h" />
+    <ClInclude Include="Application\Scene\Game\Game.h" />
+    <ClInclude Include="Application\Scene\Game\GameHud.h" />
+    <ClInclude Include="Application\Scene\Game\GamePhase.h" />
+    <ClInclude Include="Application\Scene\Game\TileBarrage.h" />
+    <ClInclude Include="Application\Scene\GameOver\GameOver.h" />
+    <ClInclude Include="Application\Scene\SceneSetup.h" />
+    <ClInclude Include="Application\Scene\Title\Title.h" />
+    <ClInclude Include="Application\Stage\Floor\Floor.h" />
+    <ClInclude Include="Application\Stage\Floor\FloorCsv.h" />
+    <ClInclude Include="Application\Stage\Floor\FloorTile.h" />
+    <ClInclude Include="Application\Stage\Floor\FloorView.h" />
+    <ClInclude Include="Application\Stage\Grid\Cell.h" />
+    <ClInclude Include="Application\Stage\Grid\FloorGrid.h" />
+    <ClInclude Include="Application\Stage\Grid\FloorPathFinder.h" />
+    <ClInclude Include="Application\Stage\Grid\GridDirection.h" />
+    <ClInclude Include="Application\Stage\LayerFloors.h" />
+    <ClInclude Include="Application\UI\NextShapePanel.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
