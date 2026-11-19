@@ -6,15 +6,17 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include "../../Core/Math/Math.h"
 #include "../../Core/Math/BlendMode.h"
+#include "../../Core/Animation/AnimationData.h"
 
 namespace RyoEngine {
 
     /// <summary>
     /// GPUへ渡す「1体 x 1メッシュ」分のデータ。
-    /// HLSL側 ModelInstance (ModelInstance.hlsli) と1:1でレイアウトを合わせること。全体で160byte。
+    /// HLSL側 ModelInstance (ModelInstance.hlsli) と1:1でレイアウトを合わせること。全体で176byte。
     /// </summary>
     struct ModelInstanceData {
         Matrix4x4 world;          // 64
@@ -25,8 +27,20 @@ namespace RyoEngine {
         int32_t   enableLighting; //  4
         int32_t   shadingMode;    //  4
         Vector4   params[2];      // 32  カスタムシェーダー用の自由な値 (Model::SetShaderParam)
+        Vector4   specular;       // 16  rgb=鏡面反射の色×強さ, a=鋭さ(shininess)。Phong / BlinnPhong のときだけ使う
     };
-    static_assert(sizeof(ModelInstanceData) == 160, "ModelInstanceData は160byteであること (ModelInstance.hlsli と合わせる)");
+    static_assert(sizeof(ModelInstanceData) == 176, "ModelInstanceData は176byteであること (ModelInstance.hlsli と合わせる)");
+
+    /// <summary>
+    /// カメラの定数バッファ (b0)。HLSL側 CameraBuffer (ModelSurface.hlsli) と合わせること。
+    /// 位置は鏡面反射(Phong / BlinnPhong)の視線の向きを求めるのに使う
+    /// </summary>
+    struct ModelCameraData {
+        Matrix4x4 viewProjection; // 64
+        Vector3   position;       // 12  描画カメラのワールド座標
+        float     padding;        //  4
+    };
+    static_assert(sizeof(ModelCameraData) == 80, "ModelCameraData は80byteであること (ModelSurface.hlsli と合わせる)");
 
     /// <summary>
     /// 描画のしかた (Model::Draw() から ModelManager::Submit() へ渡す)
@@ -40,7 +54,22 @@ namespace RyoEngine {
         bool castShadow = true;
         // 背景(天球など)。ほかの何よりも先に、深度を書かずに描く。影は落とさない
         bool isBackground = false;
+        // スキニング済みの頂点バッファ (アニメーションするモデル用。nullptr ならモデルデータの頂点を使う)。
+        // 指定したものは、ほかの体とまとめずに1体ずつ描く
+        const D3D12_VERTEX_BUFFER_VIEW* vertexBuffer = nullptr;
     };
+
+    /// <summary>
+    /// スキニングの入力に使う頂点1つ分 (Skinning.CS.hlsl の SkinVertex と合わせること。全体で68byte)
+    /// </summary>
+    struct SkinVertexData {
+        Vector4  position; // 16
+        Vector2  texcoord; //  8
+        Vector3  normal;   // 12
+        Vector4  weight;   // 16  ボーンの割合 (合計1)
+        uint32_t index[4]; // 16  メッシュの SkinBone 配列の番号
+    };
+    static_assert(sizeof(SkinVertexData) == 68, "SkinVertexData は68byteであること (Skinning.CS.hlsl と合わせる)");
 
     /// <summary>
     /// objなどのモデルデータを1度だけ読み込んで保持し、描画をまとめて行うクラス。
@@ -65,6 +94,12 @@ namespace RyoEngine {
             bool hasUV = true;
             std::string materialName;        // mtlのnewmtl名 (名前引き用)
             uint32_t defaultTextureHandle = 0; // map_Kd があればそれ、無い/UV無しなら white1x1
+
+            // --- スキニング (骨格を持つモデルのときだけ) ---
+            // 骨格を持つモデルの vertexResource には、元の姿勢でスキニングした頂点 (モデルの原点から見た座標) が入っている
+            bool isSkinned = false;
+            Microsoft::WRL::ComPtr<ID3D12Resource> skinVertexResource; // SkinVertexData の配列 (スキニングの入力)
+            std::vector<SkinBone> skinBones;                         // 行列パレットの元
         };
 
         // 1モデル分 (複数メッシュを持てる)
@@ -72,6 +107,20 @@ namespace RyoEngine {
             std::string filePath;
             std::vector<MeshAsset> meshes;
             float boundingRadius = 0.0f; // ローカル原点から一番遠い頂点までの距離 (カリング用)
+
+            // --- 骨格・アニメーション (ボーンかアニメーションを持つファイルのときだけ) ---
+            bool hasSkeleton = false;
+            SkeletonData skeleton;
+            std::vector<Matrix4x4> bindPoseMatrices;     // 元の姿勢での各ボーンの行列 (モデルの原点から見た座標)
+            std::vector<SkeletalAnimation> animations;   // 名前で再生するアニメーション
+            std::unordered_map<std::string, uint32_t> animationIndex; // 名前 → animations の番号
+            std::unordered_set<std::string> loadedAnimationFiles;     // LoadAnimation で読み込んだファイル (同じファイルを2回読まないため)
+
+            /// <summary>名前からアニメーションの番号を探す (無ければ -1)</summary>
+            int32_t FindAnimation(const std::string& name) const {
+                auto it = animationIndex.find(name);
+                return it != animationIndex.end() ? static_cast<int32_t>(it->second) : -1;
+            }
         };
 
         static void Initialize();
@@ -87,6 +136,26 @@ namespace RyoEngine {
         /// modelIndexからモデルデータを取得する。無効なら nullptr
         /// </summary>
         static const ModelAsset* GetAsset(uint32_t modelIndex);
+
+        /// <summary>
+        /// 別ファイルのアニメーションを、モデルに足す (同じモデルを使う全員で使えるようになる)。
+        /// ボーンは名前で対応させる。見つからなかったボーンはログに警告を出す。
+        /// 骨の長さが違うモデル用のアニメーションなら、腰(一番上の動くボーン)以外は回転だけを使う。
+        /// </summary>
+        /// <param name="modelIndex">足す先のモデル (骨格を持つもの)</param>
+        /// <param name="filePath">アニメーションのファイル (gltf / glb)</param>
+        /// <param name="name">再生するときの名前。空ならファイル名 (アニメーションが複数入っていれば、それぞれの名前)</param>
+        /// <returns>足したアニメーションの数 (同じファイルを読み込み済みなら、何もせず0)</returns>
+        static uint32_t LoadAnimation(uint32_t modelIndex, const std::string& filePath, const std::string& name = "");
+
+        /// <summary>フレームの通し番号 (アニメーションを1フレームに1回だけ進めるため)</summary>
+        static uint64_t GetFrameIndex() { return GetInstance()->frameIndex_; }
+
+        // --- 骨格の表示 (デバッグ用。ParamEditor の「Model」から切り替えられる) ---
+        static void SetShowSkeleton(bool show) { GetInstance()->showSkeleton_ = show; }
+        static bool IsShowSkeleton() { return GetInstance()->showSkeleton_; }
+        /// <summary>ParamEditor へ項目を登録する (エンジンの初期化時と、シーン切り替えで登録が消えた後に呼ばれる)</summary>
+        static void RegisterDebugParams();
 
         // --- カメラに近いモデルを消す距離 (ビュー空間の奥行き、ワールド単位) ---
         // 不透明はディザ、半透明・加算などは薄くして消す。どのモデルにも必ずかかる
@@ -148,6 +217,11 @@ namespace RyoEngine {
         void CreateRootSignature();
         void CreatePipelineStates();
         void CreateBuffers();
+        // 骨格を持つモデルの読み込みの続き (スキニングの入力・元の姿勢の頂点・アニメーション)
+        static void SetupSkeletalAsset(ModelAsset& asset, std::vector<AnimationData>&& animations);
+        // アニメーションをモデルに登録する (sourceSkeleton が空なら、モデル自身のアニメーションとして全部の動きを使う)
+        static void AddAnimation(ModelAsset& asset, AnimationData&& animation, const std::string& name,
+            const SkeletonData* sourceSkeleton, const std::string& filePath);
         D3D12_BLEND_DESC CreateBlendDesc(BlendMode blendMode) const;
         // 通常描画のPSOを取得する。無ければその場で作って保存する (初めて使われた組み合わせだけ作る)
         // isBackground: 背景用 (深度を書かない)
@@ -170,6 +244,9 @@ namespace RyoEngine {
             bool castShadow = true;
             bool isBackground = false;
             float distanceSq = 0.0f; // カメラからの距離の2乗 (Normalを遠い順に並べる用)
+            // スキニング済みの頂点バッファ (hasVertexBuffer のときだけ使う)
+            bool hasVertexBuffer = false;
+            D3D12_VERTEX_BUFFER_VIEW vertexBuffer{};
         };
         // 1回のDrawInstancedにまとまるグループ
         struct Group {
@@ -180,6 +257,9 @@ namespace RyoEngine {
             BlendMode blendMode = BlendMode::None;
             uint32_t firstInstance = 0;
             uint32_t instanceCount = 0;
+            // スキニング済みの頂点バッファ (hasVertexBuffer のときだけ使う)
+            bool hasVertexBuffer = false;
+            D3D12_VERTEX_BUFFER_VIEW vertexBuffer{};
         };
         // 並べ終わった entries を、instanceMapped_ の writeIndex から詰めてグループにする
         void AppendGroups(const std::vector<const Entry*>& sorted, size_t& writeIndex, std::vector<Group>& outGroups);
@@ -227,6 +307,10 @@ namespace RyoEngine {
         // シェーダーに渡す経過時間 (秒)。TimeManager の時間の速さ(スロー等)に合わせて進む
         float time_ = 0.0f;
         bool prepared_ = false;
+        // フレームの通し番号 (NewFrame で1つ進む)
+        uint64_t frameIndex_ = 0;
+        // 骨格を線で表示するか (デバッグ用)
+        bool showSkeleton_ = false;
 
         // --- GPUバッファ ---
         // インスタンス配列 (StructuredBuffer)。足りなくなったら作り直す
@@ -240,8 +324,8 @@ namespace RyoEngine {
         };
         std::vector<RetiredBuffer> retired_;
 
-        // カメラのView-Projection (VS用CBV)
+        // カメラのView-Projection と位置 (VS/PS共通のCBV)
         Microsoft::WRL::ComPtr<ID3D12Resource> cameraVPResource_;
-        Matrix4x4* cameraVPData_ = nullptr;
+        ModelCameraData* cameraVPData_ = nullptr;
     };
 }

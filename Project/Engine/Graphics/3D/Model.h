@@ -4,6 +4,8 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 #include "../../Core/Math/Math.h"
 #include "../../Core/Math/Transform.h"
@@ -11,6 +13,7 @@
 #include "../../Core/Math/Geometry.h"
 #include "../../Camera/Camera.h"
 #include "ModelManager.h"
+#include "Animator.h"
 #include "../../Editor/ModelLayout.h"
 
 namespace RyoEngine {
@@ -81,6 +84,57 @@ namespace RyoEngine {
         /// </summary>
         void Draw();
 
+        // ---------------- アニメーション (骨格を持つモデル: gltf / glb のボーン・アニメーション) ----------------
+        // 再生はエンジンが毎フレーム自動で進める (TimeManager の時間の速さに合わせる)。骨格の無いモデルでは何もしない
+        /// <summary>骨格を持つモデルか (アニメーションできるか)</summary>
+        bool HasSkeleton() const { return animator_ != nullptr; }
+        /// <summary>
+        /// アニメーションを名前で再生する。
+        /// 別のアニメーションを再生中なら、こちらに切り替える。同じアニメーションを再生中なら最初からにはせず続ける
+        /// </summary>
+        /// <param name="name">アニメーションの名前 (GetAnimationNames で一覧を取れる)</param>
+        /// <param name="loop">true: ループする / false: 最後まで行ったら止まる (IsAnimationFinished が true になる)</param>
+        /// <param name="blendSeconds">前のアニメーションから、この秒数かけて混ぜて切り替える (0 ですぐ切り替える)</param>
+        /// <param name="restart">true: 同じアニメーションを再生中でも最初から再生し直す</param>
+        void PlayAnimation(const std::string& name, bool loop = true, float blendSeconds = 0.0f, bool restart = false);
+        /// <summary>その場の姿勢で止める。次の PlayAnimation は最初から</summary>
+        void StopAnimation();
+        /// <summary>アニメーションを止めて、元の姿勢 (アニメーションの無い状態) に戻す</summary>
+        void ResetPose();
+        /// <summary>一時停止 (ResumeAnimation で止めた所から再開する)</summary>
+        void PauseAnimation();
+        void ResumeAnimation();
+        /// <summary>再生中か (一時停止中・止めた後・ループしないアニメーションが終わった後は false)</summary>
+        bool IsAnimationPlaying() const { return animator_ && animator_->IsPlaying(); }
+        /// <summary>ループしないアニメーションが最後まで行ったか (ループ中は常に false)</summary>
+        bool IsAnimationFinished() const { return animator_ && animator_->IsFinished(); }
+        /// <summary>再生速度 (1 = 普通、2 = 2倍速、負の値で逆再生)</summary>
+        void SetAnimationSpeed(float speed) { if (animator_) animator_->SetSpeed(speed); }
+        float GetAnimationSpeed() const { return animator_ ? animator_->GetSpeed() : 1.0f; }
+        /// <summary>今の再生位置 (秒)</summary>
+        float GetAnimationTime() const { return animator_ ? animator_->GetTime() : 0.0f; }
+        /// <summary>再生位置を変える (秒)</summary>
+        void SetAnimationTime(float time) { if (animator_) animator_->SetTime(time); }
+        /// <summary>今のアニメーションの長さ (秒)</summary>
+        float GetAnimationDuration() const { return animator_ ? animator_->GetDuration() : 0.0f; }
+        /// <summary>今のアニメーションの名前 (無ければ空)</summary>
+        const std::string& GetCurrentAnimationName() const;
+        /// <summary>その名前のアニメーションがあるか</summary>
+        bool HasAnimation(const std::string& name) const;
+        /// <summary>使えるアニメーションの名前の一覧</summary>
+        std::vector<std::string> GetAnimationNames() const;
+        /// <summary>
+        /// 別ファイルのアニメーションを足す (同じモデルを使う全員で使えるようになる)。ボーンは名前で対応させる。
+        /// 名前でもパスでもよい。name を省略するとファイル名で登録される (例: "walk.gltf" → "walk")
+        /// </summary>
+        /// <returns>足したアニメーションの数</returns>
+        uint32_t LoadAnimation(const std::string& filePath, const std::string& name = "");
+        /// <summary>
+        /// ボーンの座標 (剣を手に持たせるときなど)。sword->SetParent(player->GetJointTransform("RightHand")) のように使う。
+        /// アニメーションに合わせて毎フレーム動く。ボーンが無ければ nullptr (警告を出す)
+        /// </summary>
+        WorldTransform* GetJointTransform(const std::string& jointName);
+
         // ---------------- エディタ (DEBUGのみ有効) ----------------
         /// <summary>画面クリックで選べるか (既定 true)。選ぶと自動でギズモが出る</summary>
         void SetPickable(bool pickable) { pickable_ = pickable; }
@@ -128,6 +182,9 @@ namespace RyoEngine {
         float GetEmissiveIntensity(size_t meshIndex = 0) const { return meshes_[meshIndex].emissiveIntensity; }
         bool GetEnableLighting(size_t meshIndex = 0) const { return meshes_[meshIndex].enableLighting; }
         ShadingMode GetLambert(size_t meshIndex = 0) const { return meshes_[meshIndex].shadingMode; }
+        const Vector3& GetSpecularColor(size_t meshIndex = 0) const { return meshes_[meshIndex].specularColor; }
+        float GetSpecularIntensity(size_t meshIndex = 0) const { return meshes_[meshIndex].specularIntensity; }
+        float GetShininess(size_t meshIndex = 0) const { return meshes_[meshIndex].shininess; }
         BlendMode GetBlendMode(size_t meshIndex = 0) const { return meshes_[meshIndex].blendMode; }
         bool GetCastShadow() const { return castShadow_; }
         bool IsBackground() const { return isBackground_; }
@@ -178,10 +235,24 @@ namespace RyoEngine {
         void SetTex(uint32_t handle, int32_t meshIndex = -1);
         void SetTex(const std::string& filePath, int32_t meshIndex = -1);
         void SetColor(const Vector4& color, int32_t meshIndex = -1);
+        /// <summary>色をカラーコードで指定する (例: SetColor(0xFF8800))。アルファは1になる。sRGB → リニアに自動で変換する</summary>
+        void SetColor(uint32_t rgbHex, int32_t meshIndex = -1);
+        /// <summary>色をカラーコードの文字列で指定する (例: SetColor("#FF8800") / "#FF880080" でアルファ付き)</summary>
+        void SetColor(std::string_view hex, int32_t meshIndex = -1);
         /// <summary>発光。ライティングを通さず最終色へ加算される</summary>
         void SetEmissive(const Vector3& color, float intensity, int32_t meshIndex = -1);
+        /// <summary>発光の色をカラーコードで指定する (例: SetEmissive(0xFF8800, 2.0f))</summary>
+        void SetEmissive(uint32_t rgbHex, float intensity, int32_t meshIndex = -1);
+        /// <summary>発光の色をカラーコードの文字列で指定する (例: SetEmissive("#FF8800", 2.0f)。アルファは無視)</summary>
+        void SetEmissive(std::string_view hex, float intensity, int32_t meshIndex = -1);
         void SetEnableLighting(bool enable, int32_t meshIndex = -1);
         void SetLambert(ShadingMode mode, int32_t meshIndex = -1);
+        /// <summary>
+        /// 鏡面反射 (ハイライト)。SetLambert で PHONG / BLINN_PHONG にしたときだけ使われる。
+        /// color: ハイライトの色 (テクスチャ・モデルの色はかからない) / intensity: 強さ (0で無し)
+        /// shininess: 鋭さ。大きいほどハイライトが小さく鋭くなる (目安: 8 ぼんやり 〜 128 つるつる)
+        /// </summary>
+        void SetSpecular(const Vector3& color, float intensity, float shininess, int32_t meshIndex = -1);
         /// <summary>
         /// ブレンドモード (初期値 None = 不透明)。半透明にしたいときは Normal、光るエフェクトは Add など。
         /// None と Normal 以外は深度を書かない。Add/Subtract/Screen は影を落とさない
@@ -219,7 +290,10 @@ namespace RyoEngine {
         void SetTexByName(uint32_t handle, const std::string& materialName);
         void SetTexByName(const std::string& filePath, const std::string& materialName);
         void SetColorByName(const Vector4& color, const std::string& materialName);
+        void SetColorByName(uint32_t rgbHex, const std::string& materialName);
+        void SetColorByName(std::string_view hex, const std::string& materialName);
         void SetLambertByName(ShadingMode mode, const std::string& materialName);
+        void SetSpecularByName(const Vector3& color, float intensity, float shininess, const std::string& materialName);
         void SetBlendModeByName(BlendMode blendMode, const std::string& materialName);
         void SetShaderByName(uint32_t shader, const std::string& materialName);
         void SetUVScaleByName(const Vector2& scale, const std::string& materialName);
@@ -237,6 +311,9 @@ namespace RyoEngine {
             float emissiveIntensity = 0.0f;
             bool enableLighting = true;
             ShadingMode shadingMode = ShadingMode::HALF_LAMBERT;
+            Vector3 specularColor = { 1.0f, 1.0f, 1.0f }; // 鏡面反射 (PHONG / BLINN_PHONG のときだけ使う)
+            float specularIntensity = 1.0f;
+            float shininess = 32.0f;
             BlendMode blendMode = BlendMode::None;
             uint32_t shader = 0; // カスタムシェーダー (0 = エンジン標準)
             Vector2 uvScale = { 1.0f, 1.0f };
@@ -273,6 +350,27 @@ namespace RyoEngine {
 
         // 今の設定で使うPSOを先に作っておく (描く瞬間に作るとカクつくことがあるため)
         void PreparePipelines();
+
+        // --- アニメーション ---
+        // アニメーションを進める (1フレームに1回だけ。TransferMatrix と Draw から呼ぶ)
+        void UpdateAnimation();
+        // ボーンの座標 (GetJointTransform で作ったもの) を、今の姿勢に合わせる
+        void UpdateJointTransforms();
+        // 骨格を線で描く (デバッグ用)
+        void DrawSkeleton() const;
+        // アニメーションの状態を作り直す (モデルが変わったとき)
+        void ResetAnimation();
+
+        // ボーンにくっつけるための座標 (GetJointTransform で作る)
+        struct JointAttachment {
+            int32_t jointIndex = -1;
+            std::unique_ptr<WorldTransform> transform;
+        };
+        std::unique_ptr<Animator> animator_;      // 骨格を持つモデルのときだけ
+        uint32_t skinInstance_ = 0;               // SkinningManager のバッファ (0 = なし)
+        bool skinDirty_ = true;                   // 姿勢が変わって、スキニングをやり直す必要があるか
+        uint64_t animatedFrame_ = 0;              // 最後にアニメーションを進めたフレーム
+        std::unordered_map<std::string, JointAttachment> jointAttachments_;
         Vector3 pickCenter_{ 0.0f, 0.0f, 0.0f };
         float pickRadius_ = 0.0f;
         std::function<void(const Transform&)> onTransformEdited_;

@@ -4,6 +4,7 @@
 //   1. カメラに近いときの処理 (不透明はディザ)          … 必ず通る
 //   2. Surface() で色を決める                           … アプリの処理
 //   3. ライティング・影                                  … output.enableLighting が true のとき
+//      (Phong / BlinnPhong は鏡面反射も足す)
 //   4. 発光を足す
 //   5. カメラに近いときの処理 (半透明・加算などは薄くする) … 必ず通る
 // エディタ(IntelliSense)がこのファイル単体を見ても型や関数が分かるように include しておく。
@@ -20,7 +21,7 @@ void Surface(SurfaceInput input, inout SurfaceOutput output);
 #include "DefaultSurface.hlsli"
 #endif
 
-// C++側 Light構造体(Light.h)と1:1でレイアウトを合わせること。全体で64byte。
+// C++側 Light構造体(Light.h)と1:1でレイアウトを合わせること。全体で96byte。
 struct Light
 {
     float4 color;       // rgb=色, a=未使用
@@ -32,6 +33,10 @@ struct Light
     float spotFalloff;  // Spotの縁の滑らかさ
     uint type;          // ライト種別 (0:Directional 1:Point 2:Spot 3:Area)
     float padding;      // 16byteアライン調整用
+    float3 areaRight;   // Areaで使用：面の横方向 (正規化済み。C++側が毎フレーム計算して入れる)
+    float areaWidth;    // Areaで使用：面の幅 (端から端までの長さ)
+    float3 areaUp;      // Areaで使用：面の縦方向 (正規化済み)
+    float areaHeight;   // Areaで使用：面の高さ (端から端までの長さ)
 };
 
 static const uint LIGHT_TYPE_DIRECTIONAL = 0;
@@ -71,10 +76,16 @@ struct PixelShaderOutput
     float4 color : SV_TARGET0;
 };
 
+static const int SHADING_LAMBERT      = 1;
+static const int SHADING_HALF_LAMBERT = 2;
+static const int SHADING_PHONG        = 3;
+static const int SHADING_BLINN_PHONG  = 4;
+
 // 法線とライトへの向き(dirToLight：ピクセルからライトの方向)から、Lambert/HalfLambertの係数を計算する
+// (Phong / BlinnPhong の拡散反射は Lambert と同じ)
 float ComputeCosTerm(float3 normal, float3 dirToLight, int shadingMode)
 {
-    if (shadingMode == 1)
+    if (shadingMode == SHADING_LAMBERT || shadingMode == SHADING_PHONG || shadingMode == SHADING_BLINN_PHONG)
     {
         // Lambert
         return saturate(dot(normal, dirToLight));
@@ -86,6 +97,42 @@ float ComputeCosTerm(float3 normal, float3 dirToLight, int shadingMode)
         return pow(NdotL * 0.5f + 0.5f, 2.0f);
     }
     return 1.0f;
+}
+
+// 鏡面反射(ハイライト)の係数を計算する。Phong / BlinnPhong 以外は0
+//   dirToLight : ピクセルからライトへの向き
+//   dirToCamera: ピクセルからカメラへの向き
+float ComputeSpecularTerm(float3 normal, float3 dirToLight, float3 dirToCamera, float shininess, int shadingMode)
+{
+    // ライトが面の裏側にあるときはハイライトを出さない (裏まで光が回り込まないように)
+    if (dot(normal, dirToLight) <= 0.0f)
+    {
+        return 0.0f;
+    }
+    if (shadingMode == SHADING_PHONG)
+    {
+        // Phong: ライトの光が面で跳ね返る向き(反射ベクトル)と、カメラへの向きがどれだけ近いか
+        float3 reflectDir = reflect(-dirToLight, normal);
+        return pow(saturate(dot(reflectDir, dirToCamera)), shininess);
+    }
+    if (shadingMode == SHADING_BLINN_PHONG)
+    {
+        // Blinn-Phong: ライトとカメラのちょうど中間の向き(ハーフベクトル)と、法線がどれだけ近いか
+        float3 halfVector = normalize(dirToLight + dirToCamera);
+        return pow(saturate(dot(normal, halfVector)), shininess);
+    }
+    return 0.0f;
+}
+
+// エリアライト(長方形の面光源)の面の上で、指定した座標に一番近い場所を返す
+//   面の中心からのずれを、横方向・縦方向の成分に分けて、それぞれ面の端までに収める
+float3 ClosestPointOnAreaLight(Light light, float3 targetPosition)
+{
+    float3 fromCenter = targetPosition - light.position;
+    float2 halfSize = float2(light.areaWidth, light.areaHeight) * 0.5f;
+    float alongRight = clamp(dot(fromCenter, light.areaRight), -halfSize.x, halfSize.x);
+    float alongUp = clamp(dot(fromCenter, light.areaUp), -halfSize.y, halfSize.y);
+    return light.position + light.areaRight * alongRight + light.areaUp * alongUp;
 }
 
 // ワールド座標から、シャドウマップを使って「影の量」を計算する (1:影なし 〜 0:完全に影)
@@ -144,6 +191,8 @@ PixelShaderOutput main(VertexShaderOutput input)
     surface.alpha = instance.color.a * textureColor.a;
     surface.emissive = instance.emissive.rgb * instance.emissive.a;
     surface.normal = surfaceInput.normal;
+    surface.specular = instance.specular.rgb;
+    surface.shininess = max(instance.specular.a, 1.0f);
     surface.enableLighting = (instance.enableLighting != 0 && instance.shadingMode != 0);
 
     Surface(surfaceInput, surface);
@@ -152,6 +201,9 @@ PixelShaderOutput main(VertexShaderOutput input)
     {
         float3 normal = normalize(surface.normal);
         float3 lightSum = float3(0.0f, 0.0f, 0.0f);
+        // 鏡面反射の合計 (モデルの色・テクスチャはかけずに足す)
+        float3 specularSum = float3(0.0f, 0.0f, 0.0f);
+        float3 dirToCamera = normalize(gCameraPosition - input.worldPosition);
 
         for (uint i = 0; i < gLightCount; ++i)
         {
@@ -163,6 +215,46 @@ PixelShaderOutput main(VertexShaderOutput input)
                 float cosTerm = ComputeCosTerm(normal, dirToLight, instance.shadingMode);
                 float shadow = CalculateShadowFactor(input.worldPosition);
                 lightSum += light.color.rgb * cosTerm * light.intensity * shadow;
+                float specularTerm = ComputeSpecularTerm(normal, dirToLight, dirToCamera, surface.shininess, instance.shadingMode);
+                specularSum += light.color.rgb * specularTerm * light.intensity * shadow;
+            }
+            else if (light.type == LIGHT_TYPE_AREA)
+            {
+                // エリアライト(長方形の面光源)。代表点法: 面の中から「この1点から照らされている」とみなす点を選び、
+                // あとはポイントライトと同じように計算する。
+                // light.direction は面が光を出す向き。片面だけ光る (裏側は照らさない)
+
+                // --- 拡散反射: 面の上で、このピクセルに一番近い点から照らされている扱いにする ---
+                float3 diffusePoint = ClosestPointOnAreaLight(light, input.worldPosition);
+                float3 toLightVec = diffusePoint - input.worldPosition;
+                float distance = length(toLightVec);
+                float3 dirToLight = toLightVec / max(distance, 0.0001f);
+
+                float attenuation = saturate(1.0f - (distance / max(light.range, 0.0001f)));
+                attenuation *= attenuation;
+                // 面の正面にあるほど明るく、真横で0、裏側は照らさない
+                attenuation *= saturate(dot(light.direction, -dirToLight));
+
+                float cosTerm = ComputeCosTerm(normal, dirToLight, instance.shadingMode);
+                lightSum += light.color.rgb * cosTerm * light.intensity * attenuation;
+
+                // --- 鏡面反射: 視線が面で跳ね返った先が、ライトの面のどこに当たるかを求めて、そこを光源の位置にする ---
+                // (面に当たらないときは、当たるはずだった場所に一番近い面の上の点を使う。ハイライトが面の形に伸びて見える)
+                float3 specularPoint = diffusePoint;
+                float3 reflectDir = reflect(-dirToCamera, normal);
+                // 跳ね返った視線が、ライトの面の表側へ向かって進んでいるときだけ交点を求める
+                float towardLight = dot(reflectDir, light.direction);
+                if (towardLight < -0.0001f)
+                {
+                    float hitDistance = dot(light.position - input.worldPosition, light.direction) / towardLight;
+                    if (hitDistance > 0.0f)
+                    {
+                        specularPoint = ClosestPointOnAreaLight(light, input.worldPosition + reflectDir * hitDistance);
+                    }
+                }
+                float3 dirToSpecularPoint = normalize(specularPoint - input.worldPosition);
+                float specularTerm = ComputeSpecularTerm(normal, dirToSpecularPoint, dirToCamera, surface.shininess, instance.shadingMode);
+                specularSum += light.color.rgb * specularTerm * light.intensity * attenuation;
             }
             else
             {
@@ -182,12 +274,14 @@ PixelShaderOutput main(VertexShaderOutput input)
 
                 float cosTerm = ComputeCosTerm(normal, dirToLight, instance.shadingMode);
                 lightSum += light.color.rgb * cosTerm * light.intensity * attenuation;
+                float specularTerm = ComputeSpecularTerm(normal, dirToLight, dirToCamera, surface.shininess, instance.shadingMode);
+                specularSum += light.color.rgb * specularTerm * light.intensity * attenuation;
             }
         }
 
         lightSum += gAmbientColor.rgb * gAmbientIntensity;
 
-        output.color.rgb = surface.color * lightSum;
+        output.color.rgb = surface.color * lightSum + surface.specular * specularSum;
     }
     else
     {
