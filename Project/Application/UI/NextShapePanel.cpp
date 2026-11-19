@@ -46,7 +46,7 @@ namespace App
 		{
 			// 今の形 (slot 0) を使えない間は暗くする
 			float brightness = 1.0f;
-			if (slot == 0 && !isNowReady)
+			if (static_cast<size_t>(slot) == kNowSlot && !isNowReady)
 			{
 				brightness = GameConfig::kPanelWaitBrightness;
 			}
@@ -131,18 +131,20 @@ namespace App
 		}
 	}
 
-	// NOW / NEXT の文字 (形の少し上に出す)
+	// NOW / LB / RB の文字 (形の少し上に出す)
 	void NextShapePanel::DrawLabels() const
 	{
 		// 文字の位置はゲーム画面の解像度 (今は 1920 x 1080) が基準
 		const float screenWidth = static_cast<float>(DirectXCommon::GetGameWidth());
 		const float screenHeight = static_cast<float>(DirectXCommon::GetGameHeight());
 
-		// 画面の位置 (-1 〜 1) を、文字の位置 (ピクセル。左上が 0) に直す
+		// 画面の位置 (-1 〜 1) を、文字の位置 (ピクセル。左上が 0) に直して、それぞれの形の上に出す
 		const float left = (GetCenterX() - GameConfig::kPanelWidthRate + 1.0f) * 0.5f * screenWidth + 12.0f;
-		const float nowY = (1.0f - (GameConfig::kPanelSlotY[0] + GameConfig::kPanelLabelOffsetY)) * 0.5f * screenHeight;
-		const float nextY = (1.0f - (GameConfig::kPanelSlotY[1] + GameConfig::kPanelLabelOffsetY)) * 0.5f * screenHeight;
-		PrintText("NOW", { left, nowY });
-		PrintText("NEXT", { left, nextY });
+		const std::array<const char*, kSlotCount> labels = { "NOW", "LB (Q)", "RB (E)" };
+		for (size_t slot = 0; slot < labels.size(); ++slot)
+		{
+			const float y = (1.0f - (GameConfig::kPanelSlotY[slot] + GameConfig::kPanelLabelOffsetY[slot])) * 0.5f * screenHeight;
+			PrintText("{}", { left, y }, labels[slot]);
+		}
 	}
 }

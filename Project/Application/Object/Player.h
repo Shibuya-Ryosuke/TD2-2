@@ -62,13 +62,15 @@ namespace App
 		//描くか (無敵の間の点滅)
 		void SetVisible(bool isVisible) { isVisible_ = isVisible; }
 
-		//2マス乗り越えのアイテム (持っている間は、穴2つまで飛び越えられる)
-		void SetJumpBoost(bool hasJumpBoost) { hasJumpBoost_ = hasJumpBoost; }
-		bool HasJumpBoost() const { return hasJumpBoost_; }
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// //2マス乗り越えのアイテム (持っている間は、穴2つまで飛び越えられる)
+		// void SetJumpBoost(bool hasJumpBoost) { hasJumpBoost_ = hasJumpBoost; }
+		// bool HasJumpBoost() const { return hasJumpBoost_; }
 
 	private:
-		//2マス乗り越えのアイテムを使い切るか決める (from から landing へ跳び始めたとき)
-		void UseJumpBoost(const Cell& from, const Cell& landing);
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// //2マス乗り越えのアイテムを使い切るか決める (from から landing へ跳び始めたとき)
+		// void UseJumpBoost(const Cell& from, const Cell& landing);
 
 		//見た目 (仮で使ってます（涙） Kari/Model/cube.obj の木箱)
 		std::unique_ptr<RyoEngine::Model> body_{};  // 体
@@ -92,6 +94,7 @@ namespace App
 		bool isKnockbackOverFence_ = false;      //床のふちで止めないか
 
 		bool isVisible_ = true;
-		bool hasJumpBoost_ = false;              //2マス乗り越えのアイテムを持っているか
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// bool hasJumpBoost_ = false;              //2マス乗り越えのアイテムを持っているか
 	};
 }

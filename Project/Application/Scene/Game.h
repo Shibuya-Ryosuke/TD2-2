@@ -6,7 +6,8 @@
 #include "../Game/BossFallFlow.h"
 #include "../Game/BossTuning.h"
 #include "../Game/GamePhase.h"
-#include "../Game/ItemManager.h"
+// [アイテム] アイテムは一旦使わない。コメントアウト
+// #include "../Game/ItemManager.h"
 #include "../Game/LayerFloors.h"
 #include "../Game/PlayerHealth.h"
 #include "../Game/ShapeController.h"
@@ -20,7 +21,8 @@ namespace App
 
 	// ゲームシーン (Unity のプロトタイプの PrototypeGame と同じ流れ)
 	// 1. 戦闘: プレイヤーはマスからマスへ跳んで動き、形を使って前の床を崩す。ボスは追いかけて攻撃してくる
-	//    HP が少ないと、アイテム (十字爆弾 / 2マス乗り越え) が1層に1個降ってくる
+	//    形は LB / RB (Q / E) で5つから選ぶ
+	//    ([アイテム] HP が少ないと、アイテムが1層に1個降ってくる … 一旦コメントアウト)
 	// 2. ボスのいる島を切り離すと、揺れてからボスごと落ちる (切り離された床にいたら落ちる)
 	//    ボスの足元の床が消えて、逃げられなかったときもボスが落ちる
 	// 3. ボスが下の層へ落ちる (落下ダメージ)。プレイヤーも跳んで下の層へ
@@ -30,7 +32,7 @@ namespace App
 	// 毎フレーム動かす順番 (床を崩す → プレイヤー → 床 → アイテム → ボス → 当たり) が大事なので、
 	// プレイヤー・ボス・床は GameObject にせず、このシーンが順番に動かしている
 	// 役割ごとに分けたクラス:
-	// ・形 (崩す・予告・パネル) → ShapeController / アイテム → ItemManager / 3つの層の床 → LayerFloors
+	// ・形 (選ぶ・崩す・予告・パネル) → ShapeController / アイテム → ItemManager (一旦コメントアウト) / 3つの層の床 → LayerFloors
 	// ・HP と無敵 → PlayerHealth / 戦闘中のボスとのやりとり (攻撃・接触・切り離し・分断) → BossBattle
 	// ・ボスを落とす流れ (揺れ → 落下 → 足場を飛ばす) → BossFallFlow / デバッグ表示 → GameHud
 	class Game : public RyoEngine::BaseScene
@@ -79,7 +81,8 @@ namespace App
 		std::unique_ptr<Boss> boss_{};
 		StageCamera* camera_ = nullptr;    // 持ち主は CameraManager
 		ShapeController shapes_;           // 床を崩す形
-		ItemManager items_;                // アイテム
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// ItemManager items_;                // アイテム
 		PlayerHealth health_;              // プレイヤーの HP と無敵
 		BossBattle battle_;                // 戦闘中のボスとのやりとり
 		BossFallFlow bossFall_;            // ボスを落とす流れ

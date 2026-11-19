@@ -33,7 +33,6 @@ namespace App::GameConfig
 	inline constexpr float kPreviewGlowMax = 1.8f;           // 予告のマスの光の強さ (いちばん強いとき。1 を超えるとブルームでにじむ)
 	inline constexpr float kPreviewGlowSpeed = 1.5f;         // 予告のマスの明滅の速さ (1秒に何回)
 	inline constexpr float kShapeCooldown = 1.0f;            // 形を使ってから次を使えるまで(秒。待っている間はパネルの NOW が暗くなる)
-	inline constexpr bool kShuffleShapes = true;             // 形の順番を混ぜるか
 
 	//切り離し
 	inline constexpr float kEscapeDelay = 2.0f;         // 切り離されてから落ちるまで(秒)
@@ -98,34 +97,39 @@ namespace App::GameConfig
 
 	inline constexpr float kPanelWidthRate = 0.1f;          // 画面の横幅に対するパネルの幅 (1 : 9 なので 0.1)
 	inline constexpr float kPanelDepth = 8.0f;              // カメラからブロックまでの距離 (ステージより手前に置く)
-	inline constexpr std::array<float, 3> kPanelSlotY = { 0.55f, 0.02f, -0.45f };    // 今・次・その次 の縦の位置
-	inline constexpr std::array<float, 3> kPanelCellSize = { 0.9f, 0.7f, 0.7f };     // 今・次・その次 の1マスの大きさ
-	inline constexpr float kPanelLabelOffsetY = 0.27f;      // 形の上に出す文字 (NOW / NEXT) の高さ
+	// 下の3つは NOW (真ん中) / LB で来る形 (上) / RB で来る形 (下) の順
+	inline constexpr std::array<float, 3> kPanelSlotY = { 0.0f, 0.55f, -0.5f };          // 縦の位置
+	inline constexpr std::array<float, 3> kPanelCellSize = { 0.9f, 0.6f, 0.6f };         // 1マスの大きさ
+	inline constexpr std::array<float, 3> kPanelLabelOffsetY = { 0.17f, 0.13f, 0.13f };  // 形の上に出す文字 (NOW / LB / RB) の高さ
 	inline constexpr float kPanelBlockFill = 0.9f;          // ブロックの大きさ (1マスに対する割合。残りがすき間)
 	inline constexpr float kPanelBlockHeight = 0.5f;        // ブロックの厚さ (1マスに対する割合)
 	inline constexpr float kPanelWaitBrightness = 0.3f;     // 形を使えない間の NOW の明るさ (1 でいつもと同じ)
 
-	//アイテム (HP が少ないとき、1層に1個だけ上から降ってくる)
-	inline constexpr int32_t kItemSpawnHearts = 3;          // HP がこれ以下になったら降ってくる
-	inline constexpr float kItemSize = 0.5f;                // 箱の1辺
-	inline constexpr float kItemHover = 0.35f;              // 床から浮かせる高さ (箱の下の面まで)
-	inline constexpr float kItemDropHeight = 10.0f;         // 降ってくる高さ (床から)
-	inline constexpr float kItemDropDuration = 0.7f;        // 降ってくる時間(秒)
-	inline constexpr float kItemSpinSpeed = 120.0f;         // 回る速さ (度 / 秒)
-	inline constexpr float kItemTilt = 30.0f;               // 傾き (度)
-	inline constexpr float kItemFallTime = 0.5f;            // 足場と一緒に落ちて消えるまで(秒)
-	inline constexpr RyoEngine::Vector4 kCrossBombColor = { 1.0f, 0.25f, 0.75f, 1.0f }; // 十字爆弾 (ピンク)
-	inline constexpr RyoEngine::Vector4 kJumpBoostColor = { 0.45f, 1.0f, 0.35f, 1.0f }; // 2マス乗り越え (黄緑)
+	// [アイテム] アイテムは一旦使わない。コメントアウト
+	// //アイテム (HP が少ないとき、1層に1個だけ上から降ってくる)
+	// inline constexpr int32_t kItemSpawnHearts = 3;          // HP がこれ以下になったら降ってくる
+	// inline constexpr float kItemSize = 0.5f;                // 箱の1辺
+	// inline constexpr float kItemHover = 0.35f;              // 床から浮かせる高さ (箱の下の面まで)
+	// inline constexpr float kItemDropHeight = 10.0f;         // 降ってくる高さ (床から)
+	// inline constexpr float kItemDropDuration = 0.7f;        // 降ってくる時間(秒)
+	// inline constexpr float kItemSpinSpeed = 120.0f;         // 回る速さ (度 / 秒)
+	// inline constexpr float kItemTilt = 30.0f;               // 傾き (度)
+	// inline constexpr float kItemFallTime = 0.5f;            // 足場と一緒に落ちて消えるまで(秒)
+	// inline constexpr RyoEngine::Vector4 kCrossBombColor = { 1.0f, 0.25f, 0.75f, 1.0f }; // 十字爆弾 (ピンク)
+	// inline constexpr RyoEngine::Vector4 kJumpBoostColor = { 0.45f, 1.0f, 0.35f, 1.0f }; // 2マス乗り越え (黄緑)
 
-	//十字爆弾
-	inline constexpr float kBombStepDelay = 0.1f;           // 真ん中から1マス外へ行くごとに、崩れるのが遅れる時間(秒)
+	// //十字爆弾
+	// inline constexpr float kBombStepDelay = 0.1f;           // 真ん中から1マス外へ行くごとに、崩れるのが遅れる時間(秒)
+
+	//ジャンプ
+	inline constexpr int32_t kNormalJumpGap = 1;            // いつも飛び越えられる穴の数
 
 	//2マス乗り越え
-	inline constexpr int32_t kNormalJumpGap = 1;            // いつも飛び越えられる穴の数
-	inline constexpr int32_t kBoostedJumpGap = 2;           // アイテムを取ったあと飛び越えられる穴の数
-	// true: 取ったあとの「次のジャンプ」で使い切る (ふつうの1マス移動でも消える)
-	// false: 「穴2つを実際に飛び越えたとき」だけ使い切る
-	inline constexpr bool kJumpBoostUseOnNextJump = false;
+	// [アイテム] アイテムは一旦使わない。コメントアウト
+	// inline constexpr int32_t kBoostedJumpGap = 2;           // アイテムを取ったあと飛び越えられる穴の数
+	// // true: 取ったあとの「次のジャンプ」で使い切る (ふつうの1マス移動でも消える)
+	// // false: 「穴2つを実際に飛び越えたとき」だけ使い切る
+	// inline constexpr bool kJumpBoostUseOnNextJump = false;
 
 	//仮のモデル
 	inline constexpr const char* kCubeModel = "cube";    // Kari/Model/cube.obj (1辺が 2)

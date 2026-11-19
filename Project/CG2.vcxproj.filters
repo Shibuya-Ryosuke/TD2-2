@@ -325,9 +325,6 @@
     <ClCompile Include="Application\Game\BreakShape.cpp">
       <Filter>Application\Game</Filter>
     </ClCompile>
-    <ClCompile Include="Application\Game\BreakShapeQueue.cpp">
-      <Filter>Application\Game</Filter>
-    </ClCompile>
     <ClCompile Include="Application\UI\NextShapePanel.cpp">
       <Filter>Application\UI</Filter>
     </ClCompile>

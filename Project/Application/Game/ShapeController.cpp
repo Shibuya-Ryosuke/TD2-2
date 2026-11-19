@@ -14,10 +14,10 @@ namespace App
 		Reset();
 	}
 
-	// 形の順番を最初からにする
+	// 最初の形 (X) を選んで、待ち時間を消す
 	void ShapeController::Reset()
 	{
-		queue_.Reset(GameConfig::kShuffleShapes);
+		selectedIndex_ = 0;
 		cooldownTimer_ = 0.0f;
 	}
 
@@ -27,35 +27,47 @@ namespace App
 		cooldownTimer_ = std::max(0.0f, cooldownTimer_ - deltaTime);
 	}
 
-	// 種類から形を探す
-	const BreakShape* ShapeController::FindShape(BreakShapeType type) const
+	// 形を切り替える (最初の形の前は最後の形、最後の形の次は最初の形)
+	void ShapeController::Select(bool isPrevious, bool isNext)
 	{
-		for (const BreakShape& shape : shapes_)
+		const int32_t count = static_cast<int32_t>(shapes_.size());
+		if (count == 0)
 		{
-			if (shape.GetType() == type)
-			{
-				return &shape;
-			}
+			return;
 		}
-		return nullptr;
+		if (isPrevious)
+		{
+			selectedIndex_ = (selectedIndex_ - 1 + count) % count;
+		}
+		if (isNext)
+		{
+			selectedIndex_ = (selectedIndex_ + 1) % count;
+		}
 	}
 
-	// 今の形
-	const BreakShape* ShapeController::GetCurrentShape()
+	// 選んでいる形から offset だけずらした形 (ぐるっと回る)
+	const BreakShape* ShapeController::GetShape(int32_t offset) const
 	{
-		return FindShape(queue_.Peek(0));
+		const int32_t count = static_cast<int32_t>(shapes_.size());
+		if (count == 0)
+		{
+			return nullptr;
+		}
+		// マイナスでも 0 〜 count - 1 に収まるように、count を足してから割る
+		const int32_t index = ((selectedIndex_ + offset) % count + count) % count;
+		return &shapes_[static_cast<size_t>(index)];
 	}
 
-	// 今の形で、プレイヤーの前の床を崩す
+	// NOW の形で、プレイヤーの前の床を崩す
 	bool ShapeController::TryBreak(Floor& floor, const Cell& playerCell, const Cell& facing)
 	{
-		const BreakShape* shape = GetCurrentShape();
+		const BreakShape* shape = GetShape(0);
 		if (shape == nullptr || !IsReady())
 		{
 			return false;
 		}
 
-		// 形のマスを崩す。崩せる床が1つもなければ、形は使わない
+		// 形のマスを崩す。崩せる床が1つもなければ、置かなかったことにする
 		shape->CollectCells(playerCell, facing, cells_);
 		const int32_t count = floor.ScheduleCellsCollapse(cells_, GameConfig::kCollapseDelay);
 		if (count == 0)
@@ -63,22 +75,21 @@ namespace App
 			return false;
 		}
 
-		// 使ったので、待ち時間を入れて次の形へ
+		// 置いたので、待ち時間を入れる (形はそのまま)
 		cooldownTimer_ = GameConfig::kShapeCooldown;
-		queue_.Advance();
 		return true;
 	}
 
-	// 床に今の形の予告を出す
+	// 床に NOW の形の予告を出す
 	void ShapeController::UpdatePreview(Floor& floor, const Cell& playerCell, const Cell& facing, bool isVisible)
 	{
-		const BreakShape* shape = GetCurrentShape();
+		const BreakShape* shape = GetShape(0);
 		if (shape == nullptr || !isVisible)
 		{
 			floor.ClearPreview();
 			return;
 		}
-		// プレイヤーの前に今の形のマスを集めて、床を光らせる
+		// プレイヤーの前に NOW の形のマスを集めて、床を光らせる
 		shape->CollectCells(playerCell, facing, cells_);
 		floor.SetPreview(cells_, shape->GetColor(), GameConfig::kShapePreviewBlend);
 	}
@@ -86,12 +97,11 @@ namespace App
 	// 画面の右はしのパネルを合わせる
 	void ShapeController::UpdatePanel(const StageCamera& camera, const Cell& facing)
 	{
-		// 今・次・その次 の形を集めて、パネルに渡す (待ち時間中は NOW を暗くする)
+		// パネルの並び: NOW (真ん中) / LB で来る形 (上) / RB で来る形 (下)。待ち時間中は NOW を暗くする
 		std::array<const BreakShape*, NextShapePanel::kSlotCount> shapes{};
-		for (int32_t i = 0; i < NextShapePanel::kSlotCount; ++i)
-		{
-			shapes[static_cast<size_t>(i)] = FindShape(queue_.Peek(i));
-		}
+		shapes[NextShapePanel::kNowSlot] = GetShape(0);
+		shapes[NextShapePanel::kPreviousSlot] = GetShape(-1);
+		shapes[NextShapePanel::kNextSlot] = GetShape(1);
 		panel_.Update(camera, shapes, facing, IsReady());
 	}
 

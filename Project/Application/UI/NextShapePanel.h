@@ -11,7 +11,8 @@ namespace App
 	class BreakShape;
 	class StageCamera;
 
-	// 画面の右はしに出す「今の形・次の形・その次の形」(テトリスの NEXT のような表示)。
+	// 画面の右はしに出す形の表示。
+	// 真ん中: 選んでいる形 (NOW) / 上: LB (Q) で来る形 / 下: RB (E) で来る形
 	// パネル : ステージ = 1 : 9。
 	// ブロックは cube.obj を小さくして並べる (新しい画像やモデルは使わない。背景もなし)。
 	// 形はステージの床と同じ向きに寝かせて、プレイヤーの向きに合わせて回す。
@@ -19,7 +20,10 @@ namespace App
 	class NextShapePanel
 	{
 	public:
-		static constexpr int32_t kSlotCount = 3; // 今・次・その次
+		static constexpr int32_t kSlotCount = 3;   // 形を出す場所の数
+		static constexpr size_t kNowSlot = 0;      // 真ん中: 選んでいる形 (NOW)
+		static constexpr size_t kPreviousSlot = 1; // 上: LB (Q) で来る形
+		static constexpr size_t kNextSlot = 2;     // 下: RB (E) で来る形
 
 		NextShapePanel() = default;
 		~NextShapePanel() = default;
@@ -31,13 +35,13 @@ namespace App
 
 		// カメラに合わせて、ブロックを並べ直す (毎フレーム)
 		// camera: ステージのカメラ
-		// shapes: 今・次・その次 の形 (nullptr なら出さない)
+		// shapes: NOW・LB で来る形・RB で来る形 (kNowSlot などの番号の順。nullptr なら出さない)
 		// facing: プレイヤーの向き
 		// isNowReady: 今の形を使えるか (false なら NOW を暗くする)
 		void Update(const StageCamera& camera, const std::array<const BreakShape*, kSlotCount>& shapes, const Cell& facing, bool isNowReady);
 
 		void Draw(); // ブロックを描く
-		void DrawLabels() const; // NOW / NEXT の文字 (デバッグ表示。英数字だけ)
+		void DrawLabels() const; // NOW / LB / RB の文字 (デバッグ表示。英数字だけ)
 
 	private:
 		// 画面の位置を3Dの位置に直すための値 (カメラから作る)

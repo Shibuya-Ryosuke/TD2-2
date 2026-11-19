@@ -26,7 +26,6 @@
     <ClCompile Include="Application\Scene\GameOver.cpp" />
     <ClCompile Include="Application\Stage\Floor.cpp" />
     <ClCompile Include="Application\Game\BreakShape.cpp" />
-    <ClCompile Include="Application\Game\BreakShapeQueue.cpp" />
     <ClCompile Include="Application\UI\NextShapePanel.cpp" />
     <ClCompile Include="Application\Stage\GridDirection.cpp" />
     <ClCompile Include="Application\Stage\FloorCsv.cpp" />

@@ -73,7 +73,10 @@ namespace App
 		command.look = GetLook();
 		command.hasLook = command.look.x * command.look.x + command.look.y * command.look.y > 0.0001f;
 		command.isBreak = IsBreakTriggered();
-		command.isBomb = IsBombTriggered();
+		command.isPreviousShape = IsPreviousShapeTriggered();
+		command.isNextShape = IsNextShapeTriggered();
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// command.isBomb = IsBombTriggered();
 		return command;
 	}
 
@@ -91,14 +94,43 @@ namespace App
 		return false;
 	}
 
-	//十字爆弾: E / Bボタン
-	bool GameInput::IsBombTriggered()
+	// [アイテム] アイテムは一旦使わない。コメントアウト (E は形の切り替えに使っている)
+	// //十字爆弾: E / Bボタン
+	// bool GameInput::IsBombTriggered()
+	// {
+		// if (Input::TriggerKey(DIK_E))
+		// {
+			// return true;
+		// }
+		// if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_B))
+		// {
+			// return true;
+		// }
+		// return false;
+	// }
+
+	//形を前へ: Q / LB
+	bool GameInput::IsPreviousShapeTriggered()
+	{
+		if (Input::TriggerKey(DIK_Q))
+		{
+			return true;
+		}
+		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_LEFT_SHOULDER))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	//形を次へ: E / RB
+	bool GameInput::IsNextShapeTriggered()
 	{
 		if (Input::TriggerKey(DIK_E))
 		{
 			return true;
 		}
-		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_B))
+		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
 		{
 			return true;
 		}

@@ -36,7 +36,8 @@ namespace App
 		boss_ = std::make_unique<Boss>();
 		boss_->Initialize();
 		shapes_.Initialize();
-		items_.Initialize();
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// items_.Initialize();
 
 		// ゲーム開始 (Unity の BeginGame)
 		health_.Reset();
@@ -101,12 +102,15 @@ namespace App
 			return;
 		}
 
-		// 入力 (移動・向き・床を崩す・十字爆弾)。向きは上下左右のどれかにする
+		// 入力 (移動・向き・床を崩す・形の切り替え)。向きは上下左右のどれかにする
 		const PlayerCommand command = GameInput::ReadCommand();
 		if (command.hasLook)
 		{
 			player_->SetFacing(GridDirection::FromInput(command.look));
 		}
+
+		// 形を選ぶ (LB / Q で前、RB / E で次。戦闘開始待ちの間も切り替えられる)
+		shapes_.Select(command.isPreviousShape, command.isNextShape);
 
 		// 「方向を入力すると戦闘開始」: 移動か床を崩す入力があるまで何も進めない
 		if (phase_ == GamePhase::Waiting)
@@ -118,17 +122,18 @@ namespace App
 			phase_ = GamePhase::Battle;
 		}
 
-		// 床を崩す (形・十字爆弾)
+		// 床を崩す (選んでいる形)
 		Floor& floor = floors_.GetCurrent();
 		const bool wasJumping = player_->IsJumping();
 		if (command.isBreak)
 		{
 			shapes_.TryBreak(floor, GetPlayerCell(), player_->GetFacing());
 		}
-		if (command.isBomb)
-		{
-			items_.TryUseBomb(floor, GetPlayerCell());
-		}
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// if (command.isBomb)
+		// {
+			// items_.TryUseBomb(floor, GetPlayerCell());
+		// }
 
 		// プレイヤー
 		if (player_->Advance(command.move, command.hasMovement, floor, deltaTime))
@@ -137,10 +142,11 @@ namespace App
 			return;
 		}
 
-		// 床 (崩す予定のタイルの時間を進める) → アイテム (戦闘中だけ降ってくる。触れたら取る)
+		// 床 (崩す予定のタイルの時間を進める)
 		const bool isFloorChanged = floor.Tick(deltaTime);
 		const Cell bossCell = floor.GetCellAt(boss_->GetPosition());
-		items_.Update(floor, phase_ == GamePhase::Battle, health_.GetHearts(), *player_, boss_->GetPosition(), deltaTime);
+		// [アイテム] アイテムは一旦使わない。コメントアウト (戦闘中だけ降ってくる。触れたら取る)
+		// items_.Update(floor, phase_ == GamePhase::Battle, health_.GetHearts(), *player_, boss_->GetPosition(), deltaTime);
 
 		if (phase_ == GamePhase::Battle)
 		{
@@ -179,11 +185,12 @@ namespace App
 			FailFall();
 			return;
 		}
-		// ボスが落ち始めたら、置いてあるアイテムは消す (持っているアイテムは持ち越す)
-		if (result.isDropStarted)
-		{
-			items_.ClearFieldItem();
-		}
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// // ボスが落ち始めたら、置いてあるアイテムは消す (持っているアイテムは持ち越す)
+		// if (result.isDropStarted)
+		// {
+			// items_.ClearFieldItem();
+		// }
 		phase_ = bossFall_.GetPhase();
 		if (result.isArrived)
 		{
@@ -219,7 +226,7 @@ namespace App
 	// 見た目を確定する
 	void Game::UpdateVisuals()
 	{
-		// 床の予告 (戦闘中・戦闘開始待ちのときだけ) → 床 → キャラ → アイテム → 右のパネル
+		// 床の予告 (戦闘中・戦闘開始待ちのときだけ) → 床 → キャラ → 右のパネル
 		bool isPreviewVisible = false;
 		if (phase_ == GamePhase::Waiting || phase_ == GamePhase::Battle)
 		{
@@ -229,7 +236,8 @@ namespace App
 		floors_.UpdateVisuals();
 		player_->UpdateVisuals();
 		boss_->UpdateVisuals();
-		items_.UpdateVisuals();
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// items_.UpdateVisuals();
 		shapes_.UpdatePanel(*camera_, player_->GetFacing());
 	}
 
@@ -238,11 +246,12 @@ namespace App
 	// =====================================================================
 	void Game::Draw()
 	{
-		// 床 → キャラ → アイテム → 右のパネル の順に描く
+		// 床 → キャラ → 右のパネル の順に描く
 		floors_.Draw();
 		player_->Draw();
 		boss_->Draw();
-		items_.Draw();
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// items_.Draw();
 		shapes_.DrawPanel();
 
 		DrawDebugText();
@@ -251,20 +260,9 @@ namespace App
 	// デバッグ表示 (GameHud に渡す)
 	void Game::DrawDebugText()
 	{
-		GameHudInfo info{};
-		info.hearts = health_.GetHearts();
-		info.layer = floors_.GetLayer();
-		info.bossHealth = bossHealth_;
-		info.phase = phase_;
-		info.isPaused = isPaused_;
-		info.escapeTimer = bossFall_.GetEscapeTimer();
-		info.barrageTiles = bossFall_.GetBarrage().GetTileCount();
-		info.barrageDamage = bossFall_.GetBarrage().GetDamageApplied();
-		info.hasBomb = items_.HasBomb();
-		info.hasJumpBoost = player_->HasJumpBoost();
-		GameHud::Draw(info);
+		GameHud::Draw(GameHud::MakeInfo(health_, floors_, bossHealth_, phase_, isPaused_, bossFall_));
 
-		// 次の形のパネルの文字 (NOW / NEXT)
+		// 右のパネルの文字 (NOW / LB / RB)
 		shapes_.DrawPanelLabels();
 	}
 
@@ -285,9 +283,10 @@ namespace App
 		health_.ClearInvincible();
 		player_->SetVisible(true);
 
-		// やり直しなので、置いてあるアイテムも持っているアイテムも消える
-		items_.ResetForRetry();
-		player_->SetJumpBoost(false);
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// // やり直しなので、置いてあるアイテムも持っているアイテムも消える
+		// items_.ResetForRetry();
+		// player_->SetJumpBoost(false);
 		WaitForMovement();
 	}
 
@@ -366,17 +365,19 @@ namespace App
 	// ボスが下の層へ落ち始める (足元が崩れた・穴に着地した)
 	void Game::BeginBossDrop()
 	{
-		// ボスを止めて、置いてあるアイテムは消す (持っているアイテムは持ち越す)
+		// ボスを止める
 		boss_->Stop();
-		items_.ClearFieldItem();
+		// [アイテム] アイテムは一旦使わない。コメントアウト (置いてあるアイテムは消す。持っているアイテムは持ち越す)
+		// items_.ClearFieldItem();
 		bossFall_.BeginDrop(floors_, *player_, *boss_);
 		phase_ = bossFall_.GetPhase();
 	}
 
-	// 下の層に着いた: ハートを少し回復して、キャラを置き直す。新しい層でアイテムがまた出るようになる
+	// 下の層に着いた: ハートを少し回復して、キャラを置き直す
 	void Game::OnArrivedBelow()
 	{
-		items_.ResetForNewLayer();
+		// [アイテム] アイテムは一旦使わない。コメントアウト (新しい層でアイテムがまた出るようになる)
+		// items_.ResetForNewLayer();
 		health_.Heal(GameConfig::kDescentHeal);
 		health_.ClearInvincible();
 		PlaceActors(true);

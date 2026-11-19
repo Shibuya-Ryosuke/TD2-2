@@ -11,10 +11,13 @@ namespace App
 		RyoEngine::Vector2 look{};  //向き
 		bool hasLook = false;       //向きの入力があるか
 		bool isBreak = false;       //床を崩すボタンを押した瞬間か
-		bool isBomb = false;        //十字爆弾のボタンを押した瞬間か
+		bool isPreviousShape = false; //形を前へ切り替える瞬間か (Q / LB)
+		bool isNextShape = false;     //形を次へ切り替える瞬間か (E / RB)
+		// [アイテム] アイテムは一旦使わない。コメントアウト
+		// bool isBomb = false;        //十字爆弾のボタンを押した瞬間か
 
-		//戦闘を始める入力があるか (移動・床を崩す・十字爆弾)
-		bool HasAction() const { return hasMovement || isBreak || isBomb; }
+		//戦闘を始める入力があるか (移動・床を崩す。形の切り替えでは始まらない)
+		bool HasAction() const { return hasMovement || isBreak; }
 	};
 
 	//ゲームで使う入力をまとめたもの (キーボードとコントローラーの両方)
@@ -33,8 +36,15 @@ namespace App
 		//床を崩すを押した瞬間か (Space / Aボタン)
 		static bool IsBreakTriggered();
 
-		//十字爆弾を使うボタンを押した瞬間か (E / Bボタン)
-		static bool IsBombTriggered();
+		//形を前へ切り替えるボタンを押した瞬間か (Q / LB)
+		static bool IsPreviousShapeTriggered();
+
+		//形を次へ切り替えるボタンを押した瞬間か (E / RB)
+		static bool IsNextShapeTriggered();
+
+		// [アイテム] アイテムは一旦使わない。コメントアウト (E は形の切り替えに使っている)
+		// //十字爆弾を使うボタンを押した瞬間か (E / Bボタン)
+		// static bool IsBombTriggered();
 
 		//ポーズを押した瞬間か (Esc / STARTボタン)
 		static bool IsPauseTriggered();

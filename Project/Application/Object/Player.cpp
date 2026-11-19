@@ -69,26 +69,27 @@ namespace App
 		isGrounded_ = false;
 	}
 
-	// 2マス乗り越えのアイテムを使い切るか決める (跳び始めたときに呼ぶ)
-	void Player::UseJumpBoost(const Cell& from, const Cell& landing)
-	{
-		if (!hasJumpBoost_)
-		{
-			return;
-		}
-		// 次のジャンプで必ず使い切る
-		if (GameConfig::kJumpBoostUseOnNextJump)
-		{
-			hasJumpBoost_ = false;
-			return;
-		}
-		// 穴2つを飛び越えた (3マス先に着地した) ときだけ使い切る
-		const int32_t distance = std::abs(landing.x - from.x) + std::abs(landing.z - from.z);
-		if (distance > GameConfig::kNormalJumpGap + 1)
-		{
-			hasJumpBoost_ = false;
-		}
-	}
+	// [アイテム] アイテムは一旦使わない。コメントアウト
+	// // 2マス乗り越えのアイテムを使い切るか決める (跳び始めたときに呼ぶ)
+	// void Player::UseJumpBoost(const Cell& from, const Cell& landing)
+	// {
+		// if (!hasJumpBoost_)
+		// {
+			// return;
+		// }
+		// // 次のジャンプで必ず使い切る
+		// if (GameConfig::kJumpBoostUseOnNextJump)
+		// {
+			// hasJumpBoost_ = false;
+			// return;
+		// }
+		// // 穴2つを飛び越えた (3マス先に着地した) ときだけ使い切る
+		// const int32_t distance = std::abs(landing.x - from.x) + std::abs(landing.z - from.z);
+		// if (distance > GameConfig::kNormalJumpGap + 1)
+		// {
+			// hasJumpBoost_ = false;
+		// }
+	// }
 
 	// 1フレーム動かす
 	bool Player::Advance(const Vector2& move, bool hasMovement, const Floor& floor, float deltaTime)
@@ -108,17 +109,19 @@ namespace App
 		// 移動の入力: 上下左右のどれかへ1マス跳ぶ (跳んだ先が床のときだけ)
 		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement)
 		{
-			// 飛び越えられる穴の数 (2マス乗り越えのアイテムを持っていたら 2)
+			// 飛び越えられる穴の数 (いつもは 1)
 			const Cell direction = GridDirection::FromInput(move);
-			int32_t maxGap = GameConfig::kNormalJumpGap;
-			if (hasJumpBoost_)
-			{
-				maxGap = GameConfig::kBoostedJumpGap;
-			}
+			const int32_t maxGap = GameConfig::kNormalJumpGap;
+			// [アイテム] アイテムは一旦使わない。コメントアウト (2マス乗り越えを持っていたら 2)
+			// if (hasJumpBoost_)
+			// {
+			// 	maxGap = GameConfig::kBoostedJumpGap;
+			// }
 			const Cell landing = floor.JumpLanding(cell, direction, maxGap);
 			if (floor.IsSolid(landing))
 			{
-				UseJumpBoost(cell, landing);
+				// [アイテム] アイテムは一旦使わない。コメントアウト
+				// UseJumpBoost(cell, landing);
 				jumpOrigin_ = position;
 				jumpDestination_ = landing;
 				jumpElapsed_ = 0.0f;
