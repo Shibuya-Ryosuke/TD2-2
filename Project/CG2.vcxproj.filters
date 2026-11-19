@@ -100,6 +100,24 @@
     <Filter Include="Application\Scene">
       <UniqueIdentifier>{06f49617-459b-4193-a563-8ecb57f3d19d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Camera">
+      <UniqueIdentifier>{ce0d8392-13b5-4e85-823a-68bb1560d6d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Game">
+      <UniqueIdentifier>{ef817554-9b0e-4855-86e1-57d3e524ebce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Input">
+      <UniqueIdentifier>{ed27626c-4bc3-457f-aa84-7d793a5e08d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object">
+      <UniqueIdentifier>{aff69638-1be3-4c8d-afc8-a1b8e0f4bb88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\UI">
+      <UniqueIdentifier>{bcfc15f4-6a12-4623-86be-d4e6ad79429f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Stage">
+      <UniqueIdentifier>{76241b74-bdfe-41e9-afd8-5f3cc3b2af03}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\Graphics\Particle">
       <UniqueIdentifier>{946c5ad2-d450-4f52-b4e6-a4ea88af25af}</UniqueIdentifier>
     </Filter>
@@ -279,6 +297,39 @@
     </ClCompile>
     <ClCompile Include="Application\Scene\Title.cpp">
       <Filter>Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Camera\StageCamera.cpp">
+      <Filter>Application\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Input\GameInput.cpp">
+      <Filter>Application\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Boss.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Player.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Clear.cpp">
+      <Filter>Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\GameOver.cpp">
+      <Filter>Application\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\Floor.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\BreakShape.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\BreakShapeQueue.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\UI\NextShapePanel.cpp">
+      <Filter>Application\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\GridDirection.cpp">
+      <Filter>Application\Stage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -494,6 +545,51 @@
     </ClInclude>
     <ClInclude Include="Application\Scene\Title.h">
       <Filter>Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Camera\StageCamera.h">
+      <Filter>Application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BossTuning.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\GameConfig.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Input\GameInput.h">
+      <Filter>Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss.h">
+      <Filter>Application\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Player.h">
+      <Filter>Application\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Clear.h">
+      <Filter>Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\GameOver.h">
+      <Filter>Application\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\Floor.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BreakShape.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BreakShapeQueue.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BreakShapeType.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI\NextShapePanel.h">
+      <Filter>Application\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\Cell.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\GridDirection.h">
+      <Filter>Application\Stage</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
