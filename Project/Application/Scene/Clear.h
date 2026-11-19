@@ -1,12 +1,12 @@
 #pragma once
 #include <RyoEngine.h>
 
-namespace App {
-	/// <summary>
-	/// クリアシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
-	/// Enter / A で タイトル へ
-	/// </summary>
-	class Clear : public RyoEngine::BaseScene {
+namespace App
+{
+	// クリアシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
+	// Enter / A で タイトル へ
+	class Clear : public RyoEngine::BaseScene
+	{
 	public:
 		Clear() = default;
 		~Clear() override = default;

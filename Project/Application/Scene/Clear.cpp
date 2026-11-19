@@ -4,20 +4,25 @@
 
 using namespace RyoEngine;
 
-namespace App {
+namespace App
+{
 	// 今は何もしない
-	void Clear::Initialize() {
+	void Clear::Initialize()
+	{
 	}
 
 	// Enter / A でタイトルへ
-	void Clear::Update() {
-		if (GameInput::IsEnterTriggered()) {
+	void Clear::Update()
+	{
+		if (GameInput::IsEnterTriggered())
+		{
 			SceneManager::ChangeScene<Title>();
 		}
 	}
 
 	// 文字を出す
-	void Clear::Draw() {
+	void Clear::Draw()
+	{
 		// 画面の真ん中あたり (文字の位置はゲーム画面の解像度が基準。今は 1920 x 1080)
 		const float width = static_cast<float>(DirectXCommon::GetGameWidth());
 		const float height = static_cast<float>(DirectXCommon::GetGameHeight());

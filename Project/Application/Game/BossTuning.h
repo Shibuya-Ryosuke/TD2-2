@@ -1,9 +1,11 @@
 #pragma once
 #include <cstdint>
 
-namespace App {
-	/// 層ごとのボスの強さ
-	struct BossTuning {
+namespace App
+{
+	// 層ごとのボスの強さ
+	struct BossTuning
+	{
 		//移動
 		float moveSpeed = 3.0f;
 
@@ -33,18 +35,18 @@ namespace App {
 		float punchLiftSpeed = 4.0f;       // 上へ浮く速さ
 	};
 
-	/// 何層目のボスの強さ。6層目からは1層目に戻る（ループさせてる！！）
-	inline BossTuning GetBossTuning(int32_t layerIndex) 
+	// 何層目のボスの強さ。6層目からは1層目に戻る（ループさせてる！！）
+	inline BossTuning GetBossTuning(int32_t layerIndex)
 	{
 		BossTuning tuning{};
 		int32_t index = layerIndex % 5;
-		if (index < 0) 
+		if (index < 0)
 		{
 			index = 0;
 		}
 
 		// 1層目: 近接攻撃だけ
-		if (index == 0) 
+		if (index == 0)
 		{
 			tuning.moveSpeed = 3.0f;
 			return tuning;
@@ -63,7 +65,7 @@ namespace App {
 			return tuning;
 		}
 		// 4層目: パンチ。攻撃の間隔が短くなる
-		if (index == 3) 
+		if (index == 3)
 		{
 			tuning.moveSpeed = 3.75f;
 			tuning.meleeInterval = 1.6f;

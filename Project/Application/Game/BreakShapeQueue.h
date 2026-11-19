@@ -10,7 +10,7 @@ namespace App
 	//次に来る形の順番
 	//テトリスと同じく、全部の形を1つずつ袋に入れて混ぜ、袋が空になるまで順に出す。
 	//形は BreakShapeType (I O T S Z L J) で扱ってます！
-	class BreakShapeQueue 
+	class BreakShapeQueue
 	{
 	public:
 		BreakShapeQueue(); // 乱数を毎回ちがう値で始める

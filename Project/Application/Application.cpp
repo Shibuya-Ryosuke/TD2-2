@@ -3,8 +3,10 @@
 
 using namespace RyoEngine;
 
-namespace App {
-	void Application::Initialize() {
+namespace App
+{
+	void Application::Initialize()
+	{
 		// ImGuiで調整した値の保存先を設定して、読み込む
 		const std::string jsonFolder = "Resources/ApplicationResources/Json/";
 		ParamEditor::SetFolderPath(jsonFolder);
@@ -22,6 +24,7 @@ namespace App {
 		PostProcess::SetACESEnabled(true);
 	}
 
-	void Application::Finalize() {
+	void Application::Finalize()
+	{
 	}
 }

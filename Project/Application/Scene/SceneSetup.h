@@ -7,13 +7,13 @@
 #include "Clear.h"
 #include "GameOver.h"
 
-namespace App {
-	/// <summary>
-	/// シーンの登録と、起動時のシーンの指定 (Application::Initialize から1回だけ呼ぶ)
-	/// シーンを増やしたら、ここに RegisterScene を1行足す
-	/// 流れ: タイトル →(Enter / A)→ ゲーム →(クリア / ゲームオーバー)→(Enter / A)→ タイトル
-	/// </summary>
-	inline void SetupScenes() {
+namespace App
+{
+	// シーンの登録と、起動時のシーンの指定 (Application::Initialize から1回だけ呼ぶ)
+	// シーンを増やしたら、ここに RegisterScene を1行足す
+	// 流れ: タイトル →(Enter / A)→ ゲーム →(クリア / ゲームオーバー)→(Enter / A)→ タイトル
+	inline void SetupScenes()
+	{
 		// 各シーンの登録 (ImGui のシーン一覧には、クラス名で出る)
 		RyoEngine::SceneManager::RegisterScene<Title>();
 		RyoEngine::SceneManager::RegisterScene<Game>();

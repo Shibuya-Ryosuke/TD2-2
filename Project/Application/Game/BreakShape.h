@@ -6,43 +6,36 @@
 #include "BreakShapeType.h"
 #include "../Stage/Cell.h"
 
-namespace App 
+namespace App
 {
-	//床を崩す形 (テトリスのブロックのような形)
-	//rowsは上の行が「プレイヤーから遠い」側。下の行がプレイヤーのすぐ前のマスになる。
-	//'X'が崩すマス、'.' が崩さないマス。
-	//anchorColumn: プレイヤーの真正面に来る列 (左から 0)
-	class BreakShape 
+	// 床を崩す形
+	// rows は上の行が「プレイヤーから遠い」側。プレイヤーが前 (上) を向いたときの見た目のまま書く
+	// 'X' が崩すマス、'P' がプレイヤーのいるマス (崩さない)、'.' が崩さないマス
+	// 例: L字 { "X..", "XXX", ".P." }
+	class BreakShape
 	{
 	public:
 		BreakShape() = default;
-		BreakShape(BreakShapeType type, const RyoEngine::Vector4& color, int32_t anchorColumn, const std::vector<std::string>& rows); // 種類・色・真正面の列・形 を決めて作る
+		// 種類・色・形 を決めて作る (rows に 'P' が1つ必要)
+		BreakShape(BreakShapeType type, const RyoEngine::Vector4& color, const std::vector<std::string>& rows);
 
-	
 		// プレイヤーのいるマスと向きから、崩すマスを集める
-	
-		//<param name="playerCell">プレイヤーのいるマス
-		//<param name="facing">プレイヤーの向き (上下左右のどれか1マス分)
-		//<param name="result">崩すマス (中は最初に空にする)
+		// playerCell: プレイヤーのいるマス
+		// facing: プレイヤーの向き (上下左右のどれか1マス分)
+		// result: 崩すマス (中は最初に空にする)
 		void CollectCells(const Cell& playerCell, const Cell& facing, std::vector<Cell>& result) const;
 
 		BreakShapeType GetType() const { return type_; }
 		const RyoEngine::Vector4& GetColor() const { return color_; }
 
-		//プロトタイプの7つの形 (I O T S Z L J)
+		// 5つの形 (X L Totu Line Block)
 		static std::vector<BreakShape> CreateDefaultShapes();
 
 	private:
-
-		int32_t GetRowCount() const; // 行の数 
-		int32_t GetColumnCount() const; // 列の数 
-		//>column 列目・プレイヤーから forward マス目 (0 がすぐ前) を崩すか
-		bool IsFilled(int32_t column, int32_t forward) const;
-
-		BreakShapeType type_ = BreakShapeType::I;
-
-		RyoEngine::Vector4 color_ = { 1.0f, 1.0f, 1.0f, 1.0f }; //床に出す予告の色
-		int32_t anchorColumn_ = 0;
-		std::vector<std::string> rows_;
+		BreakShapeType type_ = BreakShapeType::X;
+		RyoEngine::Vector4 color_ = { 1.0f, 1.0f, 1.0f, 1.0f }; // 床に出す予告の色
+		std::vector<std::string> rows_;                        // 形 (上の行が遠い側)
+		int32_t playerRow_ = 0;                                // 'P' の行 (上から 0)
+		int32_t playerColumn_ = 0;                             // 'P' の列 (左から 0)
 	};
 }

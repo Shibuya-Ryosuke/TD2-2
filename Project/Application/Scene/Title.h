@@ -1,12 +1,12 @@
 #pragma once
 #include <RyoEngine.h>
 
-namespace App {
-	/// <summary>
-	/// タイトルシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
-	/// Enter / A で ゲームシーン へ
-	/// </summary>
-	class Title : public RyoEngine::BaseScene {
+namespace App
+{
+	// タイトルシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
+	// Enter / A で ゲームシーン へ
+	class Title : public RyoEngine::BaseScene
+	{
 	public:
 		Title() = default;
 		~Title() override = default;

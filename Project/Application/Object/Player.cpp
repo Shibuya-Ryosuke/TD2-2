@@ -4,12 +4,13 @@
 #include "../Stage/GridDirection.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 using namespace RyoEngine;
 
 namespace App
 {
-	namespace 
+	namespace
 	{
 		constexpr float kFrontThickness = 0.04f; // 正面の板の厚さ
 	}
@@ -51,9 +52,12 @@ namespace App
 		isJumping_ = false;
 
 		// 一度ふちを越えてはじかれたら、床の上に戻るまではふちで止めない
-		if (overFence) {
+		if (overFence)
+		{
 			isKnockbackOverFence_ = true;
-		} else if (isKnockbackOverFence_) {
+		}
+		else if (isKnockbackOverFence_)
+		{
 			isKnockbackOverFence_ = !floor.Contains(floor.GetCellAt(position_));
 		}
 
@@ -65,8 +69,30 @@ namespace App
 		isGrounded_ = false;
 	}
 
+	// 2マス乗り越えのアイテムを使い切るか決める (跳び始めたときに呼ぶ)
+	void Player::UseJumpBoost(const Cell& from, const Cell& landing)
+	{
+		if (!hasJumpBoost_)
+		{
+			return;
+		}
+		// 次のジャンプで必ず使い切る
+		if (GameConfig::kJumpBoostUseOnNextJump)
+		{
+			hasJumpBoost_ = false;
+			return;
+		}
+		// 穴2つを飛び越えた (3マス先に着地した) ときだけ使い切る
+		const int32_t distance = std::abs(landing.x - from.x) + std::abs(landing.z - from.z);
+		if (distance > GameConfig::kNormalJumpGap + 1)
+		{
+			hasJumpBoost_ = false;
+		}
+	}
+
 	// 1フレーム動かす
-	bool Player::Advance(const Vector2& move, bool hasMovement, const Floor& floor, float deltaTime) {
+	bool Player::Advance(const Vector2& move, bool hasMovement, const Floor& floor, float deltaTime)
+	{
 		// 床の高さ・重力・今の位置とマス
 		const float floorHeight = floor.GetHeight();
 		const float gravity = std::max(0.01f, GameConfig::kGravity);
@@ -74,15 +100,25 @@ namespace App
 		Cell cell = floor.GetCellAt(position);
 
 		// 立っていたタイルが崩れていたら、床から離れる
-		if (!floor.IsSolid(cell)) {
+		if (!floor.IsSolid(cell))
+		{
 			isGrounded_ = false;
 		}
 
 		// 移動の入力: 上下左右のどれかへ1マス跳ぶ (跳んだ先が床のときだけ)
-		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement) {
+		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement)
+		{
+			// 飛び越えられる穴の数 (2マス乗り越えのアイテムを持っていたら 2)
 			const Cell direction = GridDirection::FromInput(move);
-			const Cell landing = floor.JumpLanding(cell, direction);
-			if (floor.IsSolid(landing)) {
+			int32_t maxGap = GameConfig::kNormalJumpGap;
+			if (hasJumpBoost_)
+			{
+				maxGap = GameConfig::kBoostedJumpGap;
+			}
+			const Cell landing = floor.JumpLanding(cell, direction, maxGap);
+			if (floor.IsSolid(landing))
+			{
+				UseJumpBoost(cell, landing);
 				jumpOrigin_ = position;
 				jumpDestination_ = landing;
 				jumpElapsed_ = 0.0f;
@@ -93,7 +129,7 @@ namespace App
 		}
 
 		//跳んでいる途中: マスの線にそって進みながら、山なりに上下する
-		if (isJumping_) 
+		if (isJumping_)
 		{
 			jumpElapsed_ += deltaTime;
 			const float t = std::clamp(jumpElapsed_ / GameConfig::kJumpDuration, 0.0f, 1.0f);
@@ -111,30 +147,35 @@ namespace App
 		}
 
 		// はじかれている間は、その速さで動く
-		if (knockbackTime_ > 0.0f) {
+		if (knockbackTime_ > 0.0f)
+		{
 			position += knockbackVelocity_ * std::min(deltaTime, knockbackTime_);
 			knockbackTime_ = std::max(0.0f, knockbackTime_ - deltaTime);
 		}
 
 		// 床のふちで止める (ボスに触れてはじかれたときは止めない)
-		if (!isKnockbackOverFence_) {
+		if (!isKnockbackOverFence_)
+		{
 			position = floor.ClampToBoundary(position, GameConfig::kPlayerContactRadius);
 		}
 
 		// 今のマスに床があるか
 		cell = floor.GetCellAt(position);
 		const bool isSolid = floor.IsSolid(cell);
-		if (!isSolid) {
+		if (!isSolid)
+		{
 			isGrounded_ = false;
 		}
 
 		// 空中: 重力で動かして、上から床の高さを通り過ぎたら着地
-		if (!isGrounded_) {
+		if (!isGrounded_)
+		{
 			const float previousY = position.y;
 			position.y += (verticalSpeed_ - 0.5f * gravity * deltaTime) * deltaTime;
 			verticalSpeed_ -= gravity * deltaTime;
 
-			if (isSolid && verticalSpeed_ <= 0.0f && previousY >= floorHeight && position.y <= floorHeight) {
+			if (isSolid && verticalSpeed_ <= 0.0f && previousY >= floorHeight && position.y <= floorHeight)
+			{
 				position.y = floorHeight;
 				verticalSpeed_ = 0.0f;
 				isGrounded_ = true;
@@ -150,7 +191,7 @@ namespace App
 	}
 
 	// 見た目
-	void Player::UpdateVisuals() 
+	void Player::UpdateVisuals()
 	{
 		// cube.obj は1辺が 2 なので、合わせて1辺を kPlayerSize にする。足元が position_ になるように上げる
 		const float size = GameConfig::kPlayerSize;
@@ -175,7 +216,7 @@ namespace App
 	}
 
 	//体と正面の板を描く (点滅中は描かないことがある)
-	void Player::Draw() 
+	void Player::Draw()
 	{
 		if (!isVisible_)
 		{

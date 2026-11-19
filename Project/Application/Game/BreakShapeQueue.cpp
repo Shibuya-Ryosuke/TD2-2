@@ -1,7 +1,7 @@
 #include "BreakShapeQueue.h"
 #include <algorithm>
 
-namespace App 
+namespace App
 {
 	//乱数を毎回ちがう値で始める
 	BreakShapeQueue::BreakShapeQueue() : random_(std::random_device{}())
@@ -19,7 +19,8 @@ namespace App
 	//index番目の形を見る (足りなければ袋から足す)
 	BreakShapeType BreakShapeQueue::Peek(int32_t index)
 	{
-		if (index < 0) {
+		if (index < 0)
+		{
 			index = 0;
 		}
 		while (static_cast<int32_t>(upcoming_.size()) <= index)
@@ -30,23 +31,23 @@ namespace App
 	}
 
 	//今の形を捨てて、次の形へ
-	void BreakShapeQueue::Advance() 
+	void BreakShapeQueue::Advance()
 	{
 		Peek(0);
 		upcoming_.erase(upcoming_.begin());
 	}
 
 	//袋から1つ取り出す (空なら全部入れて混ぜる)
-	BreakShapeType BreakShapeQueue::Draw() 
+	BreakShapeType BreakShapeQueue::Draw()
 	{
 		// 袋が空なら、全部の形を入れて混ぜる
-		if (bag_.empty()) 
+		if (bag_.empty())
 		{
-			for (int32_t i = 0; i < kBreakShapeTypeCount; ++i) 
+			for (int32_t i = 0; i < kBreakShapeTypeCount; ++i)
 			{
 				bag_.push_back(static_cast<BreakShapeType>(i));
 			}
-			if (shuffle_) 
+			if (shuffle_)
 			{
 				std::shuffle(bag_.begin(), bag_.end(), random_);
 			}

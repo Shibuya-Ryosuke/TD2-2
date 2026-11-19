@@ -1,12 +1,12 @@
 #pragma once
 #include <RyoEngine.h>
 
-namespace App {
-	/// <summary>
-	/// ゲームオーバーシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
-	/// Enter / A で タイトル へ
-	/// </summary>
-	class GameOver : public RyoEngine::BaseScene {
+namespace App
+{
+	// ゲームオーバーシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
+	// Enter / A で タイトル へ
+	class GameOver : public RyoEngine::BaseScene
+	{
 	public:
 		GameOver() = default;
 		~GameOver() override = default;

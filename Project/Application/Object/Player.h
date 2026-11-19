@@ -3,17 +3,17 @@
 #include <memory>
 #include "../Stage/Cell.h"
 
-namespace App 
+namespace App
 {
 	class Floor;
-	/// プレイヤー (Unity のプロトタイプと同じ動き)。
-	/// ・移動の入力で、カメラから見た向きに一番近い上下左右のマスへ 1マス跳ぶ (押しっぱなしなら続けて跳ぶ)
-	///   となりが穴で、その先が床なら飛び越える。穴・床の外へは跳ばない
-	/// ・向き (床を崩す形の向き) は SetFacing で変える。移動しても向きは変わらない
-	/// ・はじかれている間 (ノックバック) は操作できない。ボスに触れてはじかれたときは、床のふちで止まらない
-	/// ・足元の床がなくなったら落ちる
-	/// 動かす順番はゲームシーン (Game) が決めるので、GameObject にはしていない。
-	/// Game が毎フレーム Advance → UpdateVisuals → Draw の順に呼ぶ。
+	// プレイヤー (Unity のプロトタイプと同じ動き)。
+	// ・移動の入力で、カメラから見た向きに一番近い上下左右のマスへ 1マス跳ぶ (押しっぱなしなら続けて跳ぶ)
+	// となりが穴で、その先が床なら飛び越える。穴・床の外へは跳ばない
+	// ・向き (床を崩す形の向き) は SetFacing で変える。移動しても向きは変わらない
+	// ・はじかれている間 (ノックバック) は操作できない。ボスに触れてはじかれたときは、床のふちで止まらない
+	// ・足元の床がなくなったら落ちる
+	// 動かす順番はゲームシーン (Game) が決めるので、GameObject にはしていない。
+	// Game が毎フレーム Advance → UpdateVisuals → Draw の順に呼ぶ。
 	class Player
 	{
 	public:
@@ -25,17 +25,17 @@ namespace App
 
 		void Initialize(); // モデルを作る (体と正面の板)
 
-		/// 1フレーム動かす。穴・床の外へ落ちたら true
-		/// <param name="move">移動の入力 (長さ 1 まで)</param>
-		/// <param name="hasMovement">移動の入力があるか</param>
-		/// <param name="floor">今いる層の床</param>
+		// 1フレーム動かす。穴・床の外へ落ちたら true
+		// move: 移動の入力 (長さ 1 まで)
+		// hasMovement: 移動の入力があるか
+		// floor: 今いる層の床
 		bool Advance(const RyoEngine::Vector2& move, bool hasMovement, const Floor& floor, float deltaTime);
 
 		//位置に置いて、動きの状態を全部戻す (やり直し・次の層)。向きは奥 (+Z) にする
 		void Place(const RyoEngine::Vector3& position);
 
-		/// はじく (ボスに触れた・パンチが当たった)。向きは上下左右のどれかにそろえる
-		/// <param name="overFence">床のふちで止めないか (ボスに触れたときは true)
+		// はじく (ボスに触れた・パンチが当たった)。向きは上下左右のどれかにそろえる
+		// overFence: 床のふちで止めないか (ボスに触れたときは true)
 		void ApplyKnockback(const Floor& floor, const RyoEngine::Vector3& direction, float speed, float duration, float liftSpeed, bool overFence);
 
 		//向きを変える (上下左右のどれか)
@@ -62,7 +62,14 @@ namespace App
 		//描くか (無敵の間の点滅)
 		void SetVisible(bool isVisible) { isVisible_ = isVisible; }
 
+		//2マス乗り越えのアイテム (持っている間は、穴2つまで飛び越えられる)
+		void SetJumpBoost(bool hasJumpBoost) { hasJumpBoost_ = hasJumpBoost; }
+		bool HasJumpBoost() const { return hasJumpBoost_; }
+
 	private:
+		//2マス乗り越えのアイテムを使い切るか決める (from から landing へ跳び始めたとき)
+		void UseJumpBoost(const Cell& from, const Cell& landing);
+
 		//見た目 (仮で使ってます（涙） Kari/Model/cube.obj の木箱)
 		std::unique_ptr<RyoEngine::Model> body_{};  // 体
 		std::unique_ptr<RyoEngine::Model> front_{}; // 正面の板 (向きがわかるように色を変える)
@@ -85,5 +92,6 @@ namespace App
 		bool isKnockbackOverFence_ = false;      //床のふちで止めないか
 
 		bool isVisible_ = true;
+		bool hasJumpBoost_ = false;              //2マス乗り越えのアイテムを持っているか
 	};
 }

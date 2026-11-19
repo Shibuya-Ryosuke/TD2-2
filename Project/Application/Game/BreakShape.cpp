@@ -1,89 +1,60 @@
 #include "BreakShape.h"
-#include <algorithm>
 
 using namespace RyoEngine;
 
-namespace App 
+namespace App
 {
-	//種類・色・真正面の列・形を決めて作る
-	BreakShape::BreakShape(BreakShapeType type, const Vector4& color, int32_t anchorColumn, const std::vector<std::string>& rows)
-		: type_(type), color_(color), anchorColumn_(anchorColumn), rows_(rows) {
-	}
-
-	//行の数 (前後の長さ)
-	int32_t BreakShape::GetRowCount() const {
-		return static_cast<int32_t>(rows_.size());
-	}
-
-	//列の数 (横の幅。一番長い行に合わせる)
-	int32_t BreakShape::GetColumnCount() const
+	// 種類・色・形 を決めて作る
+	BreakShape::BreakShape(BreakShapeType type, const Vector4& color, const std::vector<std::string>& rows)
+		: type_(type), color_(color), rows_(rows)
 	{
-		size_t count = 0;
-		for (const std::string& row : rows_) 
+		// 'P' (プレイヤーのいるマス) の場所を探しておく
+		for (size_t row = 0; row < rows_.size(); ++row)
 		{
-			count = std::max(count, row.size());
-		}
-		return static_cast<int32_t>(count);
-	}
-
-	//そのマスを崩すか (形の文字が X か)
-	bool BreakShape::IsFilled(int32_t column, int32_t forward) const
-	{
-		//下の行がプレイヤーのすぐ前 (forward = 0)
-		const int32_t rowIndex = GetRowCount() - 1 - forward;
-
-		if (rowIndex < 0 || rowIndex >= GetRowCount()) 
-		{
-			return false;
-		}
-		const std::string& row = rows_[static_cast<size_t>(rowIndex)];
-		if (column < 0 || column >= static_cast<int32_t>(row.size())) 
-		{
-			return false;
-		}
-		const char mark = row[static_cast<size_t>(column)];
-		if (mark == '.' || mark == ' ' || mark == '_')
-		{
-			return false;
-		}
-		return true;
-	}
-
-	//プレイヤーの前に、向きに合わせて形を置いたときのマスを集める
-	void BreakShape::CollectCells(const Cell& playerCell, const Cell& facing, std::vector<Cell>& result) const 
-	{
-		//前の結果を消す
-		result.clear();
-
-		//向きに対して右側の向き (奥を向いているときは右 = +x)
-		const Cell side = { facing.z, -facing.x };
-		const int32_t columnCount = GetColumnCount();
-
-		//形の1マスずつずらした所
-		for (int32_t forward = 0; forward < GetRowCount(); ++forward)
-		{
-			for (int32_t column = 0; column < columnCount; ++column) 
+			const size_t column = rows_[row].find('P');
+			if (column != std::string::npos)
 			{
-				if (!IsFilled(column, forward)) 
-				{
-					continue;
-				}
-
-				result.push_back(playerCell + facing * (forward + 1) + side * (column - anchorColumn_));
+				playerRow_ = static_cast<int32_t>(row);
+				playerColumn_ = static_cast<int32_t>(column);
 			}
 		}
 	}
 
-	//7つの形 (色はここで変えられる。BreakShapeTypeと同じ順に並べる)
-	std::vector<BreakShape> BreakShape::CreateDefaultShapes() {
+	// プレイヤーの前に、向きに合わせて形を置いたときのマスを集める
+	void BreakShape::CollectCells(const Cell& playerCell, const Cell& facing, std::vector<Cell>& result) const
+	{
+		// 前の結果を消す
+		result.clear();
+
+		// 向きに対して右側の向き (奥を向いているときは右 = +x)
+		const Cell side = { facing.z, -facing.x };
+
+		// 'X' のマスを1つずつ: 'P' から見て 前へ forward、右へ right ずらした所
+		for (size_t row = 0; row < rows_.size(); ++row)
+		{
+			const std::string& line = rows_[row];
+			for (size_t column = 0; column < line.size(); ++column)
+			{
+				if (line[column] != 'X')
+				{
+					continue;
+				}
+				const int32_t forward = playerRow_ - static_cast<int32_t>(row);
+				const int32_t right = static_cast<int32_t>(column) - playerColumn_;
+				result.push_back(playerCell + facing * forward + side * right);
+			}
+		}
+	}
+
+	// 5つの形 (色はここで変えられる。BreakShapeType と同じ順に並べる)
+	std::vector<BreakShape> BreakShape::CreateDefaultShapes()
+	{
 		std::vector<BreakShape> shapes;
-		shapes.emplace_back(BreakShapeType::I, Vector4{ 0.2f, 0.9f, 0.95f, 1.0f }, 0, std::vector<std::string>{ "X", "X", "X", "X" });
-		shapes.emplace_back(BreakShapeType::O, Vector4{ 0.98f, 0.86f, 0.2f, 1.0f }, 0, std::vector<std::string>{ "XX", "XX" });
-		shapes.emplace_back(BreakShapeType::T, Vector4{ 0.72f, 0.4f, 0.95f, 1.0f }, 1, std::vector<std::string>{ "XXX", ".X." });
-		shapes.emplace_back(BreakShapeType::S, Vector4{ 0.35f, 0.9f, 0.4f, 1.0f }, 1, std::vector<std::string>{ ".XX", "XX." });
-		shapes.emplace_back(BreakShapeType::Z, Vector4{ 0.95f, 0.3f, 0.35f, 1.0f }, 1, std::vector<std::string>{ "XX.", ".XX" });
-		shapes.emplace_back(BreakShapeType::L, Vector4{ 1.0f, 0.6f, 0.2f, 1.0f }, 0, std::vector<std::string>{ "X.", "X.", "XX" });
-		shapes.emplace_back(BreakShapeType::J, Vector4{ 0.35f, 0.5f, 1.0f, 1.0f }, 1, std::vector<std::string>{ ".X", ".X", "XX" });
+		shapes.emplace_back(BreakShapeType::X, Vector4{ 0.95f, 0.3f, 0.35f, 1.0f }, std::vector<std::string>{ "X.X", ".X.", "XPX" });
+		shapes.emplace_back(BreakShapeType::L, Vector4{ 1.0f, 0.6f, 0.2f, 1.0f }, std::vector<std::string>{ "X..", "XXX", ".P." });
+		shapes.emplace_back(BreakShapeType::Totu, Vector4{ 0.72f, 0.4f, 0.95f, 1.0f }, std::vector<std::string>{ ".X.", ".X.", "XXX", ".P." });
+		shapes.emplace_back(BreakShapeType::Line, Vector4{ 0.2f, 0.9f, 0.95f, 1.0f }, std::vector<std::string>{ "X", "X", "X", "P" });
+		shapes.emplace_back(BreakShapeType::Block, Vector4{ 0.98f, 0.86f, 0.2f, 1.0f }, std::vector<std::string>{ "XXX", "XXX", ".P." });
 		return shapes;
 	}
 }

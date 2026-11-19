@@ -4,6 +4,7 @@
 #include <memory>
 #include "../Game/BossTuning.h"
 #include "../Stage/Floor.h"
+#include "BossView.h"
 
 namespace App
 {
@@ -13,6 +14,7 @@ namespace App
 	//パンチ: 前方に予告 → 拳が伸びる。当たるとはじかれる (4層目から)
 	//足元の床が崩れたら、となりの床へ跳んで逃げる (TryEvadeCollapse)
 	//プレイヤーが跳んでぶつかってくると、はじかれる (KnockBack)
+	//見た目 (モデル) は BossView に分けている
 	//動かす順番はゲームシーン (Game) が決めるので、GameObject にはしていない。
 	class Boss
 	{
@@ -37,8 +39,8 @@ namespace App
 		void KnockBack(const Floor& floor, const Cell& direction, float duration);
 
 		//1フレーム動かす。プレイヤーに当たった攻撃のダメージを返す (当たらなければ 0)
-		/// <param name="target">プレイヤーの足元の位置
-		/// <param name="moveSpeed">進む速さ (床が減るほど速くなる)
+		// target: プレイヤーの足元の位置
+		// moveSpeed: 進む速さ (床が減るほど速くなる)
 		int32_t Tick(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime);
 
 		//行列を確定する (動かし終わったあとに呼ぶ)
@@ -66,9 +68,18 @@ namespace App
 
 		//描くか (倒したら消す)
 		void SetActive(bool isActive) { isActive_ = isActive; }
+		bool IsActive() const { return isActive_; }
+
+		// --- 見た目用 (BossView が読む) ---
+		const RyoEngine::Vector3& GetFistLocal() const { return fistLocal_; } // 拳の位置 (ボスのローカル)
+		bool IsMeleeTellVisible() const { return isMeleeTellVisible_; }       // 近接攻撃の予告を出すか
+		float GetMeleeTellSize() const { return meleeTellSize_; }             // 近接攻撃の予告の大きさ
+		bool IsPunchTellVisible() const { return isPunchTellVisible_; }       // パンチの予告を出すか
+		float GetPunchTellRange() const { return punchTellRange_; }           // パンチの予告の長さ
+		float GetPunchTellWidth() const { return punchTellWidth_; }           // パンチの予告の幅
 
 	private:
-		enum class PunchPhase 
+		enum class PunchPhase
 		{
 			None,     // パンチしていない
 			Windup,   // 予告 (拳を後ろに引く)
@@ -117,9 +128,6 @@ namespace App
 		RyoEngine::Vector3 fistLocal_{}; // 拳の今の位置 (ボスのローカル)
 
 		//見た目 (仮: cube の色を変えたもの)
-		std::unique_ptr<RyoEngine::Model> body_{};
-		std::unique_ptr<RyoEngine::Model> fist_{};
-		std::unique_ptr<RyoEngine::Model> meleeTell_{};
-		std::unique_ptr<RyoEngine::Model> punchTell_{};
+		BossView view_;
 	};
 }

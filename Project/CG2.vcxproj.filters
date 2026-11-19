@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Engine">
@@ -331,6 +331,57 @@
     <ClCompile Include="Application\Stage\GridDirection.cpp">
       <Filter>Application\Stage</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Stage\FloorCsv.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\FloorGrid.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\FloorPathFinder.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\FloorView.cpp">
+      <Filter>Application\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\BossView.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\FieldItem.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\ItemManager.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\ShapeController.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\LayerFloors.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\DescentSequence.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\TileBarrage.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\PlayerHealth.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\BossContact.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\BossBattle.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Game\BossFallFlow.cpp">
+      <Filter>Application\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\UI\GameHud.cpp">
+      <Filter>Application\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Camera\NearFadeSwitch.cpp">
+      <Filter>Application\Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Test\TestPlayer.h">
@@ -590,6 +641,66 @@
     </ClInclude>
     <ClInclude Include="Application\Stage\GridDirection.h">
       <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\FloorCsv.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\FloorGrid.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\FloorPathFinder.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\FloorView.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\BossView.h">
+      <Filter>Application\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\FieldItem.h">
+      <Filter>Application\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\ItemManager.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\ShapeController.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\LayerFloors.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\DescentSequence.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\TileBarrage.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\PlayerHealth.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BossContact.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BossBattle.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\BossFallFlow.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\UI\GameHud.h">
+      <Filter>Application\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Camera\NearFadeSwitch.h">
+      <Filter>Application\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\FloorTile.h">
+      <Filter>Application\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\ItemType.h">
+      <Filter>Application\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Game\GamePhase.h">
+      <Filter>Application\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

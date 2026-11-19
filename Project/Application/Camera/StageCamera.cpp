@@ -2,7 +2,8 @@
 
 using namespace RyoEngine;
 
-namespace App {
+namespace App
+{
 	//Stageの壱と向きをImGui で調整できるようにする！！
 	void StageCamera::Initialize()
 	{
@@ -10,7 +11,7 @@ namespace App {
 		Camera::Initialize();
 
 		//カメラ(原点を見下ろす向き)
-		rotate_ = { 0.7183f, -0.5779f, 0.0f }; 
+		rotate_ = { 0.7183f, -0.5779f, 0.0f };
 		nearZ_ = 0.3f;
 		farZ_ = 100.0f;
 
@@ -24,7 +25,7 @@ namespace App {
 	}
 
 	//平行投影でカメラの行列を毎フレーム作る
-	void StageCamera::Update() 
+	void StageCamera::Update()
 	{
 		// 行列を直接指定されている間は自動で作らない (エンジンのCameraと同じ決まり)
 		if (useCustomMatrices_)
