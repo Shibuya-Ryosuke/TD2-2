@@ -1,0 +1,13 @@
+#pragma once
+#include <cstdint>
+
+namespace App
+{
+	// アイテムの種類
+	enum class ItemType : int32_t
+	{
+		CrossBomb, // 十字爆弾: E / Bボタンで、プレイヤーのマスから十字にステージの端まで崩す (1回。ストックはできない)
+		JumpBoost, // 2マス乗り越え: 取った瞬間から、穴2つまで飛び越えられる (穴2つを越えたら使い切る)
+		Count,     // 種類の数 (アイテムではない。数えるときに使う)
+	};
+}
