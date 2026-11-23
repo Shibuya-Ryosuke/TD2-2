@@ -4,11 +4,11 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// 種類・色・形 を決めて作る
+	//種類と色と形を決めて作る
 	BreakShape::BreakShape(BreakShapeType type, const Vector4& color, const std::vector<std::string>& rows)
 		: type_(type), color_(color), rows_(rows)
 	{
-		// 'P' (プレイヤーのいるマス) の場所を探しておく
+		//プレイヤーのいるPの場所を探しておく
 		for (size_t row = 0; row < rows_.size(); ++row)
 		{
 			const size_t column = rows_[row].find('P');
@@ -20,16 +20,16 @@ namespace App
 		}
 	}
 
-	// プレイヤーの前に、向きに合わせて形を置いたときのマスを集める
+	//プレイヤーの前に向きに合わせて形を置いたときのマスを集める
 	void BreakShape::CollectCells(const Cell& playerCell, const Cell& facing, std::vector<Cell>& result) const
 	{
-		// 前の結果を消す
+		//前の結果を消す
 		result.clear();
 
-		// 向きに対して右側の向き (奥を向いているときは右 = +x)
+		//向きに対して右側の向き
 		const Cell side = { facing.z, -facing.x };
 
-		// 'X' のマスを1つずつ: 'P' から見て 前へ forward、右へ right ずらした所
+		//Xのマスを1つずつPから見て前と右へずらした所に置く
 		for (size_t row = 0; row < rows_.size(); ++row)
 		{
 			const std::string& line = rows_[row];
@@ -46,11 +46,10 @@ namespace App
 		}
 	}
 
-	// 5つの形 (色はここで変えられる。BreakShapeType と同じ順に並べる)
+	//BreakShapeTypeと同じ順の4つの形で、色はここで変えられる
 	std::vector<BreakShape> BreakShape::CreateDefaultShapes()
 	{
 		std::vector<BreakShape> shapes;
-		shapes.emplace_back(BreakShapeType::X, Vector4{ 0.95f, 0.3f, 0.35f, 1.0f }, std::vector<std::string>{ "X.X", ".X.", "XPX" });
 		shapes.emplace_back(BreakShapeType::L, Vector4{ 1.0f, 0.6f, 0.2f, 1.0f }, std::vector<std::string>{ "X..", "XXX", ".P." });
 		shapes.emplace_back(BreakShapeType::Totu, Vector4{ 0.72f, 0.4f, 0.95f, 1.0f }, std::vector<std::string>{ ".X.", ".X.", "XXX", ".P." });
 		shapes.emplace_back(BreakShapeType::Line, Vector4{ 0.2f, 0.9f, 0.95f, 1.0f }, std::vector<std::string>{ "X", "X", "X", "P" });

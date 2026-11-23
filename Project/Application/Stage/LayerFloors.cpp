@@ -8,7 +8,7 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// layer 層目から始める
+	//layer層目から始める
 	void LayerFloors::Start(int32_t layer)
 	{
 		layer_ = layer;
@@ -17,7 +17,7 @@ namespace App
 		upper_.reset();
 	}
 
-	// 下の層がまだなければ作る
+	//下の層がまだなければ作る
 	void LayerFloors::EnsureBelow()
 	{
 		if (below_ == nullptr)
@@ -26,29 +26,29 @@ namespace App
 		}
 	}
 
-	// 下の層へ進む
+	//下の層へ進む
 	void LayerFloors::AdvanceLayer()
 	{
 		EnsureBelow();
 
-		// 今の層は上の層に (足場を飛ばすのに使う)、下の層を今の層にして明るくする
+		//今の層を上の層にして、下の層を明るい今の層にする
 		current_->ClearPreview();
 		upper_ = std::move(current_);
 		current_ = std::move(below_);
 		current_->ShowAsCurrentFloor();
 
-		// さらに下の層を作る
+		//さらに下の層を作る
 		++layer_;
 		below_ = CreateFloor(layer_ + 1, false);
 	}
 
-	// 上の層を消す
+	//上の層を消す
 	void LayerFloors::ReleaseUpper()
 	{
 		upper_.reset();
 	}
 
-	// 3つの床の見た目を確定する
+	//3つの床の見た目を確定する
 	void LayerFloors::UpdateVisuals()
 	{
 		if (current_ != nullptr)
@@ -65,7 +65,7 @@ namespace App
 		}
 	}
 
-	// 下の層 → 今の層 → 上の層 の順に描く
+	//下の層、今の層、上の層の順に描く
 	void LayerFloors::Draw()
 	{
 		if (below_ != nullptr)
@@ -82,28 +82,28 @@ namespace App
 		}
 	}
 
-	// index 層目の床を作る
+	//index層目の床を作る
 	std::unique_ptr<Floor> LayerFloors::CreateFloor(int32_t index, bool isForeground) const
 	{
-		// layer1.csv 〜 layer5.csv を順に使う (6層目からは1層目に戻る)
+		//6層目からは1層目に戻ってcsvを順に使う
 		const int32_t fileNumber = index % GameConfig::kLayerFileCount + 1;
 		const std::string path = "Resources/ApplicationResources/Stage/layer" + std::to_string(fileNumber) + ".csv";
 		const float height = -static_cast<float>(index) * GameConfig::kFloorSpacing;
 
-		// 床を作って読み込む
+		//床を作って読み込む
 		std::unique_ptr<Floor> floor = std::make_unique<Floor>();
 		floor->Initialize(path, height, isForeground);
 		return floor;
 	}
 
-	// 1層目のマスで決めた最初の位置を、この層のマスに直す
+	//1層目のマスで決めた最初の位置をこの層のマスに直す
 	Vector3 LayerFloors::GetSpawnPosition(const Floor& floor, int32_t firstLayerX, int32_t firstLayerZ)
 	{
-		// 1層目のマスで指定した場所を、この層のマスの数に合わせる
+		//1層目のマスで指定した場所をこの層のマスの数に合わせる
 		int32_t x = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerX) + 0.5f) * static_cast<float>(floor.GetWidth()) / static_cast<float>(GameConfig::kFirstLayerWidth)));
 		int32_t z = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerZ) + 0.5f) * static_cast<float>(floor.GetDepth()) / static_cast<float>(GameConfig::kFirstLayerDepth)));
 
-		// 床の外に出ないようにする
+		//床の外に出ないようにする
 		x = std::clamp(x, 0, floor.GetWidth() - 1);
 		z = std::clamp(z, 0, floor.GetDepth() - 1);
 		return floor.GetCellCenter({ x, z });

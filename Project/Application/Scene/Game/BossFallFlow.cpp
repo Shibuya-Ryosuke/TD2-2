@@ -8,7 +8,7 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// プレイヤーを動かせない場面か
+	//プレイヤーを動かせない場面か
 	bool BossFallFlow::IsLockedPhase(GamePhase phase)
 	{
 		if (phase == GamePhase::Descent || phase == GamePhase::LandingImpact || phase == GamePhase::TileBarrage)
@@ -18,24 +18,24 @@ namespace App
 		return false;
 	}
 
-	// ボスの島が切り離された: 揺れ始める
+	//ボスの島が切り離されたら揺れ始める
 	void BossFallFlow::BeginEscape()
 	{
 		phase_ = GamePhase::Escape;
 		timer_ = GameConfig::kEscapeDelay;
 	}
 
-	// ボスが下の層へ落ち始める
+	//ボスが下の層へ落ち始める
 	void BossFallFlow::BeginDrop(LayerFloors& floors, const Player& player, const Boss& boss)
 	{
-		// プレイヤーの行き先 = 下の層の最初の位置
+		//プレイヤーの行き先は下の層の最初の位置
 		floors.EnsureBelow();
 		const Vector3 destination = LayerFloors::GetSpawnPosition(*floors.GetBelow(), GameConfig::kPlayerSpawnX, GameConfig::kPlayerSpawnZ);
 		descent_.Begin(boss.GetPosition(), player.GetPosition(), destination);
 		phase_ = GamePhase::Descent;
 	}
 
-	// 1フレーム進める (場面ごとに)
+	//場面ごとに1フレーム進める
 	BossFallFlow::Result BossFallFlow::Update(float deltaTime, LayerFloors& floors, Player& player, Boss& boss, StageCamera& camera)
 	{
 		Result result{};
@@ -49,7 +49,7 @@ namespace App
 		}
 		else if (phase_ == GamePhase::LandingImpact)
 		{
-			// 少し待ってから、足場を飛ばし始める
+			//少し待ってから足場を飛ばし始める
 			timer_ += deltaTime;
 			if (timer_ >= GameConfig::kLandingImpactDuration)
 			{
@@ -63,19 +63,19 @@ namespace App
 		return result;
 	}
 
-	// 揺れる → 時間が来たらボスごと落とす
+	//揺れて時間が来たらボスごと落とす
 	void BossFallFlow::UpdateEscape(float deltaTime, LayerFloors& floors, Player& player, Boss& boss, Result& result)
 	{
 		Floor& floor = floors.GetCurrent();
 		timer_ -= deltaTime;
 		if (timer_ > 0.0f)
 		{
-			// 切り離された床が揺れる
+			//切り離された床が揺れる
 			floor.Shake(GameConfig::kEscapeDelay - timer_, GameConfig::kShakeDistance, GameConfig::kShakeFrequency);
 			return;
 		}
 
-		// 落ちる。プレイヤーが切り離された床・穴の上にいたら、一緒に落ちる (跳んでいる途中なら着地するマスで調べる)
+		//プレイヤーが切り離された床か穴の上にいたら一緒に落ちる
 		Cell playerCell = floor.GetCellAt(player.GetPosition());
 		if (player.IsJumping())
 		{
@@ -87,14 +87,14 @@ namespace App
 			return;
 		}
 
-		// 切り離された床を穴にして、ボスを落とす
+		//切り離された床を穴にしてボスを落とす
 		floor.Release();
 		boss.Stop();
 		BeginDrop(floors, player, boss);
 		result.isDropStarted = true;
 	}
 
-	// ボスが落ちる・プレイヤーとカメラも下の層へ
+	//ボスが落ちてプレイヤーとカメラも下の層へ
 	void BossFallFlow::UpdateDescent(float deltaTime, LayerFloors& floors, Player& player, Boss& boss, StageCamera& camera, Result& result)
 	{
 		const DescentSequence::Result descent = descent_.Advance(deltaTime, floors.GetCurrent(), *floors.GetBelow(), player, boss, camera);
@@ -107,17 +107,17 @@ namespace App
 			return;
 		}
 
-		// 下の層に着いた: 層を1つ進める (配置・回復などは Game がする)
+		//下の層に着いたら層を1つ進める
 		floors.AdvanceLayer();
 		timer_ = 0.0f;
 		phase_ = GamePhase::LandingImpact;
 		result.isArrived = true;
 	}
 
-	// 上の層に残った足場を、ボスへ飛ばし始める
+	//上の層に残った足場をボスへ飛ばし始める
 	void BossFallFlow::BeginBarrage(LayerFloors& floors, Result& result)
 	{
-		// 飛ばす足場を用意する。1つもなければすぐ終わり
+		//飛ばす足場がなければすぐ終わる
 		barrage_.Begin(floors.GetUpper());
 		phase_ = GamePhase::TileBarrage;
 		if (barrage_.IsFinished())
@@ -127,10 +127,10 @@ namespace App
 		}
 	}
 
-	// 足場を飛ばして、届いた分だけダメージ
+	//足場を飛ばして届いた分だけダメージ
 	void BossFallFlow::UpdateBarrage(float deltaTime, LayerFloors& floors, const Boss& boss, Result& result)
 	{
-		// 上の層に残った足場が、ボスへ飛んでいく
+		//上の層に残った足場がボスへ飛んでいく
 		Floor* upper = floors.GetUpper();
 		if (upper != nullptr)
 		{
@@ -138,7 +138,7 @@ namespace App
 			result.bossDamage += barrage_.Advance(*upper, target, deltaTime);
 		}
 
-		// 全部届いたら、上の層を消して終わり
+		//全部届いたら上の層を消して終わる
 		if (upper == nullptr || barrage_.IsFinished())
 		{
 			floors.ReleaseUpper();

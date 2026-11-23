@@ -3,8 +3,7 @@
 
 namespace App
 {
-	// アプリ本体。起動時に保存データの読み込みと最初のシーンの予約を行う。
-	// (シーンの更新・描画は SceneManager が行う)
+	//アプリ本体で、保存データの読み込みと最初のシーンの予約をする
 	class Application : public RyoEngine::Framework
 	{
 	public:

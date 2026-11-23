@@ -10,7 +10,7 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// ゲームシーンの状態から、出すものを集める
+	//ゲームシーンの状態から出すものを集める
 	GameHudInfo GameHud::MakeInfo(const PlayerHealth& health, const LayerFloors& floors, int32_t bossHealth,
 		GamePhase phase, bool isPaused, const BossFallFlow& bossFall)
 	{
@@ -23,21 +23,21 @@ namespace App
 		info.escapeTimer = bossFall.GetEscapeTimer();
 		info.barrageTiles = bossFall.GetBarrage().GetTileCount();
 		info.barrageDamage = bossFall.GetBarrage().GetDamageApplied();
-		// [アイテム] アイテムは一旦使わない。コメントアウト (持っているアイテムは Game から入れていた)
+		//[アイテム] 持っているアイテムはGameから入れていたのでコメントアウト
 		// info.hasBomb = items_.HasBomb();
 		// info.hasJumpBoost = player_->HasJumpBoost();
 		return info;
 	}
 
-	// デバッグ表示 (HP・アイテム・お知らせ・操作)
+	//デバッグ表示
 	void GameHud::Draw(const GameHudInfo& info)
 	{
-		// HP・層・ボスの HP
+		//HPと層とボスのHP
 		PrintText("HP {}/{}   LAYER {}   BOSS HP {}/{}", { 20.0f, 20.0f },
 			info.hearts, GameConfig::kMaxHearts, info.layer + 1, info.bossHealth, GameConfig::kBossMaxHealth);
 
-		// [アイテム] アイテムは一旦使わない。コメントアウト
-		// // 持っているアイテム
+		//[アイテム] アイテムは一旦使わないのでコメントアウト
+		// //持っているアイテム
 		// const char* bombText = "-";
 		// if (info.hasBomb)
 		// {
@@ -50,7 +50,7 @@ namespace App
 		// }
 		// PrintText("ITEM  {}   {}", { 20.0f, 50.0f }, bombText, jumpText);
 
-		// 場面ごとのお知らせ
+		//場面ごとのお知らせ
 		const Vector2 noticePosition = { 20.0f, 80.0f };
 		if (info.isPaused)
 		{
@@ -77,7 +77,7 @@ namespace App
 			PrintText("TILES {}   BONUS DAMAGE {}", noticePosition, info.barrageTiles, info.barrageDamage);
 		}
 
-		// 操作は画面のいちばん下 (文字の位置はゲーム画面の解像度が基準。今は 1920 x 1080)
+		//操作は画面のいちばん下
 		const float bottomY = static_cast<float>(DirectXCommon::GetGameHeight()) - 40.0f;
 		PrintText("MOVE WASD/LSTICK   FACE ARROWS/RSTICK/DPAD   BREAK SPACE/A   SHAPE Q/E LB/RB   PAUSE ESC/START", { 20.0f, bottomY });
 	}

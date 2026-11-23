@@ -8,10 +8,10 @@ namespace App
 {
 	namespace
 	{
-		// となりの4マス (奥・右・手前・左。Unity と同じ順番)
+		//奥、右、手前、左のとなりの4マス
 		constexpr Cell kDirections[4] = { { 0, 1 }, { 1, 0 }, { 0, -1 }, { -1, 0 } };
 
-		// 2点の距離の2乗 (比べるだけなので sqrt しない)
+		//比べるだけなのでsqrtしない2点の距離の2乗
 		float DistanceSquared(const Vector3& a, const Vector3& b)
 		{
 			const float x = a.x - b.x;
@@ -21,7 +21,7 @@ namespace App
 		}
 	}
 
-	// start から行けるマスを全部調べる
+	//startから行けるマスを全部調べる
 	void FloorPathFinder::Explore(const Floor& floor, const Cell& start, bool canJump, std::vector<int32_t>& parents, std::vector<Cell>& order)
 	{
 		parents.assign(floor.GetTileCount(), -1);
@@ -31,7 +31,7 @@ namespace App
 			return;
 		}
 
-		// 幅優先: order を待ち行列として使う (先頭から順に調べる)
+		//orderを待ち行列にして幅優先で調べる
 		parents[floor.ToIndex(start)] = static_cast<int32_t>(floor.ToIndex(start));
 		order.push_back(start);
 		for (size_t head = 0; head < order.size(); ++head)
@@ -39,7 +39,7 @@ namespace App
 			const Cell current = order[head];
 			for (const Cell& direction : kDirections)
 			{
-				// 飛び越えられるなら、穴を1つ飛ばした先も行ける
+				//飛び越えられるなら穴を1つ飛ばした先も行ける
 				Cell next = current + direction;
 				if (canJump)
 				{
@@ -49,7 +49,7 @@ namespace App
 				{
 					continue;
 				}
-				// まだ見つけていないマスだけ足す
+				//まだ見つけていないマスだけ足す
 				const size_t nextIndex = floor.ToIndex(next);
 				if (parents[nextIndex] >= 0)
 				{
@@ -61,15 +61,15 @@ namespace App
 		}
 	}
 
-	// ボスの次のマス (行ける所でプレイヤーに一番近い所へ)
+	//行ける所でプレイヤーに一番近い所へ向かうボスの次のマス
 	Cell FloorPathFinder::NextStep(const Floor& floor, const Cell& start, const Vector3& target, bool canJump)
 	{
-		// start から行けるマスを全部調べる
+		//startから行けるマスを全部調べる
 		std::vector<int32_t> parents;
 		std::vector<Cell> order;
 		Explore(floor, start, canJump, parents, order);
 
-		// 行き先: プレイヤーのマスに行けるならそこ。行けなければ、行ける所で一番近いマス
+		//プレイヤーのマスか、行ける所で一番近いマスを行き先にする
 		Cell best = start;
 		const Cell targetCell = floor.GetCellAt(target);
 		if (floor.Contains(targetCell) && parents[floor.ToIndex(targetCell)] >= 0)
@@ -90,7 +90,7 @@ namespace App
 			}
 		}
 
-		// 行き先から start までさかのぼって、start の次のマスを返す
+		//行き先からさかのぼってstartの次のマスを返す
 		if (order.empty())
 		{
 			return best;
@@ -103,14 +103,14 @@ namespace App
 		return best;
 	}
 
-	// ボスの逃げ先 (上下左右で、すぐには崩れない床)
+	//上下左右ですぐには崩れないボスの逃げ先
 	bool FloorPathFinder::FindLandingNeighbor(const Floor& floor, const Vector3& position, float timeToLand, Cell& landing)
 	{
 		const Cell current = floor.GetCellAt(position);
 		landing = current;
 		float bestDistance = std::numeric_limits<float>::infinity();
 
-		// 上下左右のうち、一番近い床を選ぶ
+		//上下左右のうち一番近い床を選ぶ
 		for (const Cell& direction : kDirections)
 		{
 			const Cell cell = current + direction;
@@ -118,7 +118,7 @@ namespace App
 			{
 				continue;
 			}
-			// 着く前に崩れてしまう床はだめ
+			//着く前に崩れてしまう床はだめ
 			const float remaining = floor.GetTile(cell).remaining;
 			if (remaining >= 0.0f && remaining <= timeToLand)
 			{
@@ -134,10 +134,10 @@ namespace App
 		return landing != current;
 	}
 
-	// ボスの島が、ほかの島より小さければ切り離す島として返す
+	//ボスの島がほかの島より小さければ切り離す島として返す
 	bool FloorPathFinder::FindIsolatedRegion(const Floor& floor, const Cell& bossCell, std::vector<Cell>& region)
 	{
-		// ボスのいる島を調べる
+		//ボスのいる島を調べる
 		std::vector<int32_t> bossParents;
 		Explore(floor, bossCell, false, bossParents, region);
 		if (region.empty())
@@ -145,7 +145,7 @@ namespace App
 			return false;
 		}
 
-		// ボスの島と同じか、それより大きい島がほかにあるか
+		//ボスの島と同じか大きい島がほかにあるか
 		std::vector<bool> isVisited(floor.GetTileCount(), false);
 		for (const Cell& cell : region)
 		{
@@ -162,7 +162,7 @@ namespace App
 				{
 					continue;
 				}
-				// まだ調べていない島の大きさを数える
+				//まだ調べていない島の大きさを数える
 				Explore(floor, cell, false, otherParents, otherRegion);
 				if (otherRegion.size() >= region.size())
 				{
@@ -177,7 +177,7 @@ namespace App
 		return false;
 	}
 
-	// from から to までたどり着けるか
+	//fromからtoまでたどり着けるか
 	bool FloorPathFinder::CanReach(const Floor& floor, const Cell& from, const Cell& to, bool canJump)
 	{
 		std::vector<int32_t> parents;

@@ -5,7 +5,7 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// 長さを 1 までにする
+	//斜めでも長さを1までにする
 	Vector2 GameInput::ClampLength(const Vector2& value)
 	{
 		Vector2 result = value;
@@ -18,7 +18,7 @@ namespace App
 		return result;
 	}
 
-	// 移動: WASD / 左スティック
+	//移動はWASDか左スティック
 	Vector2 GameInput::GetMove()
 	{
 		Vector2 move = { Input::GetLeftStickX(), Input::GetLeftStickY() };
@@ -41,7 +41,7 @@ namespace App
 		return ClampLength(move);
 	}
 
-	// 向き: 矢印キー / 右スティック / 十字キー
+	//向きは矢印キーか右スティックか十字キー
 	Vector2 GameInput::GetLook()
 	{
 		Vector2 look = { Input::GetRightStickX(), Input::GetRightStickY() };
@@ -75,12 +75,12 @@ namespace App
 		command.isBreak = IsBreakTriggered();
 		command.isPreviousShape = IsPreviousShapeTriggered();
 		command.isNextShape = IsNextShapeTriggered();
-		// [アイテム] アイテムは一旦使わない。コメントアウト
+		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// command.isBomb = IsBombTriggered();
 		return command;
 	}
 
-	//床を崩す: Space / Aボタン
+	//床を崩すのはSpaceかAボタン
 	bool GameInput::IsBreakTriggered()
 	{
 		if (Input::TriggerKey(DIK_SPACE))
@@ -94,8 +94,8 @@ namespace App
 		return false;
 	}
 
-	// [アイテム] アイテムは一旦使わない。コメントアウト (E は形の切り替えに使っている)
-	// //十字爆弾: E / Bボタン
+	//[アイテム] Eは形の切り替えに使っているのでコメントアウト
+	// //EかBボタンの十字爆弾
 	// bool GameInput::IsBombTriggered()
 	// {
 		// if (Input::TriggerKey(DIK_E))
@@ -109,7 +109,7 @@ namespace App
 		// return false;
 	// }
 
-	//形を前へ: Q / LB
+	//形を前へはQかLB
 	bool GameInput::IsPreviousShapeTriggered()
 	{
 		if (Input::TriggerKey(DIK_Q))
@@ -123,7 +123,7 @@ namespace App
 		return false;
 	}
 
-	//形を次へ: E / RB
+	//形を次へはEかRB
 	bool GameInput::IsNextShapeTriggered()
 	{
 		if (Input::TriggerKey(DIK_E))
@@ -137,7 +137,7 @@ namespace App
 		return false;
 	}
 
-	//ポーズ: Esc / STARTボタン
+	//ポーズはEscかSTARTボタン
 	bool GameInput::IsPauseTriggered()
 	{
 		if (Input::TriggerKey(DIK_ESCAPE))
@@ -151,7 +151,7 @@ namespace App
 		return false;
 	}
 
-	//決定: Enter / Aボタン
+	//決定はEnterかAボタン
 	bool GameInput::IsEnterTriggered()
 	{
 		if (Input::TriggerKey(DIK_RETURN))

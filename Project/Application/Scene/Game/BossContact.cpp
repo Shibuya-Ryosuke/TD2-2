@@ -11,10 +11,10 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// 触れたか調べて、はじく
+	//触れたか調べてはじく
 	bool BossContact::Check(Player& player, Boss& boss, const Floor& floor, bool isJumpImpact)
 	{
-		// ボスの体 (箱) とプレイヤーの体 (円柱) が重なったか。ボスの向きに合わせて調べる
+		//ボスの向きに合わせて箱と円柱が重なったか調べる
 		const Vector3 local = boss.ToLocal(player.GetPosition());
 		const float gapX = std::max(0.0f, std::abs(local.x) - GameConfig::kBossContactSizeX * 0.5f);
 		const float gapZ = std::max(0.0f, std::abs(local.z) - GameConfig::kBossContactSizeZ * 0.5f);
@@ -25,7 +25,7 @@ namespace App
 			isTouching = true;
 		}
 
-		// 触れた瞬間だけはじく (ダメージはない)
+		//触れた瞬間だけダメージなしではじく
 		const bool isNewTouch = isTouching && !isTouching_;
 		isTouching_ = isTouching;
 		if (!isNewTouch || player.IsKnockedBack())
@@ -33,12 +33,12 @@ namespace App
 			return false;
 		}
 
-		// ボスからプレイヤーへの向き (重なりすぎて向きが取れないときは、あとで別の向きを使う)
+		//ボスからプレイヤーへの向き
 		Vector3 away = player.GetPosition() - boss.GetPosition();
 		away.y = 0.0f;
 		const bool isTooClose = away.x * away.x + away.z * away.z < 0.0001f;
 
-		// 跳んでぶつかった: プレイヤーもボスも、おたがい反対へはじかれる
+		//跳んでぶつかったらおたがい反対へはじかれる
 		if (isJumpImpact)
 		{
 			if (isTooClose)
@@ -51,7 +51,7 @@ namespace App
 			return true;
 		}
 
-		// 歩いて (立っていて) 触れた: プレイヤーだけはじかれる
+		//立っていて触れたらプレイヤーだけはじかれる
 		if (isTooClose)
 		{
 			away = boss.GetForward();
@@ -60,10 +60,10 @@ namespace App
 		return false;
 	}
 
-	// プレイヤーを away の向きへはじく (2マス分。床のふちで止めない)
+	//プレイヤーを床のふちで止めずに2マスはじく
 	void BossContact::KnockPlayer(Player& player, const Floor& floor, const Vector3& away)
 	{
-		// kContactKnockbackCells マス分を、kContactPushDuration 秒で進む速さ
+		//決めた秒数で決めたマス数を進む速さ
 		const Vector3 offset = floor.StepOffset(GridDirection::FromVector(away));
 		const float speed = Length(offset) * GameConfig::kContactKnockbackCells / GameConfig::kContactPushDuration;
 		player.ApplyKnockback(floor, Normalize(offset), speed, GameConfig::kContactPushDuration, GameConfig::kContactLiftSpeed, true);

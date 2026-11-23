@@ -5,23 +5,22 @@
 
 namespace App
 {
-	// CSV から読んだ床の形 (0: 穴 / 1: 床)
+	//CSVから読んだ0が穴で1が床の形
 	struct FloorLayout
 	{
-		int32_t width = 0;        // 横のマスの数
-		int32_t depth = 0;        // 奥のマスの数
-		std::vector<bool> solid;  // 手前の行から順に、左から右へ。床なら true
+		int32_t width = 0; //横のマスの数
+		int32_t depth = 0; //奥のマスの数
+		std::vector<bool> solid; //手前の行から順に左から右へ、床ならtrue
 	};
 
-	// 床の CSV を読むクラス
-	// CSV の上の行が奥、下の行が手前。1 が床、それ以外 (0・空欄・文字) は穴
+	//上の行が奥で1が床、それ以外は穴の床のCSVを読む
 	class FloorCsv
 	{
 	public:
-		// CSV を読む。読めなかったら false
+		//CSVを読んで、読めなかったらfalse
 		static bool Load(const std::string& csvPath, FloorLayout& layout);
 
-		// CSV が読めなかったときの床 (全部床)
+		//CSVが読めなかったときの全部床の形
 		static FloorLayout CreateDefault(int32_t width, int32_t depth);
 	};
 }

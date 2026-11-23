@@ -1,5 +1,5 @@
-// [アイテム] アイテムは一旦使わない (チームで相談中)。コメントアウトしている
-// (使うときは、このファイルの行頭の "// " を外す)
+//[アイテム] チームで相談中なので一旦コメントアウト
+//使うときは行頭のコメントを外す
 // #pragma once
 // #include <RyoEngine.h>
 // #include <memory>
@@ -10,10 +10,7 @@
 // {
 	// class Floor;
 
-	// // ステージに置いてあるアイテム (1個)
-	// // ・上から降ってきて、床の少し上に浮かんで回る
-	// // ・置いてある足場が崩れたら、一緒に落ちて消える
-	// // ・見た目は cube を小さくして色を変えたもの (種類で色が変わる)
+	// //上から降ってきて浮かんで回り、足場が崩れたら一緒に落ちるアイテム
 	// class FieldItem
 	// {
 	// public:
@@ -23,48 +20,47 @@
 		// FieldItem(const FieldItem&) = delete;
 		// FieldItem& operator=(const FieldItem&) = delete;
 
-		// void Initialize(); // モデルを作る
+		// void Initialize(); //モデルを作る
 
-		// // floor の cell に、上から降らせる
+		// //floorのcellに上から降らせる
 		// void Spawn(ItemType type, const Floor& floor, const Cell& cell);
-		// // 消す (取った・やり直し・次の層)
+		// //取ったときややり直しで消す
 		// void Remove();
 
-		// // 降ってくる・回る・足場と一緒に落ちる (毎フレーム)
+		// //毎フレーム降らせて回して足場と一緒に落とす
 		// void Update(const Floor& floor, float deltaTime);
-		// // 行列を確定する
+		// //行列を確定する
 		// void UpdateVisuals();
 		// void Draw();
 
-		// // ステージに出ているか (落ちて消えている途中も true)
+		// //落ちて消えている途中も入れてステージに出ているか
 		// bool IsActive() const { return state_ != State::None; }
-		// // 取れる状態か (足場と一緒に落ちている途中は取れない)
+		// //足場と一緒に落ちている途中以外で取れる状態か
 		// bool CanPickUp() const;
 		// ItemType GetType() const { return type_; }
 
-		// // プレイヤーの体 (箱) と重なっているか (AABB)
-		// // playerFeet: プレイヤーの足元の位置 / playerSize: プレイヤーの箱の1辺
+		// //プレイヤーの足元と大きさから体の箱と重なっているか
 		// bool IsTouching(const RyoEngine::Vector3& playerFeet, float playerSize) const;
 
 	// private:
 		// enum class State
 		// {
-			// None,     // 出ていない
-			// Dropping, // 上から降ってきている
-			// Resting,  // 床の上に浮かんでいる
-			// Falling,  // 足場が崩れて、一緒に落ちている
+			// None,     //出ていない
+			// Dropping, //上から降ってきている
+			// Resting,  //床の上に浮かんでいる
+			// Falling,  //足場が崩れて一緒に落ちている
 		// };
 
-		// float GetRestY(const Floor& floor) const; // 床の上に浮かんでいるときの、箱の真ん中の高さ
+		// float GetRestY(const Floor& floor) const; //床の上に浮かんでいるときの箱の真ん中の高さ
 
 		// State state_ = State::None;
 		// ItemType type_ = ItemType::CrossBomb;
-		// Cell cell_{};                    // 置いてあるマス
-		// RyoEngine::Vector3 position_{};  // 箱の真ん中の位置
-		// float startY_ = 0.0f;            // 降ってき始めた高さ
-		// float timer_ = 0.0f;             // 降ってくる・落ちる時間
-		// float yawDeg_ = 0.0f;            // 回る角度 (度)
+		// Cell cell_{};                    //置いてあるマス
+		// RyoEngine::Vector3 position_{};  //箱の真ん中の位置
+		// float startY_ = 0.0f;            //降ってき始めた高さ
+		// float timer_ = 0.0f;             //降ってくる時間か落ちる時間
+		// float yawDeg_ = 0.0f;            //度の回る角度
 
-		// std::unique_ptr<RyoEngine::Model> model_{}; // 見た目 (仮: cube)
+		// std::unique_ptr<RyoEngine::Model> model_{}; //仮のcubeの見た目
 	// };
 // }

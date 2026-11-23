@@ -1,10 +1,10 @@
 #pragma once
 #include <RyoEngine.h>
+#include "../../Direction/Transition/BlockTransition.h"
 
 namespace App
 {
-	// タイトルシーン (仮。文字はデバッグ表示で、Debug のときだけ出る)
-	// Enter / A で ゲームシーン へ
+	//Debugのときだけ文字が出る仮のタイトルシーン
 	class Title : public RyoEngine::BaseScene
 	{
 	public:
@@ -14,8 +14,11 @@ namespace App
 		Title(const Title&) = delete;
 		Title& operator=(const Title&) = delete;
 
-		void Initialize() override; // シーンに来たとき
-		void Update() override; // Enter / A でゲームへ
-		void Draw() override; // 文字を出す
+		void Initialize() override; //演出のカメラを作る
+		void Update() override; //EnterかAでゲームへ
+		void Draw() override; //文字を出す
+
+	private:
+		BlockTransition transition_; //場面切り替えの積み木
 	};
 }

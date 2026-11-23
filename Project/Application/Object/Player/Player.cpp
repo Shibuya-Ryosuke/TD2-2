@@ -12,22 +12,25 @@ namespace App
 {
 	namespace
 	{
-		constexpr float kFrontThickness = 0.04f; // 正面の板の厚さ
+		constexpr float kFrontThickness = 0.04f; //正面の板の厚さ
 	}
 
-	// モデルを作る (体と正面の板)
+	//体と正面の板のモデルを作る
 	void Player::Initialize()
 	{
-		// 体 (白い箱)
+		//白い箱の体
 		body_ = Model::Create(GameConfig::kCubeModel);
 		body_->SetColor(GameConfig::kPlayerColor);
 
-		// 正面の板 (向きがわかるように色を変える)
+		//向きがわかる色の正面の板
 		front_ = Model::Create(GameConfig::kCubeModel);
 		front_->SetColor(GameConfig::kPlayerFrontColor);
+
+		//着地でピカッと光るシェーダーもつけるぽよん
+		bounce_.Initialize(*body_, *front_);
 	}
 
-	// 位置に置いて、動きの状態を全部戻す
+	//位置に置いて動きの状態を全部戻す
 	void Player::Place(const Vector3& position)
 	{
 		position_ = position;
@@ -40,18 +43,18 @@ namespace App
 		isGrounded_ = true;
 	}
 
-	// 向きを変える
+	//向きを変える
 	void Player::SetFacing(const Cell& facing)
 	{
 		facing_ = facing;
 	}
 
-	// はじく (向きは上下左右にそろえる)
+	//上下左右の向きにはじく
 	void Player::ApplyKnockback(const Floor& floor, const Vector3& direction, float speed, float duration, float liftSpeed, bool overFence)
 	{
 		isJumping_ = false;
 
-		// 一度ふちを越えてはじかれたら、床の上に戻るまではふちで止めない
+		//ふちを越えてはじかれたら床の上に戻るまでふちで止めない
 		if (overFence)
 		{
 			isKnockbackOverFence_ = true;
@@ -61,7 +64,7 @@ namespace App
 			isKnockbackOverFence_ = !floor.Contains(floor.GetCellAt(position_));
 		}
 
-		// はじく向きは上下左右のどれかにそろえる
+		//はじく向きを上下左右にそろえる
 		const Vector3 offset = floor.StepOffset(GridDirection::FromVector(direction));
 		knockbackVelocity_ = Normalize(offset) * speed;
 		knockbackTime_ = duration;
@@ -69,21 +72,21 @@ namespace App
 		isGrounded_ = false;
 	}
 
-	// [アイテム] アイテムは一旦使わない。コメントアウト
-	// // 2マス乗り越えのアイテムを使い切るか決める (跳び始めたときに呼ぶ)
+	//[アイテム] アイテムは一旦使わないのでコメントアウト
+	// //跳び始めたときに2マス乗り越えを使い切るか決める
 	// void Player::UseJumpBoost(const Cell& from, const Cell& landing)
 	// {
 		// if (!hasJumpBoost_)
 		// {
 			// return;
 		// }
-		// // 次のジャンプで必ず使い切る
+		// //次のジャンプで必ず使い切る
 		// if (GameConfig::kJumpBoostUseOnNextJump)
 		// {
 			// hasJumpBoost_ = false;
 			// return;
 		// }
-		// // 穴2つを飛び越えた (3マス先に着地した) ときだけ使い切る
+		// //3マス先に着地して穴2つを飛び越えたときだけ使い切る
 		// const int32_t distance = std::abs(landing.x - from.x) + std::abs(landing.z - from.z);
 		// if (distance > GameConfig::kNormalJumpGap + 1)
 		// {
@@ -91,36 +94,37 @@ namespace App
 		// }
 	// }
 
-	// 1フレーム動かす
+	//1フレーム動かす
 	bool Player::Advance(const Vector2& move, bool hasMovement, const Floor& floor, float deltaTime)
 	{
-		// 床の高さ・重力・今の位置とマス
+		//床の高さと重力と今の位置とマス
 		const float floorHeight = floor.GetHeight();
 		const float gravity = std::max(0.01f, GameConfig::kGravity);
 		Vector3 position = position_;
 		Cell cell = floor.GetCellAt(position);
 
-		// 立っていたタイルが崩れていたら、床から離れる
+		//立っていたタイルが崩れていたら床から離れる
 		if (!floor.IsSolid(cell))
 		{
 			isGrounded_ = false;
 		}
 
-		// 移動の入力: 上下左右のどれかへ1マス跳ぶ (跳んだ先が床のときだけ)
+		//移動の入力で上下左右のどれかへ1マス跳ぶ
 		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement)
 		{
-			// 飛び越えられる穴の数 (いつもは 1)
+			//いつも飛び越えられる穴の数
 			const Cell direction = GridDirection::FromInput(move);
 			const int32_t maxGap = GameConfig::kNormalJumpGap;
-			// [アイテム] アイテムは一旦使わない。コメントアウト (2マス乗り越えを持っていたら 2)
+			//[アイテム] 2マス乗り越えを持っていたら2にするのでコメントアウト
 			// if (hasJumpBoost_)
 			// {
 			// 	maxGap = GameConfig::kBoostedJumpGap;
 			// }
 			const Cell landing = floor.JumpLanding(cell, direction, maxGap);
-			if (floor.IsSolid(landing))
+			//床の中なら跳び、飛び越えられない穴へ跳んだら落ちる
+			if (floor.Contains(cell + direction))
 			{
-				// [アイテム] アイテムは一旦使わない。コメントアウト
+				//[アイテム] アイテムは一旦使わないのでコメントアウト
 				// UseJumpBoost(cell, landing);
 				jumpOrigin_ = position;
 				jumpDestination_ = landing;
@@ -131,7 +135,7 @@ namespace App
 			}
 		}
 
-		//跳んでいる途中: マスの線にそって進みながら、山なりに上下する
+		//マスの線にそって山なりに跳ぶ
 		if (isJumping_)
 		{
 			jumpElapsed_ += deltaTime;
@@ -143,26 +147,26 @@ namespace App
 			{
 				return false;
 			}
-			// 着地 (跳んでいる間に着地先が崩れていたら、そのまま落ちる)
+			//着地先が崩れていたらそのまま落ちる
 			isJumping_ = false;
 			isGrounded_ = floor.IsSolid(jumpDestination_);
 			return false;
 		}
 
-		// はじかれている間は、その速さで動く
+		//はじかれている間はその速さで動く
 		if (knockbackTime_ > 0.0f)
 		{
 			position += knockbackVelocity_ * std::min(deltaTime, knockbackTime_);
 			knockbackTime_ = std::max(0.0f, knockbackTime_ - deltaTime);
 		}
 
-		// 床のふちで止める (ボスに触れてはじかれたときは止めない)
+		//ボスに触れてはじかれたとき以外は床のふちで止める
 		if (!isKnockbackOverFence_)
 		{
 			position = floor.ClampToBoundary(position, GameConfig::kPlayerContactRadius);
 		}
 
-		// 今のマスに床があるか
+		//今のマスに床があるか
 		cell = floor.GetCellAt(position);
 		const bool isSolid = floor.IsSolid(cell);
 		if (!isSolid)
@@ -170,7 +174,7 @@ namespace App
 			isGrounded_ = false;
 		}
 
-		// 空中: 重力で動かして、上から床の高さを通り過ぎたら着地
+		//空中は重力で動かして、床の高さを通り過ぎたら着地
 		if (!isGrounded_)
 		{
 			const float previousY = position.y;
@@ -186,41 +190,47 @@ namespace App
 			}
 		}
 
-		// 位置を確定する
+		//位置を確定する
 		position_ = position;
 
-		// 床の高さより下まで落ちたら「落ちた」
+		//床より下まで落ちたら落ちたことにする
 		return position.y < floorHeight - GameConfig::kFallThreshold;
 	}
 
-	// 見た目
+	//見た目
 	void Player::UpdateVisuals()
 	{
-		// cube.obj は1辺が 2 なので、合わせて1辺を kPlayerSize にする。足元が position_ になるように上げる
+		//足元を動かさずに縦にのびたりつぶれたりする
+		bounce_.Update(position_);
+		const float scaleY = bounce_.GetScaleY();
+		const float scaleXZ = bounce_.GetScaleXZ();
+
+		//1辺がkPlayerSizeで足元がposition_になる大きさと位置
 		const float size = GameConfig::kPlayerSize;
 		const float scale = size / GameConfig::kCubeModelSize;
 		const float yawDeg = GridDirection::ToYawDeg(facing_);
 		const Vector3 rotate = { 0.0f, yawDeg, 0.0f };
-		const Vector3 center = { position_.x, position_.y + size * 0.5f, position_.z };
+		const Vector3 center = { position_.x, position_.y + size * scaleY * 0.5f, position_.z };
 
 		//体
-		body_->SetScale({ scale, scale, scale });
+		body_->SetScale({ scale * scaleXZ, scale * scaleY, scale * scaleXZ });
 		body_->SetRotate(rotate);
 		body_->SetTranslate(center);
 		body_->TransferMatrix();
 
-		//正面の板: 体の正面の面にぴったり重ねる (少しだけ前に出して、体の面と重ならないようにする)
+		//体の正面の面に少し前に出して重ねる板
 		const Vector3 forward = { static_cast<float>(facing_.x), 0.0f, static_cast<float>(facing_.z) };
-		const float frontDistance = size * 0.5f + kFrontThickness * 0.5f;
-		front_->SetScale({ scale, scale, kFrontThickness / GameConfig::kCubeModelSize });
+		const float frontDistance = size * scaleXZ * 0.5f + kFrontThickness * 0.5f;
+		front_->SetScale({ scale * scaleXZ, scale * scaleY, kFrontThickness / GameConfig::kCubeModelSize });
 		front_->SetRotate(rotate);
 		front_->SetTranslate(center + forward * frontDistance);
 		front_->TransferMatrix();
 	}
 
-	//体と正面の板を描く (点滅中は描かないことがある)
+	//点滅中以外の体と正面の板と、いつものほこりを描く
 	void Player::Draw()
 	{
+		bounce_.DrawDust();
 		if (!isVisible_)
 		{
 			return;

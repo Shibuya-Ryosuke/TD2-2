@@ -10,6 +10,24 @@
     <Filter Include="Application\Config">
       <UniqueIdentifier>{a882b9f5-3915-476d-ac5a-2375a667c6b8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Direction">
+      <UniqueIdentifier>{8456f59e-c7d3-4fa4-b437-c49f08853441}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Direction\Boss">
+      <UniqueIdentifier>{ca2602b7-bd36-4867-93d2-a25c75837f5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Direction\Floor">
+      <UniqueIdentifier>{c3c70a7c-49fd-4466-839a-569e7bcb0832}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Direction\Player">
+      <UniqueIdentifier>{dd47cd08-a2e8-425a-a168-bd790e1c20ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Direction\Screen">
+      <UniqueIdentifier>{462e38f8-6548-46e1-9386-a08a5ea8233b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Direction\Transition">
+      <UniqueIdentifier>{bee1f5dc-d0cb-4e9a-8792-2a3cb229cd32}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Application\Input">
       <UniqueIdentifier>{ed27626c-4bc3-457f-aa84-7d793a5e08d8}</UniqueIdentifier>
     </Filter>
@@ -662,6 +680,123 @@
     </ClInclude>
     <ClInclude Include="Application\Config\GameConfig.h">
       <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Object\Boss\BossAttack.cpp">
+      <Filter>Application\Object\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Boss\BossForecast.cpp">
+      <Filter>Application\Object\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Boss\BossPlanner.cpp">
+      <Filter>Application\Object\Boss</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Boss\BossDetail.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\BossPlan.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\BossPlanner.h">
+      <Filter>Application\Object\Boss</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\PlayerTurn.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\PlayerTurn.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Boss\BossGhost.cpp">
+      <Filter>Application\Direction\Boss</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Boss\BossGhost.h">
+      <Filter>Application\Direction\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\DirectionConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\GameDirection.cpp">
+      <Filter>Application\Direction</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\GameDirection.h">
+      <Filter>Application\Direction</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Floor\FloorCrumble.cpp">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Floor\FloorCrumble.h">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Floor\FloorJiggle.cpp">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Floor\FloorJiggle.h">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Floor\FloorShards.cpp">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Floor\FloorShards.h">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Player\PlayerBounce.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Player\PlayerBounce.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Player\PlayerDust.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Player\PlayerDust.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Screen\DamageFlash.cpp">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Screen\DamageFlash.h">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Screen\FallLines.cpp">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Screen\FallLines.h">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\BlockTransition.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\BlockTransition.h">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\TransitionCamera.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\TransitionCamera.h">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\TransitionDebris.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\TransitionDebris.h">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\TransitionPiece.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\TransitionPiece.h">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\TransitionView.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\TransitionView.h">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Direction\Transition\TransitionWall.cpp">
+      <Filter>Application\Direction\Transition</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Transition\TransitionWall.h">
+      <Filter>Application\Direction\Transition</Filter>
     </ClInclude>
     <ClCompile Include="Application\Input\GameInput.cpp">
       <Filter>Application\Input</Filter>

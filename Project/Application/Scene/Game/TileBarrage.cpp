@@ -7,7 +7,7 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// 飛ばし始める
+	//飛ばし始める
 	int32_t TileBarrage::Begin(const Floor* upper)
 	{
 		tiles_.clear();
@@ -19,7 +19,7 @@ namespace App
 			return 0;
 		}
 
-		// 残っている床を全部、飛ばす足場にする
+		//残っている床を全部飛ばす足場にする
 		for (int32_t z = 0; z < upper->GetDepth(); ++z)
 		{
 			for (int32_t x = 0; x < upper->GetWidth(); ++x)
@@ -34,7 +34,7 @@ namespace App
 		return GetTileCount();
 	}
 
-	// 1フレーム進める
+	//1フレーム進める
 	int32_t TileBarrage::Advance(Floor& upper, const Vector3& target, float deltaTime)
 	{
 		timer_ += deltaTime;
@@ -44,12 +44,12 @@ namespace App
 
 		for (int32_t i = 0; i < count; ++i)
 		{
-			// 1枚ずつ、少しずつ遅れて飛び立つ
+			//1枚ずつ少し遅れて飛び立つ
 			const float launchTime = GameConfig::kTileLaunchWindow * static_cast<float>(i) / static_cast<float>(std::max(1, count - 1));
 			const float t = std::clamp((timer_ - launchTime) / GameConfig::kTileFlightDuration, 0.0f, 1.0f);
 			const BarrageTile& tile = tiles_[static_cast<size_t>(i)];
 
-			// 届いた: 消して、ダメージを数える
+			//届いたら消してダメージを数える
 			if (t >= 1.0f)
 			{
 				++arrived_;
@@ -62,7 +62,7 @@ namespace App
 				continue;
 			}
 
-			// 山なりに飛んで、小さくなりながら回る (となりどうしで回る向きを変える)
+			//山なりに飛んで小さくなりながら回る
 			Vector3 position = Lerp(upper.GetRestPosition(tile.cell), target, t * t);
 			position.y += 4.0f * t * (1.0f - t);
 			float spin = 1.0f;
@@ -73,7 +73,7 @@ namespace App
 			upper.SetTileMotion(tile.cell, position, { 180.0f * t, 90.0f * t * spin, 0.0f }, 1.0f + (0.25f - 1.0f) * t);
 		}
 
-		// 届いた分だけダメージ (上限あり)。前のフレームから増えた分を返す
+		//上限ありで、前のフレームから増えたダメージを返す
 		const int64_t totalDamage = std::min(damageUnits * GameConfig::kDamagePerRemainingTile, static_cast<int64_t>(GameConfig::kMaxTileDamage));
 		const int32_t damage = static_cast<int32_t>(totalDamage);
 		int32_t added = 0;

@@ -5,40 +5,37 @@
 
 namespace App
 {
-	// 床のマス目の計算だけをするクラス (Floor の親クラス)
-	// ・マス ⇔ 位置 の変換、床の範囲、跳ぶときのずれ・道すじ
-	// ・タイルの状態 (穴・崩れる予定など) は持たない。それは子の Floor が持つ
-	// 床全体の真ん中が原点。マスの数が変わっても、床全体の大きさ (kFloorSize) は同じ
+	//床の真ん中が原点のマス目の計算だけをするFloorの親クラス
 	class FloorGrid
 	{
 	public:
 		int32_t GetWidth() const { return width_; }
 		int32_t GetDepth() const { return depth_; }
-		float GetHeight() const { return height_; }  // タイルの上の面の高さ
+		float GetHeight() const { return height_; } //タイルの上の面の高さ
 		float GetTileSizeX() const { return tileSizeX_; }
 		float GetTileSizeZ() const { return tileSizeZ_; }
 
-		// その位置が何マス目か (床の外なら、範囲外の番号が返る)
+		//その位置が何マス目か
 		Cell GetCellAt(const RyoEngine::Vector3& position) const;
-		// マスの真ん中の位置 (高さはタイルの上の面)
+		//タイルの上の面の高さのマスの真ん中の位置
 		RyoEngine::Vector3 GetCellCenter(const Cell& cell) const;
-		// タイルのいつもの位置 (タイルの厚さの真ん中)
+		//タイルの厚さの真ん中のいつもの位置
 		RyoEngine::Vector3 GetRestPosition(const Cell& cell) const;
-		// 床の外に出ないように位置を収める (radius: 体の半径)
+		//体の半径を入れて床の外に出ないように位置を収める
 		RyoEngine::Vector3 ClampToBoundary(const RyoEngine::Vector3& position, float radius) const;
-		// 床の範囲の中か
+		//床の範囲の中か
 		bool Contains(const Cell& cell) const;
 
-		size_t ToIndex(const Cell& cell) const; // マス → 配列の番号 (手前の行から順に、左から右へ)
-		Cell ToCell(size_t index) const;        // 配列の番号 → マス
+		size_t ToIndex(const Cell& cell) const; //マスから手前の行から順の配列の番号へ
+		Cell ToCell(size_t index) const; //配列の番号からマスへ
 
-		// マスの向き → 1マス分のずれ (ワールドの長さ)
+		//マスの向きから1マス分のワールドのずれへ
 		RyoEngine::Vector3 StepOffset(const Cell& direction) const;
-		// start から end へ、マスの線にそって進む (先に x、次に z。progress: 0 〜 1。高さは直線で変わる)
+		//startからendへprogressの分だけマスの線にそって進む
 		static RyoEngine::Vector3 AlongGrid(const RyoEngine::Vector3& start, const RyoEngine::Vector3& end, float progress);
 
 	protected:
-		// マスの数と高さを決める (1マスの大きさは床全体の大きさから計算する)
+		//床全体の大きさからマスの数と高さを決める
 		void SetupGrid(int32_t width, int32_t depth, float height);
 
 		int32_t width_ = 0;

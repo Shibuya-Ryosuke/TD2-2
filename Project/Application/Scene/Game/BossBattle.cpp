@@ -10,60 +10,68 @@ using namespace RyoEngine;
 
 namespace App
 {
-	// 何も起きていない状態に戻す
+	//何も起きていない状態に戻す
 	void BossBattle::Reset()
 	{
 		contact_.Reset();
 		separationNeedsCheck_ = false;
+		turn_.Reset();
 	}
 
-	// ボスの足元が崩れたか調べる
-	BossBattle::Event BossBattle::CheckBossFooting(const Floor& floor, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell)
+	//ボスの足元が崩れたか調べる
+	BossBattle::Event BossBattle::CheckBossFooting(const Floor& floor, const Player& player, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell)
 	{
+		//攻撃中に足元が崩れそうならやめて逃げることにする
+		boss.TryInterruptUnsafeFooting(floor, tuning);
 		if (!isFloorChanged || boss.IsJumping() || !floor.IsHole(bossCell))
 		{
 			return Event::None;
 		}
-		// 跳んで逃げられなければ落ちる
-		if (boss.TryEvadeCollapse(floor, tuning))
+		//ボスの番に跳んで逃げられれば1回動いたことにして、だめなら落ちる
+		if (boss.TryEvadeCollapse(floor, tuning, turn_.CanBossAct(player)))
 		{
+			turn_.OnBossAction();
 			return Event::None;
 		}
 		return Event::BossFell;
 	}
 
-	// 戦闘中の1フレーム
+	//戦闘中の1フレーム
 	BossBattle::Event BossBattle::Update(Floor& floor, Player& player, Boss& boss, PlayerHealth& health, const BossTuning& tuning,
 		bool isFloorChanged, const Cell& bossCell, bool isJumpImpact, float deltaTime)
 	{
-		// 床が変わったら、あとで「たどり着けるか」を調べ直す
+		//床が変わったらあとでたどり着けるか調べ直す
 		if (isFloorChanged)
 		{
 			separationNeedsCheck_ = true;
 		}
 
-		// ボスのいる島を切り離した
+		//ボスのいる島を切り離した
 		if (isFloorChanged && !boss.IsJumping() && floor.TryIsolate(bossCell))
 		{
 			return Event::BossIsolated;
 		}
 
-		// ボス (床が減るほど速くなる)。攻撃が当たったらダメージ
+		//床が減るほど速くなるボスを動かして、攻撃が当たったらダメージ
 		const float bossSpeed = tuning.moveSpeed * (1.0f + GameConfig::kMaxBossSpeedBonus * floor.GetCollapsedFraction());
 		const bool wasVulnerable = !health.IsInvincible();
-		health.Damage(boss.Tick(floor, player.GetPosition(), tuning, bossSpeed, deltaTime));
+		health.Damage(boss.Tick(floor, player.GetPosition(), tuning, bossSpeed, deltaTime, turn_.CanBossAct(player)));
+		if (boss.ActionStartedThisTick())
+		{
+			turn_.OnBossAction();
+		}
 		if (health.IsDead())
 		{
 			return Event::PlayerDefeated;
 		}
 
-		// パンチが当たったら、はじかれる
+		//パンチが当たったらはじかれる
 		if (wasVulnerable && boss.PunchHitThisTick())
 		{
 			player.ApplyKnockback(floor, boss.GetPunchPushDirection(), tuning.punchPushSpeed, tuning.punchPushDuration, tuning.punchLiftSpeed, false);
 		}
 
-		// ボスがジャンプから着地した所が、穴・切り離された島なら落ちる
+		//ボスの着地した所が穴か切り離された島なら落ちる
 		if (boss.LandedThisTick())
 		{
 			const Cell landedCell = floor.GetCellAt(boss.GetPosition());
@@ -77,7 +85,7 @@ namespace App
 			}
 		}
 
-		// ボスとの体当たり → 分断のチェック
+		//体当たりを調べてから分断を調べる
 		CheckContact(floor, player, boss, isJumpImpact);
 		if (IsSeparated(floor, player, boss))
 		{
@@ -86,17 +94,17 @@ namespace App
 		return Event::None;
 	}
 
-	// ボスに触れたときのはじき
+	//ボスに触れたときのはじき
 	void BossBattle::CheckContact(const Floor& floor, Player& player, Boss& boss, bool isJumpImpact)
 	{
-		// 体当たりでボスもはじいたら、床の形が変わったのと同じなので、たどり着けるかを調べ直す
+		//体当たりでボスもはじいたらたどり着けるか調べ直す
 		if (contact_.Check(player, boss, floor, isJumpImpact))
 		{
 			separationNeedsCheck_ = true;
 		}
 	}
 
-	// おたがいにたどり着けなくなったか
+	//おたがいにたどり着けなくなったか
 	bool BossBattle::IsSeparated(const Floor& floor, const Player& player, const Boss& boss)
 	{
 		if (!separationNeedsCheck_ || !player.IsGrounded() || boss.IsJumping())
@@ -104,7 +112,7 @@ namespace App
 			return false;
 		}
 
-		// 2人とも床の上に立っているときだけ調べる
+		//2人とも床の上に立っているときだけ調べる
 		const Cell playerCell = floor.GetCellAt(player.GetPosition());
 		const Cell bossCell = floor.GetCellAt(boss.GetPosition());
 		if (!floor.IsSolid(playerCell) || !floor.IsSolid(bossCell))
@@ -113,7 +121,7 @@ namespace App
 		}
 		separationNeedsCheck_ = false;
 
-		// プレイヤーは穴を1つ飛び越えられるので、飛び越えあり で調べる (2マス乗り越えのアイテムは入れない)
+		//プレイヤーは穴を1つ飛び越えられるので飛び越えありで調べる
 		return !FloorPathFinder::CanReach(floor, bossCell, playerCell, true);
 	}
 }

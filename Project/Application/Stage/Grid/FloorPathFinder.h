@@ -8,27 +8,24 @@ namespace App
 {
 	class Floor;
 
-	// 床の上の道さがし (Floor から分けたもの。床は読むだけで、書きかえない)
-	// ・ボスの次のマス (NextStep)・逃げ先 (FindLandingNeighbor)
-	// ・ボスの島が切り離されたか (FindIsolatedRegion)・おたがいにたどり着けるか (CanReach)
+	//床を読むだけでボスの次のマスや逃げ先やたどり着けるかを調べる道さがし
 	class FloorPathFinder
 	{
 	public:
-		// start から target へ向かうときの、次のマス (canJump: 穴を1つ飛び越えられる)
+		//startからtargetへ向かうときの次のマス
 		static Cell NextStep(const Floor& floor, const Cell& start, const RyoEngine::Vector3& target, bool canJump);
 
-		// 上下左右のマスで、timeToLand 秒のうちに崩れない一番近い床を探す。見つかったら true
+		//上下左右でtimeToLand秒のうちに崩れない一番近い床を探す
 		static bool FindLandingNeighbor(const Floor& floor, const RyoEngine::Vector3& position, float timeToLand, Cell& landing);
 
-		// ボスのいる島が、それと同じか大きい島から離れていたら、ボスの島のマスを region に入れて true
+		//ボスの島が同じか大きい島から離れていたらregionに入れてtrue
 		static bool FindIsolatedRegion(const Floor& floor, const Cell& bossCell, std::vector<Cell>& region);
 
-		// from から to までたどり着けるか (canJump: 穴を1つ飛び越えられる)
+		//fromからtoまでたどり着けるか
 		static bool CanReach(const Floor& floor, const Cell& from, const Cell& to, bool canJump);
 
 	private:
-		// start から、床の上をたどって行ける所を全部さがす (幅優先)
-		// parents: マスごとの「1つ前のマス」の番号 (-1: 行けない) / order: 見つけた順
+		//startから床の上をたどって行ける所を幅優先で全部さがす
 		static void Explore(const Floor& floor, const Cell& start, bool canJump, std::vector<int32_t>& parents, std::vector<Cell>& order);
 	};
 }

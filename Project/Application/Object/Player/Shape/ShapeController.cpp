@@ -2,32 +2,26 @@
 #include "../../../Config/GameConfig.h"
 #include "../../../Stage/Floor/Floor.h"
 #include <algorithm>
-#include <array>
+#include <cmath>
 
 namespace App
 {
-	// 形を作る
+	//形を作る
 	void ShapeController::Initialize()
 	{
 		shapes_ = BreakShape::CreateDefaultShapes();
-		panel_.Initialize();
 		Reset();
+		panel_.Initialize(selectedIndex_);
 	}
 
-	// 最初の形 (X) を選んで、待ち時間を消す
+	//最初のLを選ぶ
 	void ShapeController::Reset()
 	{
 		selectedIndex_ = 0;
-		cooldownTimer_ = 0.0f;
+		isReady_ = true;
 	}
 
-	// 待ち時間を進める
-	void ShapeController::Update(float deltaTime)
-	{
-		cooldownTimer_ = std::max(0.0f, cooldownTimer_ - deltaTime);
-	}
-
-	// 形を切り替える (最初の形の前は最後の形、最後の形の次は最初の形)
+	//ぐるっと回して形を切り替える
 	void ShapeController::Select(bool isPrevious, bool isNext)
 	{
 		const int32_t count = static_cast<int32_t>(shapes_.size());
@@ -45,7 +39,7 @@ namespace App
 		}
 	}
 
-	// 選んでいる形から offset だけずらした形 (ぐるっと回る)
+	//選んでいる形からoffsetだけずらした形
 	const BreakShape* ShapeController::GetShape(int32_t offset) const
 	{
 		const int32_t count = static_cast<int32_t>(shapes_.size());
@@ -53,12 +47,12 @@ namespace App
 		{
 			return nullptr;
 		}
-		// マイナスでも 0 〜 count - 1 に収まるように、count を足してから割る
+		//マイナスでも0からcount-1に収める
 		const int32_t index = ((selectedIndex_ + offset) % count + count) % count;
 		return &shapes_[static_cast<size_t>(index)];
 	}
 
-	// NOW の形で、プレイヤーの前の床を崩す
+	//NOWの形でプレイヤーの前の床を崩す
 	bool ShapeController::TryBreak(Floor& floor, const Cell& playerCell, const Cell& facing)
 	{
 		const BreakShape* shape = GetShape(0);
@@ -67,20 +61,15 @@ namespace App
 			return false;
 		}
 
-		// 形のマスを崩す。崩せる床が1つもなければ、置かなかったことにする
+		//崩せる床が1つもなければ置かなかったことにする
 		shape->CollectCells(playerCell, facing, cells_);
-		const int32_t count = floor.ScheduleCellsCollapse(cells_, GameConfig::kCollapseDelay);
-		if (count == 0)
-		{
-			return false;
-		}
-
-		// 置いたので、待ち時間を入れる (形はそのまま)
-		cooldownTimer_ = GameConfig::kShapeCooldown;
-		return true;
+		//崩れる演出のハートをプレイヤーの向きへ向ける
+		const float heartAngle = std::atan2(static_cast<float>(facing.x), static_cast<float>(facing.z));
+		const int32_t count = floor.ScheduleCellsCollapse(cells_, GameConfig::kCollapseDelay, heartAngle);
+		return count > 0;
 	}
 
-	// 床に NOW の形の予告を出す
+	//床にNOWの形の予告を出す
 	void ShapeController::UpdatePreview(Floor& floor, const Cell& playerCell, const Cell& facing, bool isVisible)
 	{
 		const BreakShape* shape = GetShape(0);
@@ -89,29 +78,19 @@ namespace App
 			floor.ClearPreview();
 			return;
 		}
-		// プレイヤーの前に NOW の形のマスを集めて、床を光らせる
+		//プレイヤーの前のNOWの形のマスを光らせる
 		shape->CollectCells(playerCell, facing, cells_);
 		floor.SetPreview(cells_, shape->GetColor(), GameConfig::kShapePreviewBlend);
 	}
 
-	// 画面の右はしのパネルを合わせる
+	//ボスの番の間はNOWを暗くして右上の輪を合わせる
 	void ShapeController::UpdatePanel(const StageCamera& camera, const Cell& facing)
 	{
-		// パネルの並び: NOW (真ん中) / LB で来る形 (上) / RB で来る形 (下)。待ち時間中は NOW を暗くする
-		std::array<const BreakShape*, NextShapePanel::kSlotCount> shapes{};
-		shapes[NextShapePanel::kNowSlot] = GetShape(0);
-		shapes[NextShapePanel::kPreviousSlot] = GetShape(-1);
-		shapes[NextShapePanel::kNextSlot] = GetShape(1);
-		panel_.Update(camera, shapes, facing, IsReady());
+		panel_.Update(camera, shapes_, selectedIndex_, facing, IsReady());
 	}
 
 	void ShapeController::DrawPanel()
 	{
 		panel_.Draw();
-	}
-
-	void ShapeController::DrawPanelLabels() const
-	{
-		panel_.DrawLabels();
 	}
 }

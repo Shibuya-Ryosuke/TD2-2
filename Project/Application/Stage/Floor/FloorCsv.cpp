@@ -8,7 +8,7 @@ namespace App
 {
 	namespace
 	{
-		// Excel などで付く先頭の BOM と、行末の \r を取り除く
+		//先頭のBOMと行末の改行コードを取り除く
 		void CleanLine(std::string& line)
 		{
 			if (line.size() >= 3 &&
@@ -25,7 +25,7 @@ namespace App
 		}
 	}
 
-	// CSV を読んで、マスの数と床の形を決める
+	//CSVを読んでマスの数と床の形を決める
 	bool FloorCsv::Load(const std::string& csvPath, FloorLayout& layout)
 	{
 		std::ifstream file(csvPath);
@@ -34,7 +34,7 @@ namespace App
 			return false;
 		}
 
-		// 1行ずつ読む (CSV の上の行が奥、下の行が手前)
+		//上の行が奥で1行ずつ読む
 		std::vector<std::vector<int32_t>> rows;
 		std::string line;
 		while (std::getline(file, line))
@@ -45,7 +45,7 @@ namespace App
 				continue;
 			}
 
-			// カンマで区切って数字にする (空欄・数字でないものは 0 = 穴)
+			//カンマで区切って数字にし、数字でないものは穴
 			std::vector<int32_t> row;
 			std::istringstream stream(line);
 			std::string value;
@@ -60,7 +60,7 @@ namespace App
 			return false;
 		}
 
-		// 一番長い行に合わせる (足りない所は穴)
+		//一番長い行に合わせて足りない所は穴
 		size_t maxWidth = 0;
 		for (const std::vector<int32_t>& row : rows)
 		{
@@ -73,7 +73,7 @@ namespace App
 		layout.width = static_cast<int32_t>(maxWidth);
 		layout.depth = static_cast<int32_t>(rows.size());
 
-		// 読んだ数字を並べ直す (z = 0 の手前は CSV の一番下の行)
+		//CSVの一番下の行が手前になるように並べ直す
 		layout.solid.assign(static_cast<size_t>(layout.width * layout.depth), false);
 		for (int32_t z = 0; z < layout.depth; ++z)
 		{
@@ -89,7 +89,7 @@ namespace App
 		return true;
 	}
 
-	// 全部床の形
+	//全部床の形
 	FloorLayout FloorCsv::CreateDefault(int32_t width, int32_t depth)
 	{
 		FloorLayout layout{};

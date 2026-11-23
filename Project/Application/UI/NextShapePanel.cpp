@@ -3,25 +3,27 @@
 #include "../Object/Player/Shape/BreakShape.h"
 #include "../Config/GameConfig.h"
 #include <algorithm>
+#include <cmath>
+#include <numbers>
 
 using namespace RyoEngine;
 
 namespace App
 {
-	// 最初の状態にする (まだ何も出さない)
-	void NextShapePanel::Initialize()
+	namespace
 	{
-		activeCounts_.fill(0);
+		constexpr Cell kFixedFacing = { 0, 1 }; //奥向きで止めておくNOW以外の形の向き
 	}
 
-	// パネルの真ん中の横の位置 (画面の右はしから、パネルの幅の半分だけ内側)
-	float NextShapePanel::GetCenterX() const
+	//最初の状態にする
+	void NextShapePanel::Initialize(int32_t selectedIndex)
 	{
-		return 1.0f - GameConfig::kPanelWidthRate;
+		displayIndex_ = static_cast<float>(selectedIndex);
+		activeCounts_.clear();
 	}
 
-	// 画面の位置 (-1 〜 1) と奥行きから、3Dの位置を求める
-	// 平行投影なので、カメラから同じ向きに進めば、遠くても近くても画面の同じ所に映る
+	//画面の位置と奥行きから3Dの位置を求める
+	//平行投影なので同じ向きに進めば画面の同じ所に映る
 	Vector3 NextShapePanel::ToWorld(const ScreenBasis& basis, float screenX, float screenY, float depth)
 	{
 		return basis.origin
@@ -30,10 +32,61 @@ namespace App
 			+ basis.forward * depth;
 	}
 
-	// カメラに合わせて、ブロックを並べ直す
-	void NextShapePanel::Update(const StageCamera& camera, const std::array<const BreakShape*, kSlotCount>& shapes, const Cell& facing, bool isNowReady)
+	//番号の差を輪の近い向きの差に収める
+	float NextShapePanel::WrapOffset(float offset, float count)
 	{
-		// カメラの向きと、画面に映る広さ
+		float result = std::fmod(offset, count);
+		if (result > count * 0.5f)
+		{
+			result -= count;
+		}
+		if (result < -count * 0.5f)
+		{
+			result += count;
+		}
+		return result;
+	}
+
+	//輪を選んでいる形の方へ回す
+	void NextShapePanel::UpdateRotation(int32_t selectedIndex, size_t count)
+	{
+		const float countF = static_cast<float>(count);
+		const float difference = WrapOffset(static_cast<float>(selectedIndex) - displayIndex_, countF);
+		//続けて押したら遅れすぎないように残りが多いほど速く回す
+		const float step = GetDeltaTime() / GameConfig::kRingTurnDuration * std::max(1.0f, std::abs(difference));
+
+		//近い向きに回り、残りが少なければぴったり合わせる
+		if (std::abs(difference) <= step)
+		{
+			displayIndex_ = static_cast<float>(selectedIndex);
+			return;
+		}
+		if (difference > 0.0f)
+		{
+			displayIndex_ += step;
+		}
+		else
+		{
+			displayIndex_ -= step;
+		}
+
+		//0からcountの中に収める
+		displayIndex_ = std::fmod(displayIndex_ + countF, countF);
+	}
+
+	//輪を回してブロックを並べ直す
+	void NextShapePanel::Update(const StageCamera& camera, const std::vector<BreakShape>& shapes, int32_t selectedIndex, const Cell& facing, bool isNowReady)
+	{
+		const size_t count = shapes.size();
+		if (count == 0)
+		{
+			return;
+		}
+		blocks_.resize(count);
+		activeCounts_.resize(count, 0);
+		UpdateRotation(selectedIndex, count);
+
+		//カメラの向きと画面に映る広さ
 		ScreenBasis basis{};
 		basis.origin = camera.GetViewPosition();
 		basis.right = camera.GetRight();
@@ -42,36 +95,42 @@ namespace App
 		basis.halfHeight = camera.GetOrthoSize();
 		basis.halfWidth = basis.halfHeight * camera.GetAspectRatio();
 
-		for (int32_t slot = 0; slot < kSlotCount; ++slot)
+		//手前を0として形ごとに輪の上の角度を決めて置く
+		const float countF = static_cast<float>(count);
+		const float anglePerShape = std::numbers::pi_v<float> * 2.0f / countF;
+		for (size_t i = 0; i < count; ++i)
 		{
-			// 今の形 (slot 0) を使えない間は暗くする
+			const float offset = WrapOffset(static_cast<float>(i) - displayIndex_, countF);
+
+			//NOWだけプレイヤーの向きに合わせ、ほかは奥向きで止める
+			//NOWを置けない間は暗くする
+			Cell itemFacing = kFixedFacing;
 			float brightness = 1.0f;
-			if (static_cast<size_t>(slot) == kNowSlot && !isNowReady)
+			if (static_cast<int32_t>(i) == selectedIndex)
 			{
-				brightness = GameConfig::kPanelWaitBrightness;
+				itemFacing = facing;
+				if (!isNowReady)
+				{
+					brightness = GameConfig::kPanelWaitBrightness;
+				}
 			}
-			UpdateSlot(slot, basis, shapes[static_cast<size_t>(slot)], facing, brightness);
+			UpdateItem(i, basis, shapes[i], itemFacing, offset * anglePerShape, brightness);
 		}
 	}
 
-	// 1つの形のブロックを置く
-	void NextShapePanel::UpdateSlot(int32_t slot, const ScreenBasis& basis, const BreakShape* shape, const Cell& facing, float brightness)
+	//1つの形のブロックを置く
+	void NextShapePanel::UpdateItem(size_t index, const ScreenBasis& basis, const BreakShape& shape, const Cell& facing, float angle, float brightness)
 	{
-		const size_t index = static_cast<size_t>(slot);
 		activeCounts_[index] = 0;
-		if (shape == nullptr)
-		{
-			return;
-		}
 
-		// プレイヤーが (0, 0) にいるとして、向きに合わせた形のマスを集める (ステージと同じ決め方)
-		shape->CollectCells({ 0, 0 }, facing, cells_);
+		//プレイヤーが原点にいるとして向きに合わせた形のマスを集める
+		shape.CollectCells({ 0, 0 }, facing, cells_);
 		if (cells_.empty())
 		{
 			return;
 		}
 
-		// 形の真ん中がパネルの置き場所に来るように、マスの範囲を調べる
+		//形の真ん中が輪の上の場所に来るようにマスの範囲を調べる
 		Cell minCell = cells_.front();
 		Cell maxCell = cells_.front();
 		for (const Cell& cell : cells_)
@@ -84,7 +143,7 @@ namespace App
 		const float centerX = static_cast<float>(minCell.x + maxCell.x) * 0.5f;
 		const float centerZ = static_cast<float>(minCell.z + maxCell.z) * 0.5f;
 
-		// ブロックが足りなければ作る (同じものを使い回す)
+		//足りないブロックを作って使い回す
 		std::vector<std::unique_ptr<Model>>& blocks = blocks_[index];
 		while (blocks.size() < cells_.size())
 		{
@@ -93,15 +152,26 @@ namespace App
 			blocks.push_back(std::move(block));
 		}
 
-		// 見た目 (形の色に明るさをかける。光らせない)
-		const float cellSize = GameConfig::kPanelCellSize[index];
+		//奥ほど小さく暗く遠くにする手前らしさ
+		const float front = (1.0f + std::cos(angle)) * 0.5f;
+		const float scale = GameConfig::kRingBackScale + (1.0f - GameConfig::kRingBackScale) * front;
+		const float shade = GameConfig::kRingBackBrightness + (1.0f - GameConfig::kRingBackBrightness) * front;
+		const float depth = GameConfig::kPanelDepth + GameConfig::kRingDepthSpread * (1.0f - front);
+
+		//手前が下の輪の上の場所
+		const float screenX = GameConfig::kRingCenterX + std::sin(angle) * GameConfig::kRingRadiusX;
+		const float screenY = GameConfig::kRingCenterY - std::cos(angle) * GameConfig::kRingRadiusY;
+		const Vector3 anchor = ToWorld(basis, screenX, screenY, depth);
+
+		//光らせずに形の色に明るさをかける
+		const float cellSize = GameConfig::kRingCellSize * scale;
 		const float blockSize = cellSize * GameConfig::kPanelBlockFill / GameConfig::kCubeModelSize;
 		const float blockHeight = cellSize * GameConfig::kPanelBlockHeight / GameConfig::kCubeModelSize;
-		const Vector4& shapeColor = shape->GetColor();
-		const Vector4 color = { shapeColor.x * brightness, shapeColor.y * brightness, shapeColor.z * brightness, shapeColor.w };
+		const Vector4& shapeColor = shape.GetColor();
+		const float light = brightness * shade;
+		const Vector4 color = { shapeColor.x * light, shapeColor.y * light, shapeColor.z * light, shapeColor.w };
 
-		// ステージの床と同じ向き (x と z が床の横と奥) に並べる
-		const Vector3 anchor = ToWorld(basis, GetCenterX(), GameConfig::kPanelSlotY[index], GameConfig::kPanelDepth);
+		//ステージの床と同じ向きに並べる
 		for (size_t i = 0; i < cells_.size(); ++i)
 		{
 			const Vector3 offset = {
@@ -119,32 +189,15 @@ namespace App
 		activeCounts_[index] = cells_.size();
 	}
 
-	// ブロックを描く
+	//ブロックを描く
 	void NextShapePanel::Draw()
 	{
-		for (size_t slot = 0; slot < blocks_.size(); ++slot)
+		for (size_t index = 0; index < blocks_.size(); ++index)
 		{
-			for (size_t i = 0; i < activeCounts_[slot]; ++i)
+			for (size_t i = 0; i < activeCounts_[index]; ++i)
 			{
-				blocks_[slot][i]->Draw();
+				blocks_[index][i]->Draw();
 			}
-		}
-	}
-
-	// NOW / LB / RB の文字 (形の少し上に出す)
-	void NextShapePanel::DrawLabels() const
-	{
-		// 文字の位置はゲーム画面の解像度 (今は 1920 x 1080) が基準
-		const float screenWidth = static_cast<float>(DirectXCommon::GetGameWidth());
-		const float screenHeight = static_cast<float>(DirectXCommon::GetGameHeight());
-
-		// 画面の位置 (-1 〜 1) を、文字の位置 (ピクセル。左上が 0) に直して、それぞれの形の上に出す
-		const float left = (GetCenterX() - GameConfig::kPanelWidthRate + 1.0f) * 0.5f * screenWidth + 12.0f;
-		const std::array<const char*, kSlotCount> labels = { "NOW", "LB (Q)", "RB (E)" };
-		for (size_t slot = 0; slot < labels.size(); ++slot)
-		{
-			const float y = (1.0f - (GameConfig::kPanelSlotY[slot] + GameConfig::kPanelLabelOffsetY[slot])) * 0.5f * screenHeight;
-			PrintText("{}", { left, y }, labels[slot]);
 		}
 	}
 }

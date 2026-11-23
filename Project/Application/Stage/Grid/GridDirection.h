@@ -4,18 +4,17 @@
 
 namespace App
 {
-	// 向き → 上下左右のマスの向き にする (Unity のプロトタイプの GridDirection / StepDirection と同じ)。
-	// カメラが斜めなので、入力をカメラの向きでワールドの向きに直してから、近い方の軸 (x か z) にそろえる。
+	//入力や向きをカメラに合わせて上下左右のマスの向きにそろえる
 	class GridDirection
 	{
 	public:
-		// ワールドの向き → 上下左右のどれか (x と z の大きい方)
+		//ワールドの向きをxとzの大きい方で上下左右にする
 		static Cell FromVector(const RyoEngine::Vector3& direction);
 
-		// 入力 (x: 画面の右 / y: 画面の奥) → 上下左右のどれか。カメラの向きで直す
+		//画面の入力をカメラの向きで直して上下左右にする
 		static Cell FromInput(const RyoEngine::Vector2& input);
 
-		// マスの向き → 角度 (度。+Z が 0、+X の方へ回ると +)
+		//+Zが0のマスの向きの度の角度
 		static float ToYawDeg(const Cell& direction);
 	};
 }
