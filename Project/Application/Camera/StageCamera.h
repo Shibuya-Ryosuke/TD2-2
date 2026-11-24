@@ -1,5 +1,6 @@
 #pragma once
 #include <RyoEngine.h>
+#include "../Config/GameConfig.h"
 
 namespace App
 {
@@ -29,6 +30,6 @@ namespace App
 	private:
 		RyoEngine::Vector3 origin_ = { 15.0f, 24.0f, -23.0f }; //1層目を映すときの位置
 		float floorHeight_ = 0.0f; //今映している床の高さ
-		float orthoSize_ = 12.6f; //画面の縦の半分に映す長さ
+		float orthoSize_ = 12.6f * GameConfig::kWorldScale; //床の大きさに合わせた画面の縦の半分に映す長さ
 	};
 }

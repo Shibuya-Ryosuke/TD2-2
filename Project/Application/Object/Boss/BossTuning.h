@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "../../Config/GameConfig.h"
 
 namespace App
 {
@@ -36,8 +37,8 @@ namespace App
 		float punchLiftSpeed = 4.0f; //上へ浮く速さ
 	};
 
-	//何層目のボスの強さで、6層目からは1層目に戻る
-	inline BossTuning GetBossTuning(int32_t layerIndex)
+	//何層目のボスの強さを長さの倍率をかける前の数字で作る
+	inline BossTuning MakeBossTuning(int32_t layerIndex)
 	{
 		BossTuning tuning{};
 		int32_t index = layerIndex % 5;
@@ -81,6 +82,20 @@ namespace App
 		tuning.meleeWindup = 0.45f;
 		tuning.canJump = true;
 		tuning.punch = true;
+		return tuning;
+	}
+
+	//床の大きさに合わせて速さと届く距離を長さの倍率で大きくした何層目のボスの強さ
+	inline BossTuning GetBossTuning(int32_t layerIndex)
+	{
+		BossTuning tuning = MakeBossTuning(layerIndex);
+		const float scale = GameConfig::kWorldScale;
+		tuning.moveSpeed *= scale;
+		tuning.meleeRange *= scale;
+		tuning.jumpHeight *= scale;
+		tuning.punchRange *= scale;
+		tuning.punchWidth *= scale;
+		tuning.punchPushSpeed *= scale;
 		return tuning;
 	}
 }

@@ -28,10 +28,10 @@ namespace App
 		}
 	}
 
-	//影を落とさない半透明の体と拳を作る
+	//影を落とさない水色で半透明のボスのモデルと拳を作る
 	void BossGhost::Initialize()
 	{
-		body_ = Model::Create(GameConfig::kCubeModel);
+		body_ = Model::Create(GameConfig::kBossModel);
 		fist_ = Model::Create(GameConfig::kCubeModel);
 		for (Model* model : { body_.get(), fist_.get() })
 		{
@@ -117,7 +117,8 @@ namespace App
 			position.y += 4.0f * tuning.jumpHeight * t * (1.0f - t);
 		}
 		//パンチは後半で拳が伸びて戻る
-		if (action.kind == BossActionKind::Punch)
+		isFistVisible_ = action.kind == BossActionKind::Punch;
+		if (isFistVisible_)
 		{
 			const float strike = std::sin(std::clamp((t - 0.4f) / 0.6f, 0.0f, 1.0f) * pi);
 			fist = Lerp(kFistRest, Vector3{ 0.0f, kFistRest.y, tuning.punchRange }, strike);
@@ -146,11 +147,11 @@ namespace App
 		}
 		const Vector3 rotate = { 0.0f, yaw, 0.0f };
 
-		//つぶれても足元が動かない体
-		const Vector3 bodySize = { kBodySize.x, kBodySize.y * (1.0f - squash), kBodySize.z };
-		body_->SetScale(CubeScale(bodySize));
-		body_->SetRotate(rotate);
-		body_->SetTranslate(position + RotateY({ 0.0f, bodySize.y * 0.5f, 0.0f }, yaw));
+		//つぶれても足元が動かないボスのモデル
+		const Vector3& scale = GameConfig::kBossModelScale;
+		body_->SetScale({ scale.x, scale.y * (1.0f - squash), scale.z });
+		body_->SetRotate({ 0.0f, yaw + GameConfig::kBossModelYaw, 0.0f });
+		body_->SetTranslate(position);
 		body_->TransferMatrix();
 
 		//拳
@@ -168,6 +169,9 @@ namespace App
 			return;
 		}
 		body_->Draw();
-		fist_->Draw();
+		if (isFistVisible_)
+		{
+			fist_->Draw();
+		}
 	}
 }

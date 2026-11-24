@@ -2,6 +2,7 @@
 #include "../../Config/GameConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include "../../Stage/Grid/GridDirection.h"
+#include "../ModelColor.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -10,24 +11,14 @@ using namespace RyoEngine;
 
 namespace App
 {
-	namespace
-	{
-		constexpr float kFrontThickness = 0.04f; //正面の板の厚さ
-	}
-
-	//体と正面の板のモデルを作る
+	//mtlの色のままのプレイヤーのモデルを作る
 	void Player::Initialize()
 	{
-		//白い箱の体
-		body_ = Model::Create(GameConfig::kCubeModel);
-		body_->SetColor(GameConfig::kPlayerColor);
-
-		//向きがわかる色の正面の板
-		front_ = Model::Create(GameConfig::kCubeModel);
-		front_->SetColor(GameConfig::kPlayerFrontColor);
+		body_ = Model::Create(GameConfig::kPlayerModel);
+		ModelColor::Apply(*body_, GameConfig::kPlayerModel);
 
 		//着地でピカッと光るシェーダーもつけるぽよん
-		bounce_.Initialize(*body_, *front_);
+		bounce_.Initialize(*body_);
 	}
 
 	//位置に置いて動きの状態を全部戻す
@@ -205,29 +196,17 @@ namespace App
 		const float scaleY = bounce_.GetScaleY();
 		const float scaleXZ = bounce_.GetScaleXZ();
 
-		//1辺がkPlayerSizeで足元がposition_になる大きさと位置
-		const float size = GameConfig::kPlayerSize;
-		const float scale = size / GameConfig::kCubeModelSize;
-		const float yawDeg = GridDirection::ToYawDeg(facing_);
-		const Vector3 rotate = { 0.0f, yawDeg, 0.0f };
-		const Vector3 center = { position_.x, position_.y + size * scaleY * 0.5f, position_.z };
-
-		//体
+		//足の裏がposition_に来るように置いて、向いている方へ回す
+		const float scale = GameConfig::kPlayerModelScale;
+		const float yawDeg = GridDirection::ToYawDeg(facing_) + GameConfig::kPlayerModelYaw;
+		const float lift = GameConfig::kPlayerModelLift * scale * scaleY;
 		body_->SetScale({ scale * scaleXZ, scale * scaleY, scale * scaleXZ });
-		body_->SetRotate(rotate);
-		body_->SetTranslate(center);
+		body_->SetRotate({ 0.0f, yawDeg, 0.0f });
+		body_->SetTranslate({ position_.x, position_.y + lift, position_.z });
 		body_->TransferMatrix();
-
-		//体の正面の面に少し前に出して重ねる板
-		const Vector3 forward = { static_cast<float>(facing_.x), 0.0f, static_cast<float>(facing_.z) };
-		const float frontDistance = size * scaleXZ * 0.5f + kFrontThickness * 0.5f;
-		front_->SetScale({ scale * scaleXZ, scale * scaleY, kFrontThickness / GameConfig::kCubeModelSize });
-		front_->SetRotate(rotate);
-		front_->SetTranslate(center + forward * frontDistance);
-		front_->TransferMatrix();
 	}
 
-	//点滅中以外の体と正面の板と、いつものほこりを描く
+	//点滅中以外の体と、いつものほこりを描く
 	void Player::Draw()
 	{
 		bounce_.DrawDust();
@@ -236,6 +215,5 @@ namespace App
 			return;
 		}
 		body_->Draw();
-		front_->Draw();
 	}
 }

@@ -77,6 +77,7 @@ namespace App
 
 		//BossViewが読む見た目の値
 		const RyoEngine::Vector3& GetFistLocal() const { return fistLocal_; } //ボスのローカルの拳の位置
+		bool IsPunching() const { return punchPhase_ != PunchPhase::None; } //拳を引いてから戻るまでのパンチ中か
 		bool IsMeleeTellVisible() const { return isMeleeTellVisible_; } //近接攻撃の予告を出すか
 		float GetMeleeTellSize() const { return meleeTellSize_; } //近接攻撃の予告の大きさ
 		bool IsPunchTellVisible() const { return isPunchTellVisible_; } //パンチの予告を出すか

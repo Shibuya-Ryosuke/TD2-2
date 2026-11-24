@@ -9,10 +9,7 @@ namespace App::BossDetail
 	//ボスのローカルの拳の位置
 	inline constexpr RyoEngine::Vector3 kFistRest = { 1.15f, 0.85f, 0.2f }; //拳のいつもの位置
 	inline constexpr float kFistPullBack = 0.65f; //予告で拳を後ろに引く距離
-	//体と拳の大きさ
-	inline constexpr RyoEngine::Vector3 kBodySize = { 1.55f, 1.5f, 1.45f };
-	inline constexpr RyoEngine::Vector3 kBodyCenter = { 0.0f, 0.75f, 0.0f };
-	inline constexpr RyoEngine::Vector3 kFistSize = { 0.75f, 0.75f, 0.9f };
+	inline constexpr RyoEngine::Vector3 kFistSize = { 0.75f, 0.75f, 0.9f }; //パンチの箱の拳の大きさ
 
 	//比べるだけの長さの2乗
 	inline float LengthSquared(const RyoEngine::Vector3& v)

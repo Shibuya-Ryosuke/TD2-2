@@ -2,6 +2,7 @@
 #include "Boss.h"
 #include "../../Config/GameConfig.h"
 #include "BossDetail.h"
+#include "../ModelColor.h"
 
 using namespace RyoEngine;
 using namespace App::BossDetail;
@@ -26,13 +27,13 @@ namespace App
 	//モデルを作る
 	void BossView::Initialize()
 	{
-		//赤い箱の体
-		body_ = Model::Create(GameConfig::kCubeModel);
-		body_->SetColor(GameConfig::kBossColor);
+		//mtlの色のままのボスのモデル
+		body_ = Model::Create(GameConfig::kBossModel);
+		ModelColor::Apply(*body_, GameConfig::kBossModel);
 
-		//拳
+		//モデルの手と同じ緑の箱の拳
 		fist_ = Model::Create(GameConfig::kCubeModel);
-		fist_->SetColor(GameConfig::kBossArmorColor);
+		fist_->SetColor(GameConfig::kBossFistColor);
 
 		//足元の板の近接攻撃の予告
 		meleeTell_ = Model::Create(GameConfig::kCubeModel);
@@ -51,10 +52,10 @@ namespace App
 		//Y軸だけ回すボスの向き
 		const Vector3 rotate = { 0.0f, boss.GetYawDeg(), 0.0f };
 
-		//体
-		body_->SetScale(CubeScale(kBodySize));
-		body_->SetRotate(rotate);
-		body_->SetTranslate(boss.ToWorld(kBodyCenter));
+		//足元に置いたボスのモデル
+		body_->SetScale(GameConfig::kBossModelScale);
+		body_->SetRotate({ 0.0f, boss.GetYawDeg() + GameConfig::kBossModelYaw, 0.0f });
+		body_->SetTranslate(boss.ToWorld({ 0.0f, 0.0f, 0.0f }));
 		body_->TransferMatrix();
 
 		//拳
@@ -86,7 +87,10 @@ namespace App
 			return;
 		}
 		body_->Draw();
-		fist_->Draw();
+		if (boss.IsPunching())
+		{
+			fist_->Draw();
+		}
 		if (boss.IsMeleeTellVisible())
 		{
 			meleeTell_->Draw();

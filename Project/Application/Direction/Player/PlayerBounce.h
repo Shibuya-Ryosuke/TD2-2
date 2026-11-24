@@ -14,8 +14,8 @@ namespace App
 		PlayerBounce(const PlayerBounce&) = delete;
 		PlayerBounce& operator=(const PlayerBounce&) = delete;
 
-		//ほこりを作って体と正面の板にシェーダーをつける
-		void Initialize(RyoEngine::Model& body, RyoEngine::Model& front);
+		//ほこりを作って体にシェーダーをつける
+		void Initialize(RyoEngine::Model& body);
 		//足元の位置からのびとつぶれとピカッを進める
 		void Update(const RyoEngine::Vector3& feet);
 		//ぽよんを止める
@@ -28,7 +28,6 @@ namespace App
 
 	private:
 		RyoEngine::Model* body_ = nullptr;
-		RyoEngine::Model* front_ = nullptr;
 		PlayerDust dust_;
 
 		RyoEngine::Vector3 lastFeet_{};

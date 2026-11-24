@@ -37,9 +37,6 @@
     <Filter Include="Application\Object\Boss">
       <UniqueIdentifier>{935b398d-032c-423b-81b4-cab0bb4b64d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Application\Object\Item">
-      <UniqueIdentifier>{ec78f93c-cffd-4238-8399-a3f7b3f695da}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Application\Object\Player">
       <UniqueIdentifier>{0f5af640-dd42-4628-b8cb-84a8e8f695c5}</UniqueIdentifier>
     </Filter>
@@ -816,23 +813,14 @@
     <ClCompile Include="Application\Object\Boss\BossView.cpp">
       <Filter>Application\Object\Boss</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Object\ModelColor.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Object\Boss\BossView.h">
       <Filter>Application\Object\Boss</Filter>
     </ClInclude>
-    <ClCompile Include="Application\Object\Item\FieldItem.cpp">
-      <Filter>Application\Object\Item</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Object\Item\FieldItem.h">
-      <Filter>Application\Object\Item</Filter>
-    </ClInclude>
-    <ClCompile Include="Application\Object\Item\ItemManager.cpp">
-      <Filter>Application\Object\Item</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Object\Item\ItemManager.h">
-      <Filter>Application\Object\Item</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\Object\Item\ItemType.h">
-      <Filter>Application\Object\Item</Filter>
+    <ClInclude Include="Application\Object\ModelColor.h">
+      <Filter>Application\Object</Filter>
     </ClInclude>
     <ClCompile Include="Application\Object\Player\Player.cpp">
       <Filter>Application\Object\Player</Filter>

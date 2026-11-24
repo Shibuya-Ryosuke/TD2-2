@@ -7,8 +7,9 @@ namespace App::GameConfig
 {
 	//ゲーム全体の数値
 
-	//床
-	inline constexpr float kFloorSize = 20.0f; //床全体の1辺の長さ
+	//床と長さ
+	inline constexpr float kWorldScale = 1.25f; //タイルを大きくするために床とボスの届く距離などの長さにかける倍率
+	inline constexpr float kFloorSize = 20.0f * kWorldScale; //床全体の1辺の長さ
 	inline constexpr float kTileThickness = 0.45f; //タイルの厚さ
 	inline constexpr float kTileGap = 0.055f; //1マスに対するタイルのすき間の割合
 	inline constexpr float kFloorSpacing = 12.0f; //層と層の間の高さ
@@ -24,7 +25,7 @@ namespace App::GameConfig
 	inline constexpr int32_t kBossSpawnZ = 6;
 
 	//床を崩す
-	inline constexpr float kCollapseDelay = 2.6f; //崩してから穴になるまでの秒数
+	inline constexpr float kCollapseDelay = 1.5f; //崩してから穴になるまでの秒数
 	inline constexpr float kShapePreviewBlend = 0.6f; //床に出す形の予告の色の濃さ
 	inline constexpr float kPreviewGlowMin = 0.8f; //予告のマスの光のいちばん弱いとき
 	inline constexpr float kPreviewGlowMax = 1.8f; //予告のマスの光のいちばん強いとき
@@ -39,7 +40,7 @@ namespace App::GameConfig
 	//下の層へ
 	inline constexpr float kBossDropDuration = 0.8f; //ボスが下の層まで落ちる秒数
 	inline constexpr float kDescentDuration = 0.8f; //プレイヤーが下の層へ降りる秒数
-	inline constexpr float kDescentHopHeight = 1.6f; //降りるときに跳ねる高さ
+	inline constexpr float kDescentHopHeight = 1.6f * kWorldScale; //降りるときに跳ねる高さ
 	inline constexpr float kLandingImpactDuration = 0.5f; //ボスが落ちてから足場が飛んでいくまでの秒数
 	inline constexpr float kTileFlightDuration = 0.8f; //足場が1枚ボスまで飛ぶ秒数
 	inline constexpr float kTileLaunchWindow = 1.0f; //全部の足場が飛び立ち終わるまでの秒数
@@ -52,11 +53,11 @@ namespace App::GameConfig
 	inline constexpr float kMaxBossSpeedBonus = 0.3f; //床が全部消えたときにボスが何割速くなるか
 
 	//プレイヤー
-	inline constexpr float kJumpHeight = 1.5f; //1マス跳ぶときの高さ
+	inline constexpr float kJumpHeight = 1.5f * kWorldScale; //1マス跳ぶときの高さ
 	inline constexpr float kJumpDuration = 0.48f; //1マス跳ぶ秒数
 	inline constexpr float kGravity = 20.0f; //重力の強さ
 	inline constexpr float kFallThreshold = 1.1f; //床よりこれだけ下まで落ちたら落ちたことにする
-	inline constexpr float kPlayerSize = 0.78f; //仮のモデルの箱の1辺
+	inline constexpr float kPlayerSize = 0.78f; //仮の箱だったときの1辺でアイテムの当たりに使う
 	inline constexpr float kPlayerContactRadius = 0.39f; //床のふちとボスとの当たりに使う体の半径
 	inline constexpr float kPlayerContactHeight = 1.3f; //ボスとの当たりに使う体の高さ
 
@@ -80,10 +81,7 @@ namespace App::GameConfig
 	inline constexpr RyoEngine::Vector4 kWarningColor = { 1.0f, 0.675f, 0.329f, 1.0f }; //パンチの範囲
 	inline constexpr RyoEngine::Vector4 kIsolatedColor = { 0.925f, 0.349f, 0.459f, 1.0f }; //切り離された床
 	inline constexpr RyoEngine::Vector4 kBonusColor = { 0.05f, 0.74f, 0.91f, 1.0f }; //飛ばすと4倍になる穴のとなりの床
-	inline constexpr RyoEngine::Vector4 kPlayerColor = { 1.0f, 1.0f, 1.0f, 1.0f }; //木箱の色そのまま
-	inline constexpr RyoEngine::Vector4 kPlayerFrontColor = { 0.188f, 0.82f, 0.725f, 1.0f }; //向きがわかるプレイヤーの正面の板
-	inline constexpr RyoEngine::Vector4 kBossColor = { 0.941f, 0.392f, 0.349f, 1.0f }; //ボスの体
-	inline constexpr RyoEngine::Vector4 kBossArmorColor = { 0.525f, 0.173f, 0.286f, 1.0f }; //パンチの拳
+	inline constexpr RyoEngine::Vector4 kBossFistColor = { 0.194f, 0.401f, 0.162f, 1.0f }; //ボスのモデルの手と同じ緑のパンチの拳
 	inline constexpr RyoEngine::Vector4 kAttackColor = { 1.0f, 0.753f, 0.294f, 1.0f }; //近接攻撃の予告
 
 	//画面の右上の形を選ぶ輪
@@ -92,7 +90,7 @@ namespace App::GameConfig
 	inline constexpr float kRingCenterY = 0.7f; //輪の真ん中の縦の位置
 	inline constexpr float kRingRadiusX = 0.14f; //輪の横の半径
 	inline constexpr float kRingRadiusY = 0.1f; //輪の縦の半径で、小さいほどつぶれた楕円
-	inline constexpr float kRingCellSize = 0.65f; //手前の形の1マスの大きさ
+	inline constexpr float kRingCellSize = 0.65f * kWorldScale; //カメラを引いても画面で同じ大きさに見える手前の形の1マスの大きさ
 	inline constexpr float kRingBackScale = 0.55f; //手前に対する一番奥の形の大きさ
 	inline constexpr float kRingBackBrightness = 0.45f; //手前に対する一番奥の形の明るさ
 	inline constexpr float kRingTurnDuration = 0.15f; //1つ分回る秒数
@@ -126,6 +124,15 @@ namespace App::GameConfig
 	// inline constexpr int32_t kBoostedJumpGap = 2;           //アイテムを取ったあと飛び越えられる穴の数
 	// //trueなら次のジャンプで使い切り、falseなら穴2つを飛び越えたときだけ使い切る
 	// inline constexpr bool kJumpBoostUseOnNextJump = false;
+
+	//プレイヤーとボスのモデルで色はmtlのまま使う
+	inline constexpr const char* kPlayerModel = "Model/player/player.obj"; //プレイヤーのモデル
+	inline constexpr const char* kBossModel = "Model/boss/boss.obj"; //ボスのモデル
+	inline constexpr float kPlayerModelScale = 0.75f; //プレイヤーのモデルの大きさの倍率
+	inline constexpr RyoEngine::Vector3 kBossModelScale = { 1.0f, 1.0f, 1.0f }; //モデルのままのボスの大きさの倍率
+	inline constexpr float kPlayerModelYaw = 90.0f; //横を向いているプレイヤーのモデルを正面に向ける度数
+	inline constexpr float kBossModelYaw = 90.0f; //横を向いているボスのモデルを正面に向ける度数
+	inline constexpr float kPlayerModelLift = 0.26f; //足の裏が床に来るようにプレイヤーのモデルを上げる高さ
 
 	//仮のモデル
 	inline constexpr const char* kCubeModel = "cube"; //Kari/Model/cube.obj

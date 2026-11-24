@@ -7,14 +7,12 @@ using namespace RyoEngine;
 
 namespace App
 {
-	//ほこりを作って体と正面の板にシェーダーをつける
-	void PlayerBounce::Initialize(Model& body, Model& front)
+	//ほこりを作って体にシェーダーをつける
+	void PlayerBounce::Initialize(Model& body)
 	{
 		body_ = &body;
-		front_ = &front;
 		const uint32_t shader = ShaderManager::Load(DirectionConfig::kPlayerPopShader);
 		body_->SetShader(shader);
-		front_->SetShader(shader);
 		dust_.Initialize();
 	}
 
@@ -80,7 +78,6 @@ namespace App
 		//ピカッをだんだん消す
 		glow_ *= std::exp(-DirectionConfig::kPlayerLandGlowDecay * deltaTime);
 		body_->SetShaderParams(0, { glow_, 0.0f, 0.0f, 0.0f });
-		front_->SetShaderParams(0, { glow_, 0.0f, 0.0f, 0.0f });
 	}
 
 	//ほこりを描く

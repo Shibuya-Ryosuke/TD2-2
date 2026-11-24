@@ -515,8 +515,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Object\Boss\BossForecast.cpp" />
     <ClCompile Include="Application\Object\Boss\BossPlanner.cpp" />
     <ClCompile Include="Application\Object\Boss\BossView.cpp" />
-    <ClCompile Include="Application\Object\Item\FieldItem.cpp" />
-    <ClCompile Include="Application\Object\Item\ItemManager.cpp" />
     <ClCompile Include="Application\Object\Player\Player.cpp" />
     <ClCompile Include="Application\Object\Player\PlayerHealth.cpp" />
     <ClCompile Include="Application\Object\Player\Shape\BreakShape.cpp" />
@@ -541,6 +539,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Stage\Grid\GridDirection.cpp" />
     <ClCompile Include="Application\Stage\LayerFloors.cpp" />
     <ClCompile Include="Application\UI\NextShapePanel.cpp" />
+    <ClCompile Include="Application\Object\ModelColor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\Application.h" />
@@ -570,9 +569,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Object\Boss\BossPlanner.h" />
     <ClInclude Include="Application\Object\Boss\BossTuning.h" />
     <ClInclude Include="Application\Object\Boss\BossView.h" />
-    <ClInclude Include="Application\Object\Item\FieldItem.h" />
-    <ClInclude Include="Application\Object\Item\ItemManager.h" />
-    <ClInclude Include="Application\Object\Item\ItemType.h" />
     <ClInclude Include="Application\Object\Player\Player.h" />
     <ClInclude Include="Application\Object\Player\PlayerHealth.h" />
     <ClInclude Include="Application\Object\Player\Shape\BreakShape.h" />
@@ -602,6 +598,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Stage\Grid\GridDirection.h" />
     <ClInclude Include="Application\Stage\LayerFloors.h" />
     <ClInclude Include="Application\UI\NextShapePanel.h" />
+    <ClInclude Include="Application\Object\ModelColor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

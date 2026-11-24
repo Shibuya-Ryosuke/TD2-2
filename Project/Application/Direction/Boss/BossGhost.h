@@ -21,7 +21,7 @@ namespace App
 		BossGhost(const BossGhost&) = delete;
 		BossGhost& operator=(const BossGhost&) = delete;
 
-		void Initialize(); //半透明の体と拳を作る
+		void Initialize(); //水色で半透明のボスのモデルと拳を作る
 
 		//先読みを作り直して残像を進める
 		void Update(const Boss& boss, const Floor& floor, const RyoEngine::Vector3& player, const BossTuning& tuning, bool isVisible);
@@ -33,13 +33,14 @@ namespace App
 		//見せている行動に合わせて体と拳を置く
 		void Pose(const BossPlannedAction& action, float t, const BossTuning& tuning);
 
-		std::unique_ptr<RyoEngine::Model> body_{};
-		std::unique_ptr<RyoEngine::Model> fist_{};
+		std::unique_ptr<RyoEngine::Model> body_{}; //ボスのモデル
+		std::unique_ptr<RyoEngine::Model> fist_{}; //パンチのときだけ出す箱の拳
 		std::vector<BossPlannedAction> plan_; //先読みした行動
 		float elapsed_ = 0.0f; //くり返し見せている時間
 		float refreshTimer_ = 0.0f; //次に先読みを作り直すまでの時間
 		int32_t lastActionCount_ = -1; //前に先読みしたときのボスの行動の数
 		const Floor* lastFloor_ = nullptr; //前に先読みしたときの床
 		bool isVisible_ = false;
+		bool isFistVisible_ = false; //パンチを見せているか
 	};
 }

@@ -17,7 +17,7 @@ namespace App
 		Player(const Player&) = delete;
 		Player& operator=(const Player&) = delete;
 
-		void Initialize(); //体と正面の板のモデルを作る
+		void Initialize(); //mtlの色のままのプレイヤーのモデルを作る
 
 		//1フレーム動かして、落ちたらtrueを返す
 		bool Advance(const RyoEngine::Vector2& move, bool hasMovement, const Floor& floor, float deltaTime);
@@ -35,7 +35,7 @@ namespace App
 
 		//動かし終わったあとに行列を確定する
 		void UpdateVisuals();
-		void Draw(); //体と正面の板を描く
+		void Draw(); //プレイヤーのモデルを描く
 
 		const RyoEngine::Vector3& GetPosition() const { return position_; }
 		//下の層へ降りる途中などで位置だけ動かす
@@ -64,8 +64,7 @@ namespace App
 		// void UseJumpBoost(const Cell& from, const Cell& landing);
 
 		//仮の木箱の見た目
-		std::unique_ptr<RyoEngine::Model> body_{}; //体
-		std::unique_ptr<RyoEngine::Model> front_{}; //向きがわかる色の正面の板
+		std::unique_ptr<RyoEngine::Model> body_{}; //プレイヤーのモデル
 		PlayerBounce bounce_; //跳ぶと着地のぽよん
 
 		//状態
