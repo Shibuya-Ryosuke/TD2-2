@@ -8,9 +8,10 @@ using namespace RyoEngine;
 namespace App
 {
 	//飛ばし始める
-	int32_t TileBarrage::Begin(const Floor* upper)
+	int32_t TileBarrage::Begin(Floor* upper)
 	{
 		tiles_.clear();
+		adjacentCount_ = 0;
 		timer_ = 0.0f;
 		arrived_ = 0;
 		damageApplied_ = 0;
@@ -18,20 +19,64 @@ namespace App
 		{
 			return 0;
 		}
+		upper->PrepareBarrage();
 
-		//残っている床を全部飛ばす足場にする
-		for (int32_t z = 0; z < upper->GetDepth(); ++z)
+		//穴のとなりの床を先に、ふつうの床をあとに並べる
+		for (int32_t group = 0; group < 2; ++group)
 		{
-			for (int32_t x = 0; x < upper->GetWidth(); ++x)
+			const bool isAdjacentGroup = group == 0;
+			for (int32_t z = 0; z < upper->GetDepth(); ++z)
 			{
-				const Cell cell = { x, z };
-				if (upper->IsSolid(cell))
+				for (int32_t x = 0; x < upper->GetWidth(); ++x)
 				{
-					tiles_.push_back(BarrageTile{ cell, upper->GetBarrageMultiplier(cell) });
+					const Cell cell = { x, z };
+					if (!upper->IsSolid(cell) || upper->IsHoleAdjacent(cell) != isAdjacentGroup)
+					{
+						continue;
+					}
+					int32_t damage = GameConfig::kOrdinaryTileDamage;
+					if (isAdjacentGroup)
+					{
+						damage = GameConfig::kAdjacentTileDamage;
+					}
+					tiles_.push_back(BarrageTile{ cell, std::max(0, damage) });
 				}
+			}
+			if (isAdjacentGroup)
+			{
+				adjacentCount_ = GetTileCount();
 			}
 		}
 		return GetTileCount();
+	}
+
+	//穴のとなりの足場が全部届いて少し待ってからふつうの足場が飛び立つ
+	float TileBarrage::GetLaunchTime(int32_t index) const
+	{
+		const float flight = std::max(0.01f, GameConfig::kTileFlightDuration);
+		const float window = std::max(0.0f, GameConfig::kTileLaunchWindow);
+		const int32_t count = GetTileCount();
+
+		//穴のとなりの足場が飛び終わるまでの秒数
+		float ordinaryStart = 0.0f;
+		if (adjacentCount_ > 0)
+		{
+			float adjacentWindow = 0.0f;
+			if (adjacentCount_ > 1)
+			{
+				adjacentWindow = window;
+			}
+			ordinaryStart = adjacentWindow + flight + std::max(0.0f, GameConfig::kTileBarrageGroupPause);
+		}
+
+		//まとまりの中で少しずつ遅れて飛び立つ
+		if (index < adjacentCount_)
+		{
+			return window * static_cast<float>(index) / static_cast<float>(std::max(1, adjacentCount_ - 1));
+		}
+		const int32_t ordinaryCount = count - adjacentCount_;
+		const int32_t ordinaryIndex = index - adjacentCount_;
+		return ordinaryStart + window * static_cast<float>(ordinaryIndex) / static_cast<float>(std::max(1, ordinaryCount - 1));
 	}
 
 	//1フレーム進める
@@ -41,19 +86,18 @@ namespace App
 		arrived_ = 0;
 		int64_t damageUnits = 0;
 		const int32_t count = GetTileCount();
+		const float flight = std::max(0.01f, GameConfig::kTileFlightDuration);
 
 		for (int32_t i = 0; i < count; ++i)
 		{
-			//1枚ずつ少し遅れて飛び立つ
-			const float launchTime = GameConfig::kTileLaunchWindow * static_cast<float>(i) / static_cast<float>(std::max(1, count - 1));
-			const float t = std::clamp((timer_ - launchTime) / GameConfig::kTileFlightDuration, 0.0f, 1.0f);
+			const float t = std::clamp((timer_ - GetLaunchTime(i)) / flight, 0.0f, 1.0f);
 			const BarrageTile& tile = tiles_[static_cast<size_t>(i)];
 
 			//届いたら消してダメージを数える
 			if (t >= 1.0f)
 			{
 				++arrived_;
-				damageUnits += tile.multiplier;
+				damageUnits += tile.damage;
 				upper.HideTile(tile.cell);
 				continue;
 			}
@@ -74,7 +118,7 @@ namespace App
 		}
 
 		//上限ありで、前のフレームから増えたダメージを返す
-		const int64_t totalDamage = std::min(damageUnits * GameConfig::kDamagePerRemainingTile, static_cast<int64_t>(GameConfig::kMaxTileDamage));
+		const int64_t totalDamage = std::min(damageUnits, static_cast<int64_t>(GameConfig::kMaxTileDamage));
 		const int32_t damage = static_cast<int32_t>(totalDamage);
 		int32_t added = 0;
 		if (damage > damageApplied_)

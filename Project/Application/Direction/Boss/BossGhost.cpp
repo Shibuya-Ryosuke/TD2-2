@@ -63,7 +63,7 @@ namespace App
 		if (isRestart || refreshTimer_ <= 0.0f)
 		{
 			const float speed = tuning.moveSpeed * (1.0f + GameConfig::kMaxBossSpeedBonus * floor.GetCollapsedFraction());
-			boss.BuildForecast(floor, player, tuning, speed, GameConfig::kJumpDuration, plan_, GameConfig::kBossForecastTurns);
+			boss.BuildForecast(floor, player, tuning, speed, 0.0f, plan_, GameConfig::kBossForecastTurns); //同時に動くのでプレイヤーを待つ時間はない
 			refreshTimer_ = DirectionConfig::kBossGhostRefresh;
 			lastActionCount_ = boss.GetActionCount();
 			lastFloor_ = &floor;

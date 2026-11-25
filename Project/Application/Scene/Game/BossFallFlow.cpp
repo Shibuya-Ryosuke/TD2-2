@@ -1,6 +1,7 @@
 #include "BossFallFlow.h"
 #include "../../Config/GameConfig.h"
-#include "../../Stage/LayerFloors.h"
+#include "../../Stage/Floor/LayerFloors.h"
+#include "SpawnPlanner.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Player/Player.h"
 
@@ -28,9 +29,10 @@ namespace App
 	//ボスが下の層へ落ち始める
 	void BossFallFlow::BeginDrop(LayerFloors& floors, const Player& player, const Boss& boss)
 	{
-		//プレイヤーの行き先は下の層の最初の位置
+		//プレイヤーの行き先は下の層でボスが落ちる所の反対側
 		floors.EnsureBelow();
-		const Vector3 destination = LayerFloors::GetSpawnPosition(*floors.GetBelow(), GameConfig::kPlayerSpawnX, GameConfig::kPlayerSpawnZ);
+		const Floor& below = *floors.GetBelow();
+		const Vector3 destination = SpawnPlanner::FindPlayerPosition(below, SpawnPlanner::FindBossPosition(below, boss.GetPosition()));
 		descent_.Begin(boss.GetPosition(), player.GetPosition(), destination);
 		phase_ = GamePhase::Descent;
 	}

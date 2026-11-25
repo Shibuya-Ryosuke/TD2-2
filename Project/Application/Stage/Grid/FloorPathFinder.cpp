@@ -1,5 +1,6 @@
 #include "FloorPathFinder.h"
 #include "../Floor/Floor.h"
+#include "../../Config/GameConfig.h"
 #include <limits>
 
 using namespace RyoEngine;
@@ -39,11 +40,11 @@ namespace App
 			const Cell current = order[head];
 			for (const Cell& direction : kDirections)
 			{
-				//飛び越えられるなら穴を1つ飛ばした先も行ける
+				//飛び越えられるならボスが越えられる数まで穴を飛ばした先も行ける
 				Cell next = current + direction;
 				if (canJump)
 				{
-					next = floor.JumpLanding(current, direction, 1);
+					next = floor.JumpLanding(current, direction, GameConfig::kBossJumpGap);
 				}
 				if (!floor.IsSolid(next))
 				{
@@ -59,48 +60,6 @@ namespace App
 				order.push_back(next);
 			}
 		}
-	}
-
-	//行ける所でプレイヤーに一番近い所へ向かうボスの次のマス
-	Cell FloorPathFinder::NextStep(const Floor& floor, const Cell& start, const Vector3& target, bool canJump)
-	{
-		//startから行けるマスを全部調べる
-		std::vector<int32_t> parents;
-		std::vector<Cell> order;
-		Explore(floor, start, canJump, parents, order);
-
-		//プレイヤーのマスか、行ける所で一番近いマスを行き先にする
-		Cell best = start;
-		const Cell targetCell = floor.GetCellAt(target);
-		if (floor.Contains(targetCell) && parents[floor.ToIndex(targetCell)] >= 0)
-		{
-			best = targetCell;
-		}
-		else
-		{
-			float bestDistance = std::numeric_limits<float>::infinity();
-			for (const Cell& cell : order)
-			{
-				const float distance = DistanceSquared(floor.GetCellCenter(cell), target);
-				if (distance < bestDistance)
-				{
-					bestDistance = distance;
-					best = cell;
-				}
-			}
-		}
-
-		//行き先からさかのぼってstartの次のマスを返す
-		if (order.empty())
-		{
-			return best;
-		}
-		const size_t startIndex = floor.ToIndex(start);
-		while (best != start && static_cast<size_t>(parents[floor.ToIndex(best)]) != startIndex)
-		{
-			best = floor.ToCell(static_cast<size_t>(parents[floor.ToIndex(best)]));
-		}
-		return best;
 	}
 
 	//上下左右ですぐには崩れないボスの逃げ先

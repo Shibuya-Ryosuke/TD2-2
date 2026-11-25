@@ -52,9 +52,7 @@ namespace App
 		const BossTuning& tuning, float speed, int32_t turn, float elapsed, bool isEvacuating, const Vector3& evacuationTarget)
 	{
 		BossPlannedAction action{};
-		action.from = from;
 		action.to = from;
-		action.target = player;
 		action.duration = 0.4f;
 
 		//足元が崩れるなら落ちる
@@ -122,11 +120,9 @@ namespace App
 			action.kind = kind;
 			if (kind == BossActionKind::Punch)
 			{
-				action.windup = tuning.punchWindup;
 				action.duration = tuning.punchWindup + tuning.punchStrikeDuration + tuning.punchRecovery;
 				return action;
 			}
-			action.windup = tuning.meleeWindup;
 			action.duration = tuning.meleeWindup + 0.15f;
 			return action;
 		}
@@ -145,46 +141,8 @@ namespace App
 			return action;
 		}
 		action.kind = BossActionKind::Melee;
-		action.windup = tuning.meleeWindup;
 		action.duration = tuning.meleeWindup + 0.15f;
 		return action;
-	}
-
-	//次のcount回の行動を先読みする
-	void BossPlanner::Forecast(std::vector<BossPlannedAction>& result, const Floor& floor, Vector3 from, const Vector3& player,
-		const BossTuning& tuning, float speed, int32_t turn, int32_t count, float stepTime, float elapsed, bool isEvacuating, const Vector3& evacuationTarget)
-	{
-		bool hasFallen = false;
-		for (int32_t i = 0; i < count; ++i)
-		{
-			//落ちたあとは下の層へ行ってから決める
-			BossPlannedAction action{};
-			if (hasFallen)
-			{
-				action.kind = BossActionKind::Deferred;
-				action.from = from;
-				action.to = from;
-				action.duration = 0.6f;
-			}
-			else
-			{
-				action = Choose(floor, from, player, tuning, speed, turn, elapsed, isEvacuating, evacuationTarget);
-			}
-			result.push_back(action);
-			if (action.kind == BossActionKind::Fall)
-			{
-				hasFallen = true;
-			}
-
-			//次の行動はこの行動とプレイヤーの1回分のあと
-			from = action.to;
-			elapsed += action.duration + stepTime;
-			++turn;
-			if (isEvacuating && DistanceSquared(from, evacuationTarget) < 0.01f)
-			{
-				isEvacuating = false;
-			}
-		}
 	}
 
 	//time秒後も着地できる床をつながりごとに分ける

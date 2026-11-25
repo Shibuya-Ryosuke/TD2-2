@@ -6,8 +6,9 @@
 #include "../../Input/GameInput.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Player/Player.h"
-#include "../../Stage/Grid/GridDirection.h"
+#include "BossContact.h"
 #include "GameHud.h"
+#include "SpawnPlanner.h"
 #include <algorithm>
 
 using namespace RyoEngine;
@@ -26,14 +27,16 @@ namespace App
 
 		//平行投影だと全部網目に消えてしまうのでNearFadeを切る
 		nearFade_.Disable();
+		//空の画像の色がそのまま出るようにゲーム中だけACESを切る
+		toneMap_.Apply();
 
-		//プレイヤーとボスと形を作る
+		//プレイヤーとボスを作る
 		player_ = std::make_unique<Player>();
 		player_->Initialize();
 		boss_ = std::make_unique<Boss>();
 		boss_->Initialize();
-		shapes_.Initialize();
-		direction_.Initialize(); //UpdateVisualsより先に画面の演出と残像を用意する
+		direction_.Initialize(); //UpdateVisualsより先に画面の演出を用意する
+		sky_.Initialize(); //UpdateVisualsより先に背景の天球を用意する
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// items_.Initialize();
 
@@ -52,6 +55,7 @@ namespace App
 	{
 		//ほかのシーンのために元に戻す
 		nearFade_.Restore();
+		toneMap_.Restore();
 	}
 
 	void Game::Update()
@@ -62,15 +66,20 @@ namespace App
 			UpdateVisuals();
 			return;
 		}
-		//ポーズ
+		//ポーズ中はメニューだけ動かして、閉じたフレームも決定のAで床を崩さないようにゲームを止める
+		if (pauseMenu_.IsOpen())
+		{
+			UpdatePause();
+			UpdateVisuals();
+			return;
+		}
 		if (GameInput::IsPauseTriggered())
 		{
-			isPaused_ = !isPaused_;
+			pauseMenu_.Open();
+			UpdateVisuals();
+			return;
 		}
-		if (!isPaused_)
-		{
-			UpdateGame(GetDeltaTime());
-		}
+		UpdateGame(GetDeltaTime());
 		UpdateVisuals();
 		//積み木で画面を埋めてからクリアかゲームオーバーへ
 		if (isGameOver_)
@@ -78,7 +87,8 @@ namespace App
 			transition_.Start<GameOver>();
 			return;
 		}
-		if (isCleared_)
+		//クリアはプレイヤーのポーズを見せてから
+		if (isCleared_ && clearPose_.Update(GetDeltaTime(), *camera_, *player_))
 		{
 			transition_.Start<Clear>();
 		}
@@ -103,33 +113,18 @@ namespace App
 			return;
 		}
 
-		//入力を読んで、ボスの番でなければ向きを変える
+		//入力を読んで、向きの入力か進む方を向く
 		const PlayerCommand command = GameInput::ReadCommand();
-		PlayerTurn& turn = battle_.GetTurn();
-		turn.ApplyLook(command, phase_, *player_, *boss_);
+		action_.ApplyLook(command, *player_);
 
-		//LBで前、RBで次の形を選ぶ
-		shapes_.Select(command.isPreviousShape, command.isNextShape);
-
-		//移動か床を崩す入力があるまで戦闘を始めない
-		if (phase_ == GamePhase::Waiting)
-		{
-			if (!command.HasAction())
-			{
-				return;
-			}
-			phase_ = GamePhase::Battle;
-		}
-
-		//プレイヤーの番に床を崩すか移動して、動いたらボスの番になる
+		//ボスと同時に正面の床を崩して移動する
 		Floor& floor = floors_.GetCurrent();
-		const bool wasJumping = player_->IsJumping();
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// if (command.isBomb)
 		// {
 			// items_.TryUseBomb(floor, GetPlayerCell());
 		// }
-		if (turn.ApplyAction(command, phase_, *player_, shapes_, floor, *boss_, deltaTime))
+		if (action_.Apply(command, *player_, floor, deltaTime))
 		{
 			FailFall();
 			return;
@@ -144,24 +139,23 @@ namespace App
 		if (phase_ == GamePhase::Battle)
 		{
 			//ボスの足元が崩れて逃げられなければ落ちる
-			if (battle_.CheckBossFooting(floor, *player_, *boss_, GetTuning(), isFloorChanged, bossCell) == BossBattle::Event::BossFell)
+			if (battle_.CheckBossFooting(floor, *boss_, GetTuning(), isFloorChanged, bossCell) == BossBattle::Event::BossFell)
 			{
 				BeginBossDrop();
 				return;
 			}
-			//跳んでいる途中か跳び終わった瞬間にぶつかったら体当たり
-			bool isJumpImpact = wasJumping;
-			if (player_->IsJumping())
-			{
-				isJumpImpact = true;
-			}
-			HandleBattleEvent(battle_.Update(floor, *player_, *boss_, health_, GetTuning(), isFloorChanged, bossCell, isJumpImpact, deltaTime));
+			HandleBattleEvent(battle_.Update(floor, *player_, *boss_, health_, GetTuning(), isFloorChanged, bossCell, deltaTime));
 			return;
 		}
 		if (phase_ == GamePhase::Escape)
 		{
-			//揺れている間もプレイヤーは動けて、時間が来たらボスごと落ちる
-			battle_.CheckContact(floor, *player_, *boss_, false);
+			//揺れている間もプレイヤーは動けてボスに触れるとハートが減り、時間が来たらボスごと落ちる
+			BossContact::Check(*player_, *boss_, health_);
+			if (health_.IsDead())
+			{
+				Defeat();
+				return;
+			}
 			UpdateBossFall(deltaTime);
 		}
 	}
@@ -219,39 +213,34 @@ namespace App
 	//見た目を確定する
 	void Game::UpdateVisuals()
 	{
-		//戦闘中と戦闘開始待ちのときだけ床に予告を出す
-		direction_.Update(health_, phase_, *player_, *boss_, floors_.GetCurrent(), GetTuning());
-		bool isPreviewVisible = false;
-		if (phase_ == GamePhase::Waiting || phase_ == GamePhase::Battle)
-		{
-			isPreviewVisible = true;
-		}
-		shapes_.UpdatePreview(floors_.GetCurrent(), GetPlayerCell(), player_->GetFacing(), isPreviewVisible);
+		//戦闘中だけ床に正面の1マスの予告を出す
+		direction_.Update(health_, phase_, *player_, *boss_, floors_.GetCurrent());
+		action_.UpdatePreview(floors_.GetCurrent(), *player_, phase_ == GamePhase::Battle);
 		floors_.UpdateVisuals();
 		player_->UpdateVisuals();
 		boss_->UpdateVisuals();
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// items_.UpdateVisuals();
-		shapes_.UpdatePanel(*camera_, player_->GetFacing());
+		sky_.Update(*camera_);
 	}
 
 	void Game::Draw()
 	{
-		//床とキャラと右上の輪と積み木の順に描く
+		//背景の天球、床とキャラと積み木の順に描く
+		sky_.Draw();
 		floors_.Draw();
 		player_->Draw();
 		boss_->Draw();
-		direction_.Draw(); //半透明のボスの残像はキャラのあと
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// items_.Draw();
-		shapes_.DrawPanel();
 		//いちばん手前に場面切り替えの積み木
 		transition_.Draw();
 		//デバッグ表示
-		GameHud::Draw(GameHud::MakeInfo(health_, floors_, bossHealth_, phase_, isPaused_, bossFall_));
+		GameHud::Draw(GameHud::MakeInfo(health_, floors_, bossHealth_, phase_, pauseMenu_.IsOpen(), bossFall_));
+		pauseMenu_.Draw();
 	}
 
-	//床を元に戻して最初の位置から方向の入力待ちにする
+	//床を元に戻して最初の位置からすぐに戦闘を始める
 	void Game::ResetFloor(bool showBelow)
 	{
 		//床を戻して下の層を作り、キャラを置いてカメラを合わせる
@@ -269,23 +258,22 @@ namespace App
 		// //やり直しなので置いてあるアイテムも持っているアイテムも消える
 		// items_.ResetForRetry();
 		// player_->SetJumpBoost(false);
-		WaitForMovement();
+		StartBattle();
 	}
 
-	//プレイヤーとボスを最初の位置に置く
+	//ボスを落ちてきた所か最初のマスの近くに置き、プレイヤーをその反対側の離れた所に置く
 	void Game::PlaceActors(bool keepBossLanding)
 	{
 		const Floor& floor = floors_.GetCurrent();
-		player_->Place(LayerFloors::GetSpawnPosition(floor, GameConfig::kPlayerSpawnX, GameConfig::kPlayerSpawnZ));
-		battle_.Reset();
-		boss_->SetActive(true);
-
-		//keepBossLandingなら落ちてきた場所のままのボスの位置
-		Vector3 bossPosition = boss_->GetPosition();
+		Vector3 fallingFrom = boss_->GetPosition();
 		if (!keepBossLanding)
 		{
-			bossPosition = LayerFloors::GetSpawnPosition(floor, GameConfig::kBossSpawnX, GameConfig::kBossSpawnZ);
+			fallingFrom = LayerFloors::GetSpawnPosition(floor, GameConfig::kBossSpawnX, GameConfig::kBossSpawnZ);
 		}
+		const Vector3 bossPosition = SpawnPlanner::FindBossPosition(floor, fallingFrom);
+		player_->Place(SpawnPlanner::FindPlayerPosition(floor, bossPosition));
+		battle_.Reset();
+		boss_->SetActive(true);
 		boss_->Place(floor, bossPosition);
 	}
 
@@ -323,11 +311,11 @@ namespace App
 		bossHealth_ = std::max(0, bossHealth_ - amount);
 	}
 
-	//方向の入力待ちにする
-	void Game::WaitForMovement()
+	//すぐに戦闘を始める
+	void Game::StartBattle()
 	{
 		battle_.ClearSeparationCheck();
-		phase_ = GamePhase::Waiting;
+		phase_ = GamePhase::Battle;
 	}
 
 	//ボスの島が切り離されたら揺れ始める
@@ -359,15 +347,16 @@ namespace App
 		PlaceActors(true);
 	}
 
-	//足場を飛ばし終わったらクリアか次の戦闘待ちへ
+	//足場を飛ばし終わったらクリアか次の戦闘へ
 	void Game::FinishBossFall()
 	{
 		if (bossHealth_ == 0)
 		{
 			boss_->SetActive(false);
 			isCleared_ = true;
+			clearPose_.Start(*camera_, *player_);
 			return;
 		}
-		WaitForMovement();
+		StartBattle();
 	}
 }

@@ -10,7 +10,7 @@ namespace App
 		bool isSolidAtStart = false; //Resetで戻すCSVでの形
 		bool isIsolated = false; //切り離された床か
 		bool isVisible = false; //描くか
-		bool isPreview = false; //崩す形の予告を出しているか
+		bool isPreview = false; //崩すマスの予告を出しているか
 		float remaining = -1.0f; //崩れるまでの残り時間でマイナスは予定なし
 		float fallTime = 0.0f; //穴になってから落ちている時間
 		RyoEngine::Vector3 position{}; //揺れや落下や飛んでいく途中も入れた今の位置

@@ -5,6 +5,7 @@
 #include "../Grid/Cell.h"
 #include "../../Direction/Floor/FloorCrumble.h"
 #include "../../Direction/Floor/FloorJiggle.h"
+#include "../../Direction/Floor/FloorWear.h"
 
 namespace App
 {
@@ -39,6 +40,7 @@ namespace App
 		std::vector<std::unique_ptr<RyoEngine::Model>> models_; //タイルと同じ並びで穴のマスはnullptrのモデル
 		FloorCrumble crumble_; //ハートと砕けると欠片の崩れる演出
 		FloorJiggle jiggle_; //着地のぷるるん
+		FloorWear wear_; //穴のとなりの細いヒビ
 		float previewGlowTime_ = 0.0f; //予告の明滅の時間
 	};
 }

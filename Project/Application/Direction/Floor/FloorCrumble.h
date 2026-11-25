@@ -9,7 +9,7 @@ namespace App
 {
 	class Floor;
 
-	//床がハートからガラスのように砕ける演出
+	//床がハートからガラスのように砕ける演出と、穴のとなりの細いヒビ
 	class FloorCrumble
 	{
 	public:
@@ -22,6 +22,7 @@ namespace App
 			float tileCrack = 0.0f; //タイルのひびの広がり
 			float flash = 0.0f; //ガン！の光
 			float shatter = 0.0f; //砕けた割合
+			float wear = 0.0f; //穴のとなりの細いヒビの濃さ
 			float scale = 1.0f; //ぷくっとぽんっの大きさの倍率
 			RyoEngine::Vector3 shake{}; //ガタガタとビクッの位置のずれ
 		};

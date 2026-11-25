@@ -1,7 +1,7 @@
 #include "GameHud.h"
 #include "BossFallFlow.h"
 #include "../../Config/GameConfig.h"
-#include "../../Stage/LayerFloors.h"
+#include "../../Stage/Floor/LayerFloors.h"
 #include "../../Object/Player/PlayerHealth.h"
 #include <RyoEngine.h>
 #include <algorithm>
@@ -50,17 +50,22 @@ namespace App
 		// }
 		// PrintText("ITEM  {}   {}", { 20.0f, 50.0f }, bombText, jumpText);
 
-		//場面ごとのお知らせ
+		//ポーズ中はポーズメニューが出るのでお知らせは出さない
+		if (!info.isPaused)
+		{
+			DrawNotice(info);
+		}
+
+		//操作は画面のいちばん下
+		const float bottomY = static_cast<float>(DirectXCommon::GetGameHeight()) - 40.0f;
+		PrintText("MOVE WASD/LSTICK   FACE ARROWS/RSTICK/DPAD   BREAK FRONT SPACE/A   PAUSE TAB/MENU", { 20.0f, bottomY });
+	}
+
+	//場面ごとのお知らせ
+	void GameHud::DrawNotice(const GameHudInfo& info)
+	{
 		const Vector2 noticePosition = { 20.0f, 80.0f };
-		if (info.isPaused)
-		{
-			PrintText("PAUSE  (ESC / START)", noticePosition);
-		}
-		else if (info.phase == GamePhase::Waiting)
-		{
-			PrintText("PRESS A DIRECTION TO START", noticePosition);
-		}
-		else if (info.phase == GamePhase::Escape)
+		if (info.phase == GamePhase::Escape)
 		{
 			PrintText("SEPARATED! GET TO SAFE GROUND  {:.1f}", noticePosition, std::max(0.0f, info.escapeTimer));
 		}
@@ -74,11 +79,7 @@ namespace App
 		}
 		else if (info.phase == GamePhase::TileBarrage)
 		{
-			PrintText("TILES {}   BONUS DAMAGE {}", noticePosition, info.barrageTiles, info.barrageDamage);
+			PrintText("TILES {}   TILE DAMAGE {}", noticePosition, info.barrageTiles, info.barrageDamage);
 		}
-
-		//操作は画面のいちばん下
-		const float bottomY = static_cast<float>(DirectXCommon::GetGameHeight()) - 40.0f;
-		PrintText("MOVE WASD/LSTICK   FACE ARROWS/RSTICK/DPAD   BREAK SPACE/A   SHAPE Q/E LB/RB   PAUSE ESC/START", { 20.0f, bottomY });
 	}
 }

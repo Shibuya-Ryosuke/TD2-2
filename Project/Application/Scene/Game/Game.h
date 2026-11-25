@@ -6,12 +6,16 @@
 #include "BossFallFlow.h"
 #include "../../Object/Boss/BossTuning.h"
 #include "GamePhase.h"
+#include "ClearPose.h"
+#include "PauseMenu.h"
 //[アイテム] アイテムは一旦使わないのでコメントアウト
 // #include "../../Object/Item/ItemManager.h"
-#include "../../Stage/LayerFloors.h"
+#include "PlayerAction.h"
+#include "../../Stage/Floor/LayerFloors.h"
+#include "../../Stage/Sky/SkyDome.h"
 #include "../../Object/Player/PlayerHealth.h"
-#include "../../Object/Player/Shape/ShapeController.h"
 #include "../../Camera/NearFadeSwitch.h"
+#include "../../Direction/Screen/ToneMapSwitch.h"
 #include "../../Direction/Transition/BlockTransition.h"
 #include "../../Direction/GameDirection.h"
 
@@ -21,7 +25,7 @@ namespace App
 	class Boss;
 	class StageCamera;
 
-	//交互に動いて床を崩し、ボスを下の層へ落としていくゲームシーン
+	//ボスと同時に動いて正面の床を崩し、ボスを下の層へ落としていくゲームシーン
 	class Game : public RyoEngine::BaseScene
 	{
 	public:
@@ -38,6 +42,7 @@ namespace App
 
 	private:
 		//1フレームの流れ
+		void UpdatePause(); //ポーズメニューで選んだものに合わせて戻るかシーンを変える
 		void UpdateGame(float deltaTime);
 		void UpdateBossFall(float deltaTime); //ボスを落とす流れを進める
 		void HandleBattleEvent(BossBattle::Event event); //戦闘中に起きたことに合わせて場面を変える
@@ -55,7 +60,7 @@ namespace App
 		void Defeat(); //HPが0になってゲームオーバー
 
 		//場面の切り替え
-		void WaitForMovement(); //方向の入力待ちにする
+		void StartBattle(); //すぐに戦闘を始める
 		void BeginEscape(); //ボスの島が切り離された
 		void BeginBossDrop(); //ボスが落ち始める
 		void OnArrivedBelow(); //下の層に着いた
@@ -66,22 +71,25 @@ namespace App
 		std::unique_ptr<Player> player_{};
 		std::unique_ptr<Boss> boss_{};
 		StageCamera* camera_ = nullptr; //持ち主はCameraManager
-		ShapeController shapes_; //床を崩す形
+		SkyDome sky_; //背景の天球
+		PlayerAction action_; //プレイヤーの向きと正面の1マスを崩すと移動
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// ItemManager items_;                //アイテム
 		PlayerHealth health_; //プレイヤーのHPと無敵
-		BossBattle battle_; //戦闘中のボスとのやりとりと手番
+		BossBattle battle_; //戦闘中のボスとのやりとり
 		BossFallFlow bossFall_; //ボスを落とす流れ
 
 		//状態
 		GamePhase phase_ = GamePhase::Battle;
 		int32_t bossHealth_ = 0;
-		bool isPaused_ = false;
+		PauseMenu pauseMenu_; //TABかメニューボタンで開くポーズメニュー
 		bool isGameOver_ = false;
 		bool isCleared_ = false;
+		ClearPose clearPose_; //クリアのときにプレイヤーへ寄せてポーズを見せる
 
 		NearFadeSwitch nearFade_; //ゲーム中だけNearFadeを切る
+		ToneMapSwitch toneMap_; //ゲーム中だけACESを切り替える
 		BlockTransition transition_; //場面切り替えの積み木
-		GameDirection direction_; //画面の演出とボスの残像
+		GameDirection direction_; //画面の演出と着地のぷるるん
 	};
 }

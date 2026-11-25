@@ -18,19 +18,18 @@ namespace App::GameConfig
 	inline constexpr int32_t kFirstLayerWidth = 10; //1層目のマスの数
 	inline constexpr int32_t kFirstLayerDepth = 10;
 
-	//出てくるマスを1層目のマスで指定する
-	inline constexpr int32_t kPlayerSpawnX = 1;
-	inline constexpr int32_t kPlayerSpawnZ = 1;
+	//ゲームを始めるときのボスのマスを1層目のマスで指定する
 	inline constexpr int32_t kBossSpawnX = 6;
 	inline constexpr int32_t kBossSpawnZ = 6;
+	inline constexpr float kMinSpawnDistanceTiles = 5.0f; //層が始まるときにプレイヤーをボスから離すマスの数
 
 	//床を崩す
 	inline constexpr float kCollapseDelay = 1.5f; //崩してから穴になるまでの秒数
-	inline constexpr float kShapePreviewBlend = 0.6f; //床に出す形の予告の色の濃さ
+	inline constexpr float kShapePreviewBlend = 0.6f; //床に出す正面1マスの予告の色の濃さ
+	inline constexpr RyoEngine::Vector4 kBreakPreviewColor = { 0.2f, 0.9f, 0.95f, 1.0f }; //正面1マスの予告の水色
 	inline constexpr float kPreviewGlowMin = 0.8f; //予告のマスの光のいちばん弱いとき
 	inline constexpr float kPreviewGlowMax = 1.8f; //予告のマスの光のいちばん強いとき
 	inline constexpr float kPreviewGlowSpeed = 1.5f; //予告のマスが1秒に明滅する回数
-	inline constexpr int32_t kBossForecastTurns = 5; //ボスの行動を何回先まで残像で見せるか
 
 	//切り離し
 	inline constexpr float kEscapeDelay = 2.0f; //切り離されてから落ちるまでの秒数
@@ -43,18 +42,20 @@ namespace App::GameConfig
 	inline constexpr float kDescentHopHeight = 1.6f * kWorldScale; //降りるときに跳ねる高さ
 	inline constexpr float kLandingImpactDuration = 0.5f; //ボスが落ちてから足場が飛んでいくまでの秒数
 	inline constexpr float kTileFlightDuration = 0.8f; //足場が1枚ボスまで飛ぶ秒数
-	inline constexpr float kTileLaunchWindow = 1.0f; //全部の足場が飛び立ち終わるまでの秒数
+	inline constexpr float kTileLaunchWindow = 1.0f; //1つのまとまりの足場が飛び立ち終わるまでの秒数
+	inline constexpr float kTileBarrageGroupPause = 0.25f; //穴のとなりの床を飛ばし終わってからふつうの床を飛ばすまでの秒数
 
 	//ボスの体力とダメージ
 	inline constexpr int32_t kBossMaxHealth = 2000;
 	inline constexpr int32_t kBossFallDamage = 100; //ボスが下の層へ落ちたときのダメージ
-	inline constexpr int32_t kDamagePerRemainingTile = 1; //残った足場1枚のダメージで、穴のとなりは4倍
+	inline constexpr int32_t kOrdinaryTileDamage = 4; //ふつうの足場1枚のダメージ
+	inline constexpr int32_t kAdjacentTileDamage = 1; //穴のとなりのヒビの入った足場1枚のダメージ
 	inline constexpr int32_t kMaxTileDamage = 400; //1回の落下で足場が与えるダメージの上限
 	inline constexpr float kMaxBossSpeedBonus = 0.3f; //床が全部消えたときにボスが何割速くなるか
 
 	//プレイヤー
-	inline constexpr float kJumpHeight = 1.5f * kWorldScale; //1マス跳ぶときの高さ
-	inline constexpr float kJumpDuration = 0.48f; //1マス跳ぶ秒数
+	inline constexpr float kJumpHeight = 1.5f * kWorldScale; //となりのマスへ跳ぶときの高さ
+	inline constexpr float kJumpDuration = 0.48f; //となりのマスへ跳ぶ秒数
 	inline constexpr float kGravity = 20.0f; //重力の強さ
 	inline constexpr float kFallThreshold = 1.1f; //床よりこれだけ下まで落ちたら落ちたことにする
 	inline constexpr float kPlayerSize = 0.78f; //仮の箱だったときの1辺でアイテムの当たりに使う
@@ -72,33 +73,15 @@ namespace App::GameConfig
 	inline constexpr float kBossContactSizeX = 1.55f; //当たりに使うボスの体の大きさ
 	inline constexpr float kBossContactSizeY = 1.5f;
 	inline constexpr float kBossContactSizeZ = 1.45f;
-	inline constexpr float kContactKnockbackCells = 2.0f; //はじかれるマスの数
-	inline constexpr float kContactLiftSpeed = 3.0f; //上へ浮く速さ
-	inline constexpr float kContactPushDuration = 0.32f; //はじかれている秒数
+	inline constexpr int32_t kContactDamage = 1; //ボスに触れたときに減るハート
 
 	//仮のモデルにかける色
 	inline constexpr RyoEngine::Vector4 kFloorColor = { 0.329f, 0.435f, 0.557f, 1.0f }; //ふつうの床
 	inline constexpr RyoEngine::Vector4 kWarningColor = { 1.0f, 0.675f, 0.329f, 1.0f }; //パンチの範囲
 	inline constexpr RyoEngine::Vector4 kIsolatedColor = { 0.925f, 0.349f, 0.459f, 1.0f }; //切り離された床
-	inline constexpr RyoEngine::Vector4 kBonusColor = { 0.05f, 0.74f, 0.91f, 1.0f }; //飛ばすと4倍になる穴のとなりの床
+	inline constexpr RyoEngine::Vector4 kBonusColor = { 0.05f, 0.74f, 0.91f, 1.0f }; //ヒビが入って飛ばすと1ダメージの穴のとなりの床
 	inline constexpr RyoEngine::Vector4 kBossFistColor = { 0.194f, 0.401f, 0.162f, 1.0f }; //ボスのモデルの手と同じ緑のパンチの拳
 	inline constexpr RyoEngine::Vector4 kAttackColor = { 1.0f, 0.753f, 0.294f, 1.0f }; //近接攻撃の予告
-
-	//画面の右上の形を選ぶ輪
-	//画面の位置は真ん中が0で右と上のはしが1
-	inline constexpr float kRingCenterX = 0.78f; //輪の真ん中の横の位置
-	inline constexpr float kRingCenterY = 0.7f; //輪の真ん中の縦の位置
-	inline constexpr float kRingRadiusX = 0.14f; //輪の横の半径
-	inline constexpr float kRingRadiusY = 0.1f; //輪の縦の半径で、小さいほどつぶれた楕円
-	inline constexpr float kRingCellSize = 0.65f * kWorldScale; //カメラを引いても画面で同じ大きさに見える手前の形の1マスの大きさ
-	inline constexpr float kRingBackScale = 0.55f; //手前に対する一番奥の形の大きさ
-	inline constexpr float kRingBackBrightness = 0.45f; //手前に対する一番奥の形の明るさ
-	inline constexpr float kRingTurnDuration = 0.15f; //1つ分回る秒数
-	inline constexpr float kPanelDepth = 8.0f; //カメラから手前の形までの距離
-	inline constexpr float kRingDepthSpread = 4.0f; //奥の形ほど遠くに置く距離
-	inline constexpr float kPanelBlockFill = 0.9f; //1マスに対するブロックの大きさ
-	inline constexpr float kPanelBlockHeight = 0.5f; //1マスに対するブロックの厚さ
-	inline constexpr float kPanelWaitBrightness = 0.3f; //ボスの番の間のNOWの明るさ
 
 	//[アイテム] アイテムは一旦使わないのでコメントアウト
 	// //HPが少ないとき1層に1個だけ降ってくるアイテム
@@ -116,8 +99,8 @@ namespace App::GameConfig
 	// //十字爆弾
 	// inline constexpr float kBombStepDelay = 0.1f;           //1マス外へ行くごとに崩れるのが遅れる秒数
 
-	//ジャンプ
-	inline constexpr int32_t kNormalJumpGap = 1; //いつも飛び越えられる穴の数
+	//ボスの移動
+	inline constexpr int32_t kBossJumpGap = 1; //ボスが飛び越えられる穴の数で、たどり着けるかの判定に使う
 
 	//2マス乗り越え
 	//[アイテム] アイテムは一旦使わないのでコメントアウト
@@ -126,13 +109,20 @@ namespace App::GameConfig
 	// inline constexpr bool kJumpBoostUseOnNextJump = false;
 
 	//プレイヤーとボスのモデルで色はmtlのまま使う
-	inline constexpr const char* kPlayerModel = "Model/player/player.obj"; //プレイヤーのモデル
+	inline constexpr const char* kPlayerModel = "animation/Player/playerIdol.glb"; //待機のアニメーションが入ったボーンつきのプレイヤーのモデル
 	inline constexpr const char* kBossModel = "Model/boss/boss.obj"; //ボスのモデル
 	inline constexpr float kPlayerModelScale = 0.75f; //プレイヤーのモデルの大きさの倍率
 	inline constexpr RyoEngine::Vector3 kBossModelScale = { 1.0f, 1.0f, 1.0f }; //モデルのままのボスの大きさの倍率
 	inline constexpr float kPlayerModelYaw = 90.0f; //横を向いているプレイヤーのモデルを正面に向ける度数
 	inline constexpr float kBossModelYaw = 90.0f; //横を向いているボスのモデルを正面に向ける度数
-	inline constexpr float kPlayerModelLift = 0.26f; //足の裏が床に来るようにプレイヤーのモデルを上げる高さ
+	inline constexpr float kPlayerModelLift = 0.04f; //足の裏が床に来るようにプレイヤーのモデルを上げる高さ
+
+	//ゲームシーンの背景の天球
+	inline constexpr const char* kSkyDomeModel = "Model/SkyDome/SkyDome.obj"; //内側から見る天球のモデル
+	inline constexpr float kSkyDomeSpan = 1.45f; //画面の何倍の大きさの楕円にするかで、小さいほど縦にピンクから水色まで広く映る
+	inline constexpr float kSkyDomeDepth = 60.0f; //カメラから天球の奥までの長さでカメラの遠い面より手前
+	inline constexpr float kSkyScrollSpeed = 0.004f; //1秒に雲が横に流れる量で1で1周
+	inline constexpr float kSkyTextureFill = 0.97f; //画像の上から下までのうち画面の上から下に入れる割合で1より大きいとはしが反対側に回り込む
 
 	//仮のモデル
 	inline constexpr const char* kCubeModel = "cube"; //Kari/Model/cube.obj

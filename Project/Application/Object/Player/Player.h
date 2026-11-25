@@ -2,12 +2,15 @@
 #include <RyoEngine.h>
 #include <memory>
 #include "../../Stage/Grid/Cell.h"
+#include "../../Direction/Player/HammerSwing.h"
+#include "../../Direction/Player/PlayerAnimation.h"
 #include "../../Direction/Player/PlayerBounce.h"
+#include "../../Direction/Player/PlayerTurnAround.h"
 
 namespace App
 {
 	class Floor;
-	//入力の向きへ1マスずつ跳んで動き、はじかれたり落ちたりするプレイヤー
+	//入力の向きのとなりのマスへ跳んで動き、はじかれたり落ちたりするプレイヤー
 	class Player
 	{
 	public:
@@ -17,7 +20,7 @@ namespace App
 		Player(const Player&) = delete;
 		Player& operator=(const Player&) = delete;
 
-		void Initialize(); //mtlの色のままのプレイヤーのモデルを作る
+		void Initialize(); //glbの色のままのアニメーションするプレイヤーのモデルとハンマーを作る
 
 		//1フレーム動かして、落ちたらtrueを返す
 		bool Advance(const RyoEngine::Vector2& move, bool hasMovement, const Floor& floor, float deltaTime);
@@ -28,9 +31,17 @@ namespace App
 		//上下左右のどれかの向きにはじく
 		void ApplyKnockback(const Floor& floor, const RyoEngine::Vector3& direction, float speed, float duration, float liftSpeed, bool overFence);
 
-		//上下左右のどれかに向きを変える
-		void SetFacing(const Cell& facing);
-		//今の向き
+		//斜めもある向きを向いて、床を崩す向きはそれを上下左右にそろえる
+		void SetFacingDirection(const RyoEngine::Vector3& direction);
+		//足場を壊すときにハンマーを持って振り下ろす
+		void StartSwing();
+		//クリアのときにyawDeg度の向きを向いて待機する
+		void TurnForPose(float yawDeg);
+		//クリアのポーズを1回する
+		void StartPose();
+		//クリアのポーズが終わったか
+		bool IsPoseFinished() const { return animation_.IsPoseFinished(); }
+		//床を崩す上下左右の向き
 		const Cell& GetFacing() const { return facing_; }
 
 		//動かし終わったあとに行列を確定する
@@ -47,8 +58,6 @@ namespace App
 		bool IsKnockedBack() const { return knockbackTime_ > 0.0f; }
 		//跳んでいる先のマス
 		const Cell& GetJumpDestination() const { return jumpDestination_; }
-		//跳び始めた位置
-		const RyoEngine::Vector3& GetJumpOrigin() const { return jumpOrigin_; }
 
 		//無敵の間の点滅で描くか
 		void SetVisible(bool isVisible) { isVisible_ = isVisible; }
@@ -59,21 +68,24 @@ namespace App
 		// bool HasJumpBoost() const { return hasJumpBoost_; }
 
 	private:
-		//[アイテム] アイテムは一旦使わないのでコメントアウト
-		// //跳び始めたときに2マス乗り越えを使い切るか決める
-		// void UseJumpBoost(const Cell& from, const Cell& landing);
-
-		//仮の木箱の見た目
-		std::unique_ptr<RyoEngine::Model> body_{}; //プレイヤーのモデル
-		PlayerBounce bounce_; //跳ぶと着地のぽよん
+		//見た目
+		std::unique_ptr<RyoEngine::Model> body_{}; //ボーンつきのプレイヤーのモデル
+		PlayerAnimation animation_; //待機と移動と足場を壊すとポーズのアニメーション
+		HammerSwing hammer_; //足場を壊すときだけ右手に持つハンマー
+		PlayerBounce bounce_; //着地のピカッとほこり
+		PlayerTurnAround turnAround_; //向きが変わったときにクルッと回る見た目の向き
+		bool isPosing_ = false; //クリアのポーズでカメラの方を向いているか
+		float poseYawDeg_ = 0.0f; //クリアのポーズで向く度数
 
 		//状態
 		RyoEngine::Vector3 position_{}; //足元の位置
-		Cell facing_ = { 0, 1 }; //最初は奥の向き
+		Cell facing_ = { 0, 1 }; //床を崩す上下左右の向きで最初は奥
+		float facingYawDeg_ = 0.0f; //斜めもある向きの度数で最初は奥
+		float floorHeight_ = 0.0f; //ハンマーが床にめり込まないようにする今の床の高さ
 		float verticalSpeed_ = 0.0f; //上がプラスの上下の速さ
 		bool isGrounded_ = true; //床の上に立っているか
 
-		//1マス跳ぶ
+		//となりのマスへ跳ぶ
 		bool isJumping_ = false;
 		RyoEngine::Vector3 jumpOrigin_{};
 		Cell jumpDestination_{};

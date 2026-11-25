@@ -24,12 +24,16 @@ namespace App
 		void SetOrthoSize(float orthoSize) { orthoSize_ = orthoSize; }
 		float GetOrthoSize() const { return orthoSize_; }
 
-		//今の床の高さから求めたこのフレームのカメラの位置
-		RyoEngine::Vector3 GetViewPosition() const { return { origin_.x, origin_.y + floorHeight_, origin_.z }; }
+		//クリアのときなどに映す所をずらす
+		void SetFocusOffset(const RyoEngine::Vector3& offset) { focusOffset_ = offset; }
+
+		//今の床の高さとずらした分から求めたこのフレームのカメラの位置
+		RyoEngine::Vector3 GetViewPosition() const { return { origin_.x + focusOffset_.x, origin_.y + floorHeight_ + focusOffset_.y, origin_.z + focusOffset_.z }; }
 
 	private:
 		RyoEngine::Vector3 origin_ = { 15.0f, 24.0f, -23.0f }; //1層目を映すときの位置
 		float floorHeight_ = 0.0f; //今映している床の高さ
+		RyoEngine::Vector3 focusOffset_{}; //映す所をずらした分
 		float orthoSize_ = 12.6f * GameConfig::kWorldScale; //床の大きさに合わせた画面の縦の半分に映す長さ
 	};
 }

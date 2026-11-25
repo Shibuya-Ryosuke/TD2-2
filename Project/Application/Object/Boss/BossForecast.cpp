@@ -16,7 +16,7 @@ namespace App
 		Vector3 from = position_;
 		float elapsed = 0.0f;
 
-		//やりかけの行動が1つ目で、次はプレイヤーが1回動いたあと
+		//やりかけの行動が1つ目で、次はstepTime秒待ったあと
 		BossPlannedAction active{};
 		if (DescribeActiveAction(floor, tuning, active))
 		{

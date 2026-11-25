@@ -3,7 +3,7 @@
 #include <cmath>
 #include <numbers>
 
-//ボスと残像で使う値と計算
+//ボスの見た目と攻撃で使う値と計算
 namespace App::BossDetail
 {
 	//ボスのローカルの拳の位置

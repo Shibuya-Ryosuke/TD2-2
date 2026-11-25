@@ -73,8 +73,6 @@ namespace App
 		command.look = GetLook();
 		command.hasLook = command.look.x * command.look.x + command.look.y * command.look.y > 0.0001f;
 		command.isBreak = IsBreakTriggered();
-		command.isPreviousShape = IsPreviousShapeTriggered();
-		command.isNextShape = IsNextShapeTriggered();
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// command.isBomb = IsBombTriggered();
 		return command;
@@ -94,7 +92,7 @@ namespace App
 		return false;
 	}
 
-	//[アイテム] Eは形の切り替えに使っているのでコメントアウト
+	//[アイテム] アイテムは一旦使わないのでコメントアウト
 	// //EかBボタンの十字爆弾
 	// bool GameInput::IsBombTriggered()
 	// {
@@ -109,38 +107,10 @@ namespace App
 		// return false;
 	// }
 
-	//形を前へはQかLB
-	bool GameInput::IsPreviousShapeTriggered()
-	{
-		if (Input::TriggerKey(DIK_Q))
-		{
-			return true;
-		}
-		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_LEFT_SHOULDER))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	//形を次へはEかRB
-	bool GameInput::IsNextShapeTriggered()
-	{
-		if (Input::TriggerKey(DIK_E))
-		{
-			return true;
-		}
-		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_RIGHT_SHOULDER))
-		{
-			return true;
-		}
-		return false;
-	}
-
-	//ポーズはEscかSTARTボタン
+	//ポーズはTABかメニューボタン
 	bool GameInput::IsPauseTriggered()
 	{
-		if (Input::TriggerKey(DIK_ESCAPE))
+		if (Input::TriggerKey(DIK_TAB))
 		{
 			return true;
 		}
@@ -164,5 +134,39 @@ namespace App
 		}
 
 		return false;
+	}
+
+	//メニューの上はWか十字の上
+	bool GameInput::IsMenuUpTriggered()
+	{
+		if (Input::TriggerKey(DIK_W))
+		{
+			return true;
+		}
+		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_DPAD_UP))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	//メニューの下はSか十字の下
+	bool GameInput::IsMenuDownTriggered()
+	{
+		if (Input::TriggerKey(DIK_S))
+		{
+			return true;
+		}
+		if (Input::GetJoystickTrigger(XINPUT_GAMEPAD_DPAD_DOWN))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	//メニューを選ぶ右スティックの上下で上がプラス
+	float GameInput::GetMenuStickY()
+	{
+		return Input::GetRightStickY();
 	}
 }
