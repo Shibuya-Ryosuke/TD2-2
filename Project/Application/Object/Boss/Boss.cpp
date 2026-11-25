@@ -37,6 +37,7 @@ namespace App
 		isWindingUp_ = false;
 		isJumping_ = false;
 		CancelPunch();
+		rush_.Cancel();
 		isMeleeTellVisible_ = false;
 	}
 
@@ -78,7 +79,7 @@ namespace App
 	//跳んでいるか攻撃中か
 	bool Boss::IsBusy() const
 	{
-		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None;
+		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive();
 	}
 
 	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime)
@@ -89,6 +90,26 @@ namespace App
 
 		//攻撃中に足元が崩れそうならやめて逃げることにする
 		TryInterruptUnsafeFooting(floor, tuning);
+
+#ifdef NRELEASE
+		//試し用: Tキーで突進を始める
+		if (Input::TriggerKey(DIK_T) && !IsBusy()) {
+			rush_.Start(floor, position_, target, tuning);
+			LookAt(rush_.GetForward());
+		}
+#endif
+
+		//突進中はそれだけ進める
+		if (rush_.IsActive()) {
+			const int32_t damage = rush_.Update(floor, position_, target, tuning, deltaTime);
+			position_ = rush_.GetPosition();
+			//終わったら今いるマスを合わせる
+			if (!rush_.IsActive()) {
+				cell_ = floor.GetCellAt(position_);
+				next_ = cell_;
+			}
+			return damage;
+		}
 
 		//やりかけのパンチとジャンプはそれだけ進める
 		if (punchPhase_ != PunchPhase::None)

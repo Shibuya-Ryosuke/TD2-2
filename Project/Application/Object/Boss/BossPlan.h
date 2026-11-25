@@ -8,6 +8,7 @@ namespace App
 	{
 		Move, //逃げるか近づくために1マス跳ぶ
 		Melee, //近接攻撃
+		ShockWave, // 地面を波打たせる
 		Punch, //吹き飛ばしパンチ
 		Fall, //足場が崩れて落ちる
 	};

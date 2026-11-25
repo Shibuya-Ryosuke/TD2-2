@@ -1,6 +1,7 @@
 #pragma once
 #include <RyoEngine.h>
 #include <memory>
+#include <vector>
 
 namespace App
 {
@@ -28,5 +29,13 @@ namespace App
 		std::unique_ptr<RyoEngine::Model> fist_{}; //パンチ中だけ出す箱の拳
 		std::unique_ptr<RyoEngine::Model> meleeTell_{}; //足元の板の近接攻撃の予告
 		std::unique_ptr<RyoEngine::Model> punchTell_{}; //前にのびる板のパンチの予告
+
+		std::vector<std::unique_ptr<RyoEngine::Model>> rushTells_{}; //突進のルートのマスに置く板
+		int32_t rushTellCount_ = 0; //今描く板の数
+
+		//突進の警告の板
+		float rushTellY_ = 0.05f;       //床からの高さ
+		float rushTellHeight_ = 0.035f; //板の厚さ
+		float rushTellScale_ = 0.9f;    //1マスに対する板の大きさ
 	};
 }

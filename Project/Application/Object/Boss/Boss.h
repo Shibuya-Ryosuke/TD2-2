@@ -7,6 +7,7 @@
 #include <vector>
 #include "../../Stage/Floor/Floor.h"
 #include "BossView.h"
+#include "Attack/Rush.h"
 
 namespace App
 {
@@ -73,6 +74,10 @@ namespace App
 		float GetPunchTellRange() const { return punchTellRange_; } //パンチの予告の長さ
 		float GetPunchTellWidth() const { return punchTellWidth_; } //パンチの予告の幅
 
+
+		// 警告表示で使う
+		const Rush& GetRush() const { return rush_; }
+
 	private:
 		enum class PunchPhase
 		{
@@ -126,6 +131,9 @@ namespace App
 		float punchTellRange_ = 4.0f;
 		float punchTellWidth_ = 2.5f;
 		RyoEngine::Vector3 fistLocal_{}; //ボスのローカルの拳の今の位置
+
+		// 突進
+		Rush rush_{};
 
 		//見た目
 		BossView view_;

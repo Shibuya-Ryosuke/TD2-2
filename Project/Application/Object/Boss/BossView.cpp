@@ -77,6 +77,29 @@ namespace App
 		punchTell_->SetRotate(rotate);
 		punchTell_->SetTranslate(boss.ToWorld({ 0.0f, kPunchTellY, punchRange * 0.5f }));
 		punchTell_->TransferMatrix();
+
+
+		//突進のルートのマスに警告の板を置く
+		const Rush& rush = boss.GetRush();
+		const std::vector<Vector3>& centers = rush.GetRouteCenters();
+		rushTellCount_ = static_cast<int32_t>(centers.size());
+
+		//足りない分だけ板を作る
+		while (rushTells_.size() < centers.size()) {
+			std::unique_ptr<Model> tell = Model::Create(GameConfig::kCubeModel);
+			tell->SetColor(GameConfig::kWarningColor);
+			tell->SetCastShadow(false);
+			rushTells_.push_back(std::move(tell));
+		}
+
+		const Vector2& tileSize = rush.GetTileSize();
+		for (size_t i = 0; i < centers.size(); ++i) {
+			Model& tell = *rushTells_[i];
+			tell.SetScale(CubeScale({ tileSize.x * rushTellScale_, rushTellHeight_, tileSize.y * rushTellScale_ }));
+			tell.SetRotate({ 0.0f, 0.0f, 0.0f });
+			tell.SetTranslate(centers[i] + Vector3{ 0.0f, rushTellY_, 0.0f });
+			tell.TransferMatrix();
+		}
 	}
 
 	//体と拳と攻撃の予告を描く
@@ -98,6 +121,10 @@ namespace App
 		if (boss.IsPunchTellVisible())
 		{
 			punchTell_->Draw();
+		}
+		//突進の警告
+		for (int32_t i = 0; i < rushTellCount_; ++i) {
+			rushTells_[static_cast<size_t>(i)]->Draw();
 		}
 	}
 }

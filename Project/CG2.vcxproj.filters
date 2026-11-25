@@ -166,6 +166,9 @@
     <Filter Include="Engine\Core\Animation">
       <UniqueIdentifier>{4d13dd81-c207-48c5-abb2-03a3bbea415c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Object\Boss\Attack">
+      <UniqueIdentifier>{c027b8ef-710b-4904-9a97-5452d7c93f92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -336,6 +339,12 @@
     </ClCompile>
     <ClCompile Include="Engine\Graphics\3D\SkinningManager.cpp">
       <Filter>Engine\Graphics\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Boss\Attack\ShockWave.cpp">
+      <Filter>Application\Object\Boss\Attack</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Boss\Attack\Rush.cpp">
+      <Filter>Application\Object\Boss\Attack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -539,6 +548,15 @@
     </ClInclude>
     <ClInclude Include="Engine\Graphics\Particle\ParticleTypes.h">
       <Filter>Engine\Graphics\Particle</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\Attack\ShockWave.h">
+      <Filter>Application\Object\Boss\Attack</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\Attack\AttackBase.h">
+      <Filter>Application\Object\Boss\Attack</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\Attack\Rush.h">
+      <Filter>Application\Object\Boss\Attack</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

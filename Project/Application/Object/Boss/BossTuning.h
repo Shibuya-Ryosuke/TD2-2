@@ -35,6 +35,14 @@ namespace App
 		float punchPushSpeed = 14.0f; //はじかれる速さ
 		float punchPushDuration = 0.55f; //はじかれている秒数
 		float punchLiftSpeed = 4.0f; //上へ浮く速さ
+
+		//突進
+		float rushWindup = 1.0f;        //ためて警告を出す秒数
+		float rushSpeed = 12.0f;        //突進の速さ
+		float rushRecovery = 0.6f;      //止まってからの硬直の秒数
+		float rushMaxDistance = 100.0f; //どこまで突っ込むか
+		float rushBodyRadius = 0.5f;    //ルートを調べる体の半径
+		float rushHitRadius = 1.0f;     //プレイヤーに当たる距離
 	};
 
 	//何層目のボスの強さを長さの倍率をかける前の数字で作る
