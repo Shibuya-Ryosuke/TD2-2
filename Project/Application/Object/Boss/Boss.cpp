@@ -27,7 +27,6 @@ namespace App
 		next_ = cell_;
 		position_ = position;
 		yawDeg_ = 0.0f;
-		nextActionTurn_ = 0;
 		nextPatternTurn_ = 0;
 	}
 
@@ -41,10 +40,10 @@ namespace App
 		isMeleeTellVisible_ = false;
 	}
 
-	//ボスの番に足元が崩れたらとなりの床へ跳んで逃げる
-	bool Boss::TryEvadeCollapse(const Floor& floor, const BossTuning& tuning, bool allowMovement)
+	//足元が崩れたらとなりの床へ跳んで逃げる
+	bool Boss::TryEvadeCollapse(const Floor& floor, const BossTuning& tuning)
 	{
-		if (!allowMovement || isEvacuating_ || !tuning.canJump || isJumping_)
+		if (isEvacuating_ || !tuning.canJump || isJumping_)
 		{
 			return false;
 		}
@@ -54,7 +53,6 @@ namespace App
 			return false;
 		}
 		StartJump(floor, landing, tuning.jumpDuration);
-		++nextActionTurn_;
 		++nextPatternTurn_;
 		return true;
 	}
@@ -83,25 +81,11 @@ namespace App
 		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None;
 	}
 
-	//体当たりされてとなりのマスへ跳ばされる
-	void Boss::KnockBack(const Floor& floor, const Cell& direction, float duration)
-	{
-		//床の外ならその場で跳ねる
-		const Cell current = floor.GetCellAt(position_);
-		Cell target = current + direction;
-		if (!floor.Contains(target))
-		{
-			target = current;
-		}
-		StartJump(floor, target, duration);
-	}
-
-	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime, bool allowMovement)
+	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime)
 	{
 		//このフレームの結果を消す
 		landedThisTick_ = false;
 		punchHitThisTick_ = false;
-		actionStartedThisTick_ = false;
 
 		//攻撃中に足元が崩れそうならやめて逃げることにする
 		TryInterruptUnsafeFooting(floor, tuning);
@@ -142,12 +126,6 @@ namespace App
 			isEvacuating_ = false;
 		}
 
-		//ボスの番でなければ新しい行動は始めない
-		if (!allowMovement)
-		{
-			return 0;
-		}
-
 		//BossPlannerで何をするか決める
 		const BossPlannedAction action = BossPlanner::Choose(floor, position_, target, tuning, moveSpeed, nextPatternTurn_, 0.0f,
 			isEvacuating_, floor.GetCellCenter(evacuationDestination_));
@@ -175,8 +153,6 @@ namespace App
 		}
 
 		//1回動いた
-		actionStartedThisTick_ = true;
-		++nextActionTurn_;
 		++nextPatternTurn_;
 		return 0;
 	}
@@ -243,6 +219,15 @@ namespace App
 		Vector3 position = Floor::AlongGrid(jumpOrigin_, floor.GetCellCenter(next_), t);
 		position.y += 4.0f * tuning.jumpHeight * t * (1.0f - t);
 		position_ = position;
+		//上下に動かず歩くときは穴の上に来たらそこで止まって落ちる
+		if (tuning.jumpHeight <= 0.0f && !floor.IsSolid(floor.GetCellAt(position)))
+		{
+			next_ = floor.GetCellAt(position);
+			cell_ = next_;
+			isJumping_ = false;
+			landedThisTick_ = true;
+			return;
+		}
 		if (t < 1.0f)
 		{
 			return;

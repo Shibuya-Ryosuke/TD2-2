@@ -4,7 +4,7 @@
 
 namespace App
 {
-	//跳ぶとのびて着地でつぶれる見た目だけのぽよん
+	//着地でピカッと光ってほこりが出る見た目だけの着地
 	class PlayerBounce
 	{
 	public:
@@ -16,13 +16,11 @@ namespace App
 
 		//ほこりを作って体にシェーダーをつける
 		void Initialize(RyoEngine::Model& body);
-		//足元の位置からのびとつぶれとピカッを進める
+		//足元の位置から着地を見つけてピカッとほこりを出す
 		void Update(const RyoEngine::Vector3& feet);
-		//ぽよんを止める
+		//着地の見つけ方を今の位置からやり直す
 		void Reset(const RyoEngine::Vector3& feet);
 
-		float GetScaleY() const { return scaleY_; } //縦の倍率
-		float GetScaleXZ() const { return scaleXZ_; } //横と奥行きの倍率
 		float GetLandingPower() const { return landingPower_; } //このフレームに着地した強さ
 		void DrawDust(); //ほこりを描く
 
@@ -33,12 +31,7 @@ namespace App
 		RyoEngine::Vector3 lastFeet_{};
 		bool hasLastFeet_ = false;
 		float lastSpeedY_ = 0.0f; //前のフレームの上下の速さ
-		float stretch_ = 0.0f; //今の縦ののび
-		float squash_ = 0.0f; //着地のつぶれの強さ
-		float squashTime_ = 10.0f; //着地してからの時間
 		float glow_ = 0.0f; //ピカッの強さ
 		float landingPower_ = 0.0f; //このフレームに着地した強さ
-		float scaleY_ = 1.0f;
-		float scaleXZ_ = 1.0f;
 	};
 }

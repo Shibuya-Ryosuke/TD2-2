@@ -14,7 +14,7 @@ namespace App
 		int32_t hearts = 0; //プレイヤーのHP
 		int32_t layer = 0; //0から数えた層
 		int32_t bossHealth = 0; //ボスのHP
-		GamePhase phase = GamePhase::Waiting;
+		GamePhase phase = GamePhase::Battle;
 		bool isPaused = false;
 		float escapeTimer = 0.0f; //切り離された床が落ちるまで
 		int32_t barrageTiles = 0; //飛ばす足場の数
@@ -33,5 +33,9 @@ namespace App
 			GamePhase phase, bool isPaused, const BossFallFlow& bossFall);
 
 		static void Draw(const GameHudInfo& info);
+
+	private:
+		//場面ごとのお知らせ
+		static void DrawNotice(const GameHudInfo& info);
 	};
 }

@@ -8,18 +8,17 @@
 
 namespace App
 {
-	//ポストエフェクトと残像を用意する
+	//ポストエフェクトを用意する
 	void GameDirection::Initialize()
 	{
 		fallLines_.Initialize();
-		ghost_.Initialize();
 		damage_.Initialize();
 		lastHearts_ = -1;
 		wasBossJumping_ = false;
 	}
 
 	//HPと場面と着地を見て演出を進める
-	void GameDirection::Update(const PlayerHealth& health, GamePhase phase, const Player& player, const Boss& boss, Floor& floor, const BossTuning& tuning)
+	void GameDirection::Update(const PlayerHealth& health, GamePhase phase, const Player& player, const Boss& boss, Floor& floor)
 	{
 		//HPが減ったら画面のふちを光らせる
 		const int32_t hearts = health.GetHearts();
@@ -47,15 +46,5 @@ namespace App
 			floor.Jiggle(floor.GetCellAt(boss.GetPosition()), DirectionConfig::kJiggleBossPower);
 		}
 		wasBossJumping_ = isBossJumping;
-
-		//戦闘中と戦闘開始待ちのときだけボスの残像を出す
-		const bool isGhostVisible = phase == GamePhase::Waiting || phase == GamePhase::Battle;
-		ghost_.Update(boss, floor, player.GetPosition(), tuning, isGhostVisible);
-	}
-
-	//ボスの残像を描く
-	void GameDirection::Draw()
-	{
-		ghost_.Draw();
 	}
 }

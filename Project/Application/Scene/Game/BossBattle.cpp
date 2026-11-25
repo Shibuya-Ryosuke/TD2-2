@@ -1,4 +1,5 @@
 #include "BossBattle.h"
+#include "BossContact.h"
 #include "../../Config/GameConfig.h"
 #include "../../Object/Player/PlayerHealth.h"
 #include "../../Object/Boss/Boss.h"
@@ -10,16 +11,8 @@ using namespace RyoEngine;
 
 namespace App
 {
-	//何も起きていない状態に戻す
-	void BossBattle::Reset()
-	{
-		contact_.Reset();
-		separationNeedsCheck_ = false;
-		turn_.Reset();
-	}
-
 	//ボスの足元が崩れたか調べる
-	BossBattle::Event BossBattle::CheckBossFooting(const Floor& floor, const Player& player, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell)
+	BossBattle::Event BossBattle::CheckBossFooting(const Floor& floor, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell)
 	{
 		//攻撃中に足元が崩れそうならやめて逃げることにする
 		boss.TryInterruptUnsafeFooting(floor, tuning);
@@ -27,10 +20,9 @@ namespace App
 		{
 			return Event::None;
 		}
-		//ボスの番に跳んで逃げられれば1回動いたことにして、だめなら落ちる
-		if (boss.TryEvadeCollapse(floor, tuning, turn_.CanBossAct(player)))
+		//となりの床へ跳んで逃げられなければ落ちる
+		if (boss.TryEvadeCollapse(floor, tuning))
 		{
-			turn_.OnBossAction();
 			return Event::None;
 		}
 		return Event::BossFell;
@@ -38,7 +30,7 @@ namespace App
 
 	//戦闘中の1フレーム
 	BossBattle::Event BossBattle::Update(Floor& floor, Player& player, Boss& boss, PlayerHealth& health, const BossTuning& tuning,
-		bool isFloorChanged, const Cell& bossCell, bool isJumpImpact, float deltaTime)
+		bool isFloorChanged, const Cell& bossCell, float deltaTime)
 	{
 		//床が変わったらあとでたどり着けるか調べ直す
 		if (isFloorChanged)
@@ -52,14 +44,10 @@ namespace App
 			return Event::BossIsolated;
 		}
 
-		//床が減るほど速くなるボスを動かして、攻撃が当たったらダメージ
+		//床が減るほど速くなるボスをプレイヤーと同時に動かして、攻撃が当たったらダメージ
 		const float bossSpeed = tuning.moveSpeed * (1.0f + GameConfig::kMaxBossSpeedBonus * floor.GetCollapsedFraction());
 		const bool wasVulnerable = !health.IsInvincible();
-		health.Damage(boss.Tick(floor, player.GetPosition(), tuning, bossSpeed, deltaTime, turn_.CanBossAct(player)));
-		if (boss.ActionStartedThisTick())
-		{
-			turn_.OnBossAction();
-		}
+		health.Damage(boss.Tick(floor, player.GetPosition(), tuning, bossSpeed, deltaTime));
 		if (health.IsDead())
 		{
 			return Event::PlayerDefeated;
@@ -85,27 +73,21 @@ namespace App
 			}
 		}
 
-		//体当たりを調べてから分断を調べる
-		CheckContact(floor, player, boss, isJumpImpact);
-		if (IsSeparated(floor, player, boss))
+		//ボスに触れていたらハートが減る
+		BossContact::Check(player, boss, health);
+		if (health.IsDead())
+		{
+			return Event::PlayerDefeated;
+		}
+		if (IsSeparated(floor, player, boss, tuning))
 		{
 			return Event::Separated;
 		}
 		return Event::None;
 	}
 
-	//ボスに触れたときのはじき
-	void BossBattle::CheckContact(const Floor& floor, Player& player, Boss& boss, bool isJumpImpact)
-	{
-		//体当たりでボスもはじいたらたどり着けるか調べ直す
-		if (contact_.Check(player, boss, floor, isJumpImpact))
-		{
-			separationNeedsCheck_ = true;
-		}
-	}
-
 	//おたがいにたどり着けなくなったか
-	bool BossBattle::IsSeparated(const Floor& floor, const Player& player, const Boss& boss)
+	bool BossBattle::IsSeparated(const Floor& floor, const Player& player, const Boss& boss, const BossTuning& tuning)
 	{
 		if (!separationNeedsCheck_ || !player.IsGrounded() || boss.IsJumping())
 		{
@@ -121,7 +103,12 @@ namespace App
 		}
 		separationNeedsCheck_ = false;
 
-		//プレイヤーは穴を1つ飛び越えられるので飛び越えありで調べる
-		return !FloorPathFinder::CanReach(floor, bossCell, playerCell, true);
+		//プレイヤーは穴を飛び越えられないので、ボスが穴を越えて来られるかで調べる
+		bool canCrossGaps = false;
+		if (tuning.canJump && tuning.moveSpeed > 0.0f)
+		{
+			canCrossGaps = true;
+		}
+		return !FloorPathFinder::CanReach(floor, bossCell, playerCell, canCrossGaps);
 	}
 }

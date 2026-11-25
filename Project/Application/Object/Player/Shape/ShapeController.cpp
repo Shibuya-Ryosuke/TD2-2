@@ -1,4 +1,5 @@
 #include "ShapeController.h"
+#include "../../../Config/DirectionConfig.h"
 #include "../../../Config/GameConfig.h"
 #include "../../../Stage/Floor/Floor.h"
 #include <algorithm>
@@ -65,7 +66,9 @@ namespace App
 		shape->CollectCells(playerCell, facing, cells_);
 		//崩れる演出のハートをプレイヤーの向きへ向ける
 		const float heartAngle = std::atan2(static_cast<float>(facing.x), static_cast<float>(facing.z));
-		const int32_t count = floor.ScheduleCellsCollapse(cells_, GameConfig::kCollapseDelay, heartAngle);
+		//ハンマーが当たるまでの分だけ遅らせて、当たった瞬間にハートが出るようにする
+		const float delay = GameConfig::kCollapseDelay + DirectionConfig::kSwingImpactDelay;
+		const int32_t count = floor.ScheduleCellsCollapse(cells_, delay, heartAngle);
 		return count > 0;
 	}
 

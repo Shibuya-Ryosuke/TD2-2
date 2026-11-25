@@ -4,10 +4,10 @@
 
 namespace App
 {
-	//objと同じ名前のmtlに書いてあるKdの色をメッシュごとに塗る
+	//objならmtlのKd、glbなら中のbaseColorFactorの色をメッシュごとに塗る
 	namespace ModelColor
 	{
-		//nameのobjのmtlの色をmodelのメッシュに塗る
+		//nameのモデルのファイルに書いてある色をmodelのメッシュに塗る
 		void Apply(RyoEngine::Model& model, const std::string& name);
 	}
 }

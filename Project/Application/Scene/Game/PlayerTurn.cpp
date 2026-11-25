@@ -70,6 +70,8 @@ namespace App
 		{
 			if (shapes.TryBreak(floor, playerCell, player.GetFacing()))
 			{
+				//ハンマーを振り下ろして、当たった瞬間から床が崩れ始める
+				player.StartSwing();
 				OnPlayerAction(phase);
 			}
 		}

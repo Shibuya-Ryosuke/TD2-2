@@ -68,6 +68,7 @@ namespace App::DirectionConfig
 	inline constexpr float kCrumbleShakeSpeed = 55.0f; //ガタガタの速さ
 	inline constexpr float kCrumblePuff = 0.12f; //穴になる直前にぷくっとふくらむ量
 	inline constexpr float kDropPop = 0.15f; //落ち始めにぽんっとふくらむ量
+	inline constexpr float kWearGrowTime = 0.35f; //穴のとなりになった床に細いヒビが広がりきるまでの秒数
 	inline constexpr float kDropPopTime = 0.25f; //落ちる時間に対するぽんっの長さ
 	inline constexpr float kIsolatedDissolveStart = 0.3f; //切り離された床がどこまで落ちたら砕け始めるか
 	//砕けたときに飛び散るピンクの欠片
@@ -81,22 +82,48 @@ namespace App::DirectionConfig
 	inline constexpr float kShardGlow = 0.8f; //欠片の光の強さ
 	inline constexpr RyoEngine::Vector4 kShardColor = { 1.0f, 0.62f, 0.8f, 1.0f }; //欠片の色
 
-	//見た目だけのプレイヤーのぽよん
+	//見た目だけのプレイヤーの着地のピカッとほこり
 	inline constexpr const char* kPlayerPopShader = "PlayerPop"; //着地でふちがピカッと光るシェーダー
-	inline constexpr float kPlayerStretchPerSpeed = 0.012f; //上下の速さ1あたりに縦にのびる量
-	inline constexpr float kPlayerStretchMax = 0.3f; //縦にのびる量の上限
-	inline constexpr float kPlayerStretchFollow = 18.0f; //のびが速さに追いつく速さ
 	inline constexpr float kPlayerLandSpeedRef = 10.0f; //この速さの着地をふつうの着地にする
-	inline constexpr float kPlayerLandMinSpeed = 3.0f; //これより遅い着地はぽよんしない
+	inline constexpr float kPlayerLandMinSpeed = 3.0f; //これより遅い着地はピカッとしない
 	inline constexpr float kPlayerStopSpeed = 2.0f; //着地したとみなす止まった速さ
 	inline constexpr float kPlayerTeleportDistance = 2.0f; //1フレームでこれより動いたら置き直しとみなす
-	inline constexpr float kPlayerLandSquash = 0.35f; //ふつうの着地でつぶれる量
-	inline constexpr float kPlayerLandSquashMax = 0.5f; //層を降りたときの大きい着地でつぶれる量の上限
-	inline constexpr float kPlayerSquashDamping = 9.0f; //ぽよよんが収まる速さ
-	inline constexpr float kPlayerSquashSpeed = 34.0f; //ぽよよんの速さ
-	inline constexpr float kPlayerSquashWiden = 0.6f; //つぶれたとき横にふくらむ量
 	inline constexpr float kPlayerLandGlow = 1.0f; //着地のピカッの強さ
 	inline constexpr float kPlayerLandGlowDecay = 7.0f; //ピカッが消える速さ
+	//向きが変わったときにクルッと回る
+	inline constexpr float kPlayerTurnSpeed = 1800.0f; //1秒に回る度数で、半回転が0.1秒
+
+	//プレイヤーのアニメーションで、名前はglbの中のアニメーションの名前
+	inline constexpr const char* kPlayerJumpFile = "animation/Player/playerJump.glb"; //移動のアニメーションのファイル
+	inline constexpr const char* kPlayerSwingFile = "animation/Player/playerSwingDown.glb"; //足場を壊すアニメーションのファイル
+	inline constexpr const char* kPlayerPoseFile = "animation/Player/playerPice.glb"; //クリアのポーズのファイル
+	inline constexpr const char* kPlayerIdleClip = "Animation"; //モデルのplayerIdol.glbに入っている待機のループ
+	inline constexpr const char* kPlayerJumpClip = "Jump"; //移動で1回跳ぶ
+	inline constexpr const char* kPlayerSwingClip = "Swing"; //ハンマーを振り下ろして首をかしげる
+	inline constexpr const char* kPlayerPoseClip = "Pose"; //クリアのポーズ
+	inline constexpr float kPlayerAnimBlend = 0.12f; //アニメーションを切り替えるときに混ぜる秒数
+	inline constexpr float kPlayerJumpLandTime = 0.69f; //ジャンプのアニメーションで足が床に着く秒
+	inline constexpr float kPlayerSwingSpeed = 2.8f; //振り上げてから振り下ろすまでの再生の速さ
+	inline constexpr float kPlayerSwingImpactTime = 1.39f; //振るアニメーションでハンマーが床に当たる秒
+	inline constexpr float kPlayerSwingAfterSpeed = 1.2f; //当たってから首をかしげ終わるまでの再生の速さ
+	inline constexpr float kSwingImpactDelay = kPlayerSwingImpactTime / kPlayerSwingSpeed; //ボタンを押してからハンマーが当たるまでの秒数
+
+	//足場を壊すときに右手で振るハンマー
+	inline constexpr const char* kHammerModel = "Model/hanmer/hanmer.obj"; //柄の下が原点で柄が上へのびるハンマー
+	inline constexpr const char* kHammerJoint = "Hand.R"; //ハンマーを持つ右手のボーン
+	inline constexpr RyoEngine::Vector3 kHammerRotateDeg = { -38.414f, -2.325f, -55.391f }; //右手のボーンから見たハンマーの向き
+	inline constexpr RyoEngine::Vector3 kHammerOffset = { -0.2307f, -0.0285f, 0.2173f }; //右手のボーンから見たハンマーの柄の下の位置
+	inline constexpr float kHammerGrip = 0.35f; //手で持つ所の柄の下からの高さで、床にめり込むときはここを中心に起こす
+	inline constexpr RyoEngine::Vector3 kHammerHeadMin = { -0.94f, 1.78f, -0.5f }; //ハンマーの頭の箱のいちばん小さい角
+	inline constexpr RyoEngine::Vector3 kHammerHeadMax = { 0.94f, 3.14f, 0.88f }; //ハンマーの頭の箱のいちばん大きい角
+	inline constexpr float kHammerPopTime = 0.1f; //振り始めにポンっと出てくる秒数
+	inline constexpr float kHammerHideTime = 0.12f; //首をかしげ終わってからしゅっと消える秒数
+
+	//クリアのときにプレイヤーをアップにしてポーズ
+	inline constexpr float kClearZoomTime = 1.0f; //カメラがプレイヤーへ寄っていく秒数
+	inline constexpr float kClearZoomOrthoSize = 4.5f; //寄ったときに画面の縦の半分に映す長さ
+	inline constexpr float kClearFocusHeight = 1.2f; //画面の真ん中に来るプレイヤーの足元からの高さ
+	inline constexpr float kClearHoldTime = 1.0f; //ポーズのあとクリア画面へ行くまで待つ秒数
 	//着地のほこり
 	inline constexpr size_t kDustPoolSize = 40; //使い回すほこりの数
 	inline constexpr int32_t kDustPerLanding = 8; //ふつうの着地で出る数
@@ -105,6 +132,9 @@ namespace App::DirectionConfig
 	inline constexpr float kDustLift = 1.2f; //上へふわっと上がる速さ
 	inline constexpr float kDustDrag = 5.0f; //だんだん遅くなる強さ
 	inline constexpr float kDustLife = 0.45f; //消えるまでの秒数
+
+	//ゲームシーンの色の仕上げ
+	inline constexpr bool kGameUsesAces = false; //trueで明るい所をなめらかに詰めるACESを使い、falseで画像の色のまま出す
 
 	//ダメージを受けたときの画面のふち
 	inline constexpr const char* kDamageVignetteShader = "DamageVignette";
@@ -128,11 +158,4 @@ namespace App::DirectionConfig
 	inline constexpr float kJiggleSpeed = 32.0f; //ぷるぷるの速さ
 	inline constexpr float kJigglePlayerMax = 1.8f; //プレイヤーの着地の強さの上限
 	inline constexpr float kJiggleBossPower = 1.6f; //重いボスの着地の強さ
-
-	//ボスの次の行動を見せる半透明の残像
-	inline constexpr RyoEngine::Vector4 kBossGhostColor = { 0.3f, 0.85f, 1.0f, 0.3f };
-	inline constexpr float kBossGhostMinTime = 0.7f; //1つの行動を見せるいちばん短い秒数
-	inline constexpr float kBossGhostMaxTime = 1.8f; //1つの行動を見せるいちばん長い秒数
-	inline constexpr float kBossGhostTimeScale = 0.45f; //本当の時間に対する見せる時間の割合
-	inline constexpr float kBossGhostRefresh = 0.1f; //先読みを作り直す間隔の秒数
 }

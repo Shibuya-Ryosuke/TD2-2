@@ -28,6 +28,12 @@ namespace App
 	//入力をカメラの向きで直して上下左右にする
 	Cell GridDirection::FromInput(const Vector2& input)
 	{
+		return FromVector(ToWorld(input));
+	}
+
+	//入力をカメラの向きで直した斜めもある向き
+	Vector3 GridDirection::ToWorld(const Vector2& input)
+	{
 		//カメラの右向きを地面に平らにして右と奥を作る
 		Vector3 right = CameraManager::GetGameCamera().GetRight();
 		right.y = 0.0f;
@@ -40,7 +46,7 @@ namespace App
 			right = { 1.0f, 0.0f, 0.0f };
 		}
 		const Vector3 forward = Cross(right, Vector3{ 0.0f, 1.0f, 0.0f });
-		return FromVector(right * input.x + forward * input.y);
+		return right * input.x + forward * input.y;
 	}
 
 	//上下左右を度の角度にする
@@ -48,5 +54,11 @@ namespace App
 	{
 		//atan2の角度をラジアンから度にする
 		return std::atan2(static_cast<float>(direction.x), static_cast<float>(direction.z)) * 180.0f / std::numbers::pi_v<float>;
+	}
+
+	//ワールドの向きを度の角度にする
+	float GridDirection::ToYawDeg(const Vector3& direction)
+	{
+		return std::atan2(direction.x, direction.z) * 180.0f / std::numbers::pi_v<float>;
 	}
 }

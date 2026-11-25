@@ -8,19 +8,19 @@ namespace App
 	struct BossTuning
 	{
 		//移動
-		float moveSpeed = 3.0f;
+		float moveSpeed = 1.5f;
 
 		//足元の範囲への近接攻撃
 		float meleeRange = 2.0f; //届く距離
-		float meleeInterval = 2.0f; //交互の手番になったので今は使っていない間隔
+		float meleeInterval = 2.0f; //今は使っていない間隔
 		float meleeWindup = 0.55f; //予告してから当たるまでの秒数
 		float meleeHeight = 2.0f; //上下にどこまで届くか
 
 		int32_t damage = 1; //当たったときに減るハート
 
 		//いつも1マスずつ跳び、canJumpなら穴を1つ飛び越えて崩れる床から逃げる
-		bool canJump = false;
-		float jumpHeight = 1.25f; //跳ぶ高さ
+		bool canJump = true;
+		float jumpHeight = 1.25f; //跳ぶ高さで、0にすると上下に動かず歩く
 		float jumpDuration = 0.7f; //崩れる床から逃げるときに跳ぶ秒数
 		float landingSafetyMargin = 0.0f; //着地してから崩れるまでに欲しい余裕の秒数
 
@@ -50,37 +50,34 @@ namespace App
 		//1層目は近接攻撃だけ
 		if (index == 0)
 		{
-			tuning.moveSpeed = 3.0f;
+			tuning.moveSpeed = 1.5f;
 			return tuning;
 		}
 		//2層目は少し速い
 		if (index == 1)
 		{
-			tuning.moveSpeed = 3.25f;
+			tuning.moveSpeed = 1.625f;
 			return tuning;
 		}
-		//3層目は穴を飛び越える
+		//3層目はもう少し速い
 		if (index == 2)
 		{
-			tuning.moveSpeed = 3.5f;
-			tuning.canJump = true;
+			tuning.moveSpeed = 1.75f;
 			return tuning;
 		}
-		//4層目はパンチが出て攻撃の間隔が短い
+		//4層目はパンチが出る
 		if (index == 3)
 		{
-			tuning.moveSpeed = 3.75f;
+			tuning.moveSpeed = 1.875f;
 			tuning.meleeInterval = 1.6f;
-			tuning.canJump = true;
 			tuning.punch = true;
 			return tuning;
 		}
 
 		//5層目はいちばん速い
-		tuning.moveSpeed = 4.0f;
+		tuning.moveSpeed = 2.0f;
 		tuning.meleeInterval = 1.35f;
 		tuning.meleeWindup = 0.45f;
-		tuning.canJump = true;
 		tuning.punch = true;
 		return tuning;
 	}

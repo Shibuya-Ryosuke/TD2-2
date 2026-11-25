@@ -8,13 +8,10 @@ namespace App
 {
 	class Floor;
 
-	//床を読むだけでボスの次のマスや逃げ先やたどり着けるかを調べる道さがし
+	//床を読むだけでボスの逃げ先やたどり着けるかを調べる道さがし
 	class FloorPathFinder
 	{
 	public:
-		//startからtargetへ向かうときの次のマス
-		static Cell NextStep(const Floor& floor, const Cell& start, const RyoEngine::Vector3& target, bool canJump);
-
 		//上下左右でtimeToLand秒のうちに崩れない一番近い床を探す
 		static bool FindLandingNeighbor(const Floor& floor, const RyoEngine::Vector3& position, float timeToLand, Cell& landing);
 

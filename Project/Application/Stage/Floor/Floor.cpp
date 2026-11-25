@@ -95,17 +95,33 @@ namespace App
 		return Contains(cell) && GetTile(cell).remaining >= 0.0f;
 	}
 
-	//穴のとなりなら4倍
-	int32_t Floor::GetBarrageMultiplier(const Cell& cell) const
+	//上下左右のどれかが穴か
+	bool Floor::IsHoleAdjacent(const Cell& cell) const
 	{
 		for (const Cell& direction : kDirections)
 		{
 			if (IsHole(cell + direction))
 			{
-				return 4;
+				return true;
 			}
 		}
-		return 1;
+		return false;
+	}
+
+	//残った床の崩れる予定と切り離しを消して飛ばせる状態にする
+	void Floor::PrepareBarrage()
+	{
+		ClearPreview();
+		for (FloorTile& tile : tiles_)
+		{
+			if (!tile.isSolid)
+			{
+				continue;
+			}
+			tile.isIsolated = false;
+			tile.remaining = -1.0f;
+			tile.shakeRate = 0.0f;
+		}
 	}
 
 	//タイルの位置と回転と大きさを変える
@@ -269,7 +285,7 @@ namespace App
 		}
 	}
 
-	//床があるマスだけ崩す形の予告を出す
+	//床があるマスだけ崩す予告を出す
 	void Floor::SetPreview(const std::vector<Cell>& cells, const Vector4& color, float blend)
 	{
 		//前の予告を消して色と混ぜる割合を覚える

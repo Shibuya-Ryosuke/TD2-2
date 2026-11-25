@@ -1,9 +1,9 @@
-//ハートが出てひびが入り、ぱっかーん割れてガラスみたいに砕ける床のタイル
+//ハートが出てひびが入り、ぱっかーん割れてガラスみたいに砕け、穴のとなりでは細いヒビが入る床のタイル
 //params[0].xはハートの大きさ
 //params[0].yはハートのヒビ
 //params[0].zはぱっかーん
 //params[0].wはタイルのひび
-//params[1].xは穴になってから砕けた割合
+//params[1].xはプラスなら穴になってから砕けた割合で、マイナスなら穴のとなりの細いヒビの濃さ
 //params[1].yはマスごとに模様をずらす値
 //params[1].zはガン！の光
 //params[1].wはプレイヤーの向きのハートの向き
@@ -24,6 +24,11 @@ static const float kCrackBrightness = 2.2f;
 static const float kShardBrightness = 1.2f;
 //ガン！
 static const float kFlashBrightness = 1.2f;
+//穴のとなりの細いヒビ
+static const float kWearScale = 2.6f; //ヒビの網目の細かさ
+static const float kWearWidth = 0.028f; //ヒビの太さ
+static const float kWearDarkness = 0.6f; //ヒビの所を床の色からどれだけ暗くするか
+static const float kWearKeep = 0.45f; //網目のうちヒビとして残す割合で、小さいほど途切れる
 
 //0から1のでたらめな値2つ
 float2 Hash22(float2 p)
@@ -158,6 +163,23 @@ void DrawShatter(SurfaceInput input, inout SurfaceOutput output, float shatter, 
     output.emissive += lightPink * (soon + glint * 0.8f) * kShardBrightness;
 }
 
+//穴のとなりの床に、床の色を暗くした細いヒビを1点から広げる
+void DrawWear(SurfaceInput input, inout SurfaceOutput output, float wear, float seed)
+{
+    //網目の一部だけ残して枝分かれしたヒビに見せる
+    float2 uv = FaceUv(input);
+    float pieceRandom;
+    float edge = VoronoiEdge(uv * kWearScale + seed * 1.7f + 11.0f, pieceRandom);
+    float crackLine = 1.0f - smoothstep(kWearWidth * 0.5f, kWearWidth, edge);
+    crackLine *= step(pieceRandom, kWearKeep);
+
+    //マスごとに決めた1点から外へ広がる
+    float2 origin = Hash22(float2(seed, seed * 0.37f)) * 0.6f + 0.2f;
+    float reach = wear * 1.3f - length(frac(input.uv) - origin);
+    crackLine *= saturate(reach * 12.0f);
+    output.color *= 1.0f - crackLine * kWearDarkness;
+}
+
 #define USE_CUSTOM_VERTEX
 //ハートを向きに合わせるために上の面のUVを上から見た位置にする
 void Vertex(inout VertexInput v, ModelInstance instance)
@@ -174,9 +196,16 @@ void Surface(SurfaceInput input, inout SurfaceOutput output)
     float heartCrack = input.params[0].y;
     float heartBreak = input.params[0].z;
     float tileCrack = input.params[0].w;
-    float shatter = input.params[1].x;
+    float shatter = max(input.params[1].x, 0.0f);
+    float wear = max(-input.params[1].x, 0.0f);
     float seed = input.params[1].y;
     float flash = input.params[1].z;
+
+    //穴のとなりの細いヒビは崩れる演出より先に描く
+    if (wear > 0.0f)
+    {
+        DrawWear(input, output, wear, seed);
+    }
 
     //ガン！でタイル全体がピンクに光る
     output.emissive += kPink * flash * kFlashBrightness;

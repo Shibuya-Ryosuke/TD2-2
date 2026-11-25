@@ -17,6 +17,7 @@ namespace App
 		models_.resize(floor.GetTileCount());
 		crumble_.Initialize(floor.GetTileCount());
 		jiggle_.Initialize(floor.GetTileCount());
+		wear_.Initialize(floor.GetTileCount());
 		const uint32_t shader = ShaderManager::Load(DirectionConfig::kFloorTileShader); //ハートと砕ける崩れる演出
 		for (size_t i = 0; i < models_.size(); ++i)
 		{
@@ -58,7 +59,9 @@ namespace App
 			const FloorTile& tile = floor.GetTile(cell);
 			//崩れる演出はFloorCrumbleに任せる
 			//着地のぷるるんで沈んだりふくらんだりする
-			const FloorCrumble::State crumble = crumble_.Compute(floor, cell);
+			FloorCrumble::State crumble = crumble_.Compute(floor, cell);
+			//穴のとなりの床に細いヒビを広げる
+			crumble.wear = wear_.Advance(i, tile.isSolid && floor.IsHoleAdjacent(cell), GetDeltaTime());
 			const FloorJiggle::Offset jiggle = jiggle_.Get(i);
 			const float scale = tile.scaleRate * crumble.scale;
 			model->SetTranslate(tile.position + crumble.shake + Vector3{ 0.0f, jiggle.offsetY, 0.0f });
@@ -67,7 +70,7 @@ namespace App
 			model->SetColor(GetTileColor(floor, cell));
 			crumble_.Apply(i, *model, crumble, floor, cell);
 
-			//予告のマスを形の色で光らせてブルームでにじませる
+			//予告のマスを予告の色で光らせてブルームでにじませる
 			if (IsPreviewGlowing(floor, cell))
 			{
 				model->SetEmissive(glowColor, glow);
@@ -110,7 +113,7 @@ namespace App
 		{
 			return GameConfig::kIsolatedColor;
 		}
-		if (floor.GetBarrageMultiplier(cell) == 4)
+		if (floor.IsHoleAdjacent(cell))
 		{
 			return GameConfig::kBonusColor;
 		}

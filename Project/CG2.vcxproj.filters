@@ -13,9 +13,6 @@
     <Filter Include="Application\Direction">
       <UniqueIdentifier>{8456f59e-c7d3-4fa4-b437-c49f08853441}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Application\Direction\Boss">
-      <UniqueIdentifier>{ca2602b7-bd36-4867-93d2-a25c75837f5c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Application\Direction\Floor">
       <UniqueIdentifier>{c3c70a7c-49fd-4466-839a-569e7bcb0832}</UniqueIdentifier>
     </Filter>
@@ -39,9 +36,6 @@
     </Filter>
     <Filter Include="Application\Object\Player">
       <UniqueIdentifier>{0f5af640-dd42-4628-b8cb-84a8e8f695c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Application\Object\Player\Shape">
-      <UniqueIdentifier>{9d279091-47ae-457c-9df7-36930d6ee078}</UniqueIdentifier>
     </Filter>
     <Filter Include="Application\Scene">
       <UniqueIdentifier>{06f49617-459b-4193-a563-8ecb57f3d19d}</UniqueIdentifier>
@@ -67,8 +61,8 @@
     <Filter Include="Application\Stage\Grid">
       <UniqueIdentifier>{384fac93-9b02-4c72-aea0-10f1fea28001}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Application\UI">
-      <UniqueIdentifier>{bcfc15f4-6a12-4623-86be-d4e6ad79429f}</UniqueIdentifier>
+    <Filter Include="Application\Stage\Sky">
+      <UniqueIdentifier>{180b0f9a-f8c5-4f23-8aa0-9b3389fb5ffa}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{410416bb-c79b-4e16-94ed-8ae276e5fd76}</UniqueIdentifier>
@@ -681,9 +675,6 @@
     <ClCompile Include="Application\Object\Boss\BossAttack.cpp">
       <Filter>Application\Object\Boss</Filter>
     </ClCompile>
-    <ClCompile Include="Application\Object\Boss\BossForecast.cpp">
-      <Filter>Application\Object\Boss</Filter>
-    </ClCompile>
     <ClCompile Include="Application\Object\Boss\BossPlanner.cpp">
       <Filter>Application\Object\Boss</Filter>
     </ClCompile>
@@ -696,17 +687,20 @@
     <ClInclude Include="Application\Object\Boss\BossPlanner.h">
       <Filter>Application\Object\Boss</Filter>
     </ClInclude>
-    <ClCompile Include="Application\Scene\Game\PlayerTurn.cpp">
+    <ClCompile Include="Application\Scene\Game\PauseMenu.cpp">
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
-    <ClInclude Include="Application\Scene\Game\PlayerTurn.h">
+    <ClCompile Include="Application\Scene\Game\ClearPose.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\GamePause.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\PauseMenu.h">
       <Filter>Application\Scene\Game</Filter>
     </ClInclude>
-    <ClCompile Include="Application\Direction\Boss\BossGhost.cpp">
-      <Filter>Application\Direction\Boss</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Direction\Boss\BossGhost.h">
-      <Filter>Application\Direction\Boss</Filter>
+    <ClInclude Include="Application\Scene\Game\ClearPose.h">
+      <Filter>Application\Scene\Game</Filter>
     </ClInclude>
     <ClInclude Include="Application\Config\DirectionConfig.h">
       <Filter>Application\Config</Filter>
@@ -729,6 +723,12 @@
     <ClInclude Include="Application\Direction\Floor\FloorJiggle.h">
       <Filter>Application\Direction\Floor</Filter>
     </ClInclude>
+    <ClCompile Include="Application\Direction\Floor\FloorWear.cpp">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Direction\Floor\FloorWear.h">
+      <Filter>Application\Direction\Floor</Filter>
+    </ClInclude>
     <ClCompile Include="Application\Direction\Floor\FloorShards.cpp">
       <Filter>Application\Direction\Floor</Filter>
     </ClCompile>
@@ -738,7 +738,25 @@
     <ClCompile Include="Application\Direction\Player\PlayerBounce.cpp">
       <Filter>Application\Direction\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Direction\Player\PlayerAnimation.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\Player\HammerSwing.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\Player\PlayerTurnAround.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Direction\Player\PlayerBounce.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\PlayerAnimation.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\HammerSwing.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\PlayerTurnAround.h">
       <Filter>Application\Direction\Player</Filter>
     </ClInclude>
     <ClCompile Include="Application\Direction\Player\PlayerDust.cpp">
@@ -750,7 +768,13 @@
     <ClCompile Include="Application\Direction\Screen\DamageFlash.cpp">
       <Filter>Application\Direction\Screen</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Direction\Screen\ToneMapSwitch.cpp">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Direction\Screen\DamageFlash.h">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Screen\ToneMapSwitch.h">
       <Filter>Application\Direction\Screen</Filter>
     </ClInclude>
     <ClCompile Include="Application\Direction\Screen\FallLines.cpp">
@@ -828,32 +852,17 @@
     <ClInclude Include="Application\Object\Player\Player.h">
       <Filter>Application\Object\Player</Filter>
     </ClInclude>
+    <ClCompile Include="Application\Object\Player\FrontBreak.cpp">
+      <Filter>Application\Object\Player</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Object\Player\FrontBreak.h">
+      <Filter>Application\Object\Player</Filter>
+    </ClInclude>
     <ClCompile Include="Application\Object\Player\PlayerHealth.cpp">
       <Filter>Application\Object\Player</Filter>
     </ClCompile>
     <ClInclude Include="Application\Object\Player\PlayerHealth.h">
       <Filter>Application\Object\Player</Filter>
-    </ClInclude>
-    <ClCompile Include="Application\Object\Player\Shape\BreakShape.cpp">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Object\Player\Shape\BreakShape.h">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClInclude>
-    <ClCompile Include="Application\Object\Player\Shape\BreakShapeQueue.cpp">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Object\Player\Shape\BreakShapeQueue.h">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClInclude>
-    <ClInclude Include="Application\Object\Player\Shape\BreakShapeType.h">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClInclude>
-    <ClCompile Include="Application\Object\Player\Shape\ShapeController.cpp">
-      <Filter>Application\Object\Player\Shape</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Object\Player\Shape\ShapeController.h">
-      <Filter>Application\Object\Player\Shape</Filter>
     </ClInclude>
     <ClCompile Include="Application\Scene\Clear\Clear.cpp">
       <Filter>Application\Scene\Clear</Filter>
@@ -871,6 +880,18 @@
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
     <ClInclude Include="Application\Scene\Game\BossContact.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\PlayerAction.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\PlayerAction.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Scene\Game\SpawnPlanner.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Scene\Game\SpawnPlanner.h">
       <Filter>Application\Scene\Game</Filter>
     </ClInclude>
     <ClCompile Include="Application\Scene\Game\BossFallFlow.cpp">
@@ -963,17 +984,17 @@
     <ClInclude Include="Application\Stage\Grid\GridDirection.h">
       <Filter>Application\Stage\Grid</Filter>
     </ClInclude>
-    <ClCompile Include="Application\Stage\LayerFloors.cpp">
-      <Filter>Application\Stage</Filter>
+    <ClCompile Include="Application\Stage\Floor\LayerFloors.cpp">
+      <Filter>Application\Stage\Floor</Filter>
     </ClCompile>
-    <ClInclude Include="Application\Stage\LayerFloors.h">
-      <Filter>Application\Stage</Filter>
+    <ClCompile Include="Application\Stage\Sky\SkyDome.cpp">
+      <Filter>Application\Stage\Sky</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\Stage\Floor\LayerFloors.h">
+      <Filter>Application\Stage\Floor</Filter>
     </ClInclude>
-    <ClCompile Include="Application\UI\NextShapePanel.cpp">
-      <Filter>Application\UI</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\UI\NextShapePanel.h">
-      <Filter>Application\UI</Filter>
+    <ClInclude Include="Application\Stage\Sky\SkyDome.h">
+      <Filter>Application\Stage\Sky</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

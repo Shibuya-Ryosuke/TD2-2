@@ -1,6 +1,4 @@
 #pragma once
-#include "BossContact.h"
-#include "PlayerTurn.h"
 #include "../../Object/Boss/BossTuning.h"
 #include "../../Stage/Grid/Cell.h"
 
@@ -11,7 +9,7 @@ namespace App
 	class Boss;
 	class PlayerHealth;
 
-	//戦闘中のボスとのやりとりと交互の手番で、起きたことをGameに返す
+	//プレイヤーと同時に動くボスとのやりとりで、起きたことをGameに返す
 	class BossBattle
 	{
 	public:
@@ -25,30 +23,22 @@ namespace App
 			PlayerDefeated //プレイヤーのHPが0になった
 		};
 
-		//配置し直したときに何も起きていない状態とプレイヤーの番に戻す
-		void Reset();
-		//交互の手番
-		PlayerTurn& GetTurn() { return turn_; }
-		const PlayerTurn& GetTurn() const { return turn_; }
-		//戦闘開始待ちになったらたどり着けるか調べなくてよくする
+		//配置し直したときに何も起きていない状態に戻す
+		void Reset() { separationNeedsCheck_ = false; }
+		//戦闘を始めるときにたどり着けるか調べなくてよくする
 		void ClearSeparationCheck() { separationNeedsCheck_ = false; }
 
 		//ボスの足元が崩れて逃げられずに落ちたらBossFell
-		Event CheckBossFooting(const Floor& floor, const Player& player, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell);
+		Event CheckBossFooting(const Floor& floor, Boss& boss, const BossTuning& tuning, bool isFloorChanged, const Cell& bossCell);
 
 		//戦闘中の1フレーム
 		Event Update(Floor& floor, Player& player, Boss& boss, PlayerHealth& health, const BossTuning& tuning,
-			bool isFloorChanged, const Cell& bossCell, bool isJumpImpact, float deltaTime);
-
-		//ボスに触れたときのはじきだけ調べる
-		void CheckContact(const Floor& floor, Player& player, Boss& boss, bool isJumpImpact);
+			bool isFloorChanged, const Cell& bossCell, float deltaTime);
 
 	private:
 		//おたがいにたどり着けなくなったか
-		bool IsSeparated(const Floor& floor, const Player& player, const Boss& boss);
+		bool IsSeparated(const Floor& floor, const Player& player, const Boss& boss, const BossTuning& tuning);
 
-		BossContact contact_; //ボスに触れたときのはじき
 		bool separationNeedsCheck_ = false; //床が変わったのでたどり着けるか調べる
-		PlayerTurn turn_; //交互の手番
 	};
 }

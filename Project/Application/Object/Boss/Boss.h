@@ -10,7 +10,7 @@
 
 namespace App
 {
-	//プレイヤーと交互に1回ずつ動き、BossPlannerで近づくか攻撃するか逃げるかを決めるボス
+	//プレイヤーと同時に動き、BossPlannerで近づくか攻撃するか逃げるかを決めるボス
 	class Boss
 	{
 	public:
@@ -27,32 +27,21 @@ namespace App
 		//攻撃とジャンプを全部やめる
 		void Stop();
 
-		//ボスの番に足元が崩れたら跳んで逃げる
-		bool TryEvadeCollapse(const Floor& floor, const BossTuning& tuning, bool allowMovement);
-		//攻撃中に足元が崩れそうなら攻撃をやめて次の番で逃げる
+		//足元が崩れたら跳んで逃げる
+		bool TryEvadeCollapse(const Floor& floor, const BossTuning& tuning);
+		//攻撃中に足元が崩れそうなら攻撃をやめて逃げることにする
 		bool TryInterruptUnsafeFooting(const Floor& floor, const BossTuning& tuning);
 
-		//となりのマスへ跳ばされる
-		void KnockBack(const Floor& floor, const Cell& direction, float duration);
-
 		//1フレーム動かして当たった攻撃のダメージを返す
-		int32_t Tick(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime, bool allowMovement);
-
-		//やりかけの行動から次のcount回の行動を先読みする
-		void BuildForecast(const Floor& floor, const RyoEngine::Vector3& player, const BossTuning& tuning, float speed, float stepTime,
-			std::vector<BossPlannedAction>& result, int32_t count) const;
+		int32_t Tick(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime);
 
 		//動かし終わったあとに行列を確定する
 		void UpdateVisuals();
 		void Draw(); //体と拳と攻撃の予告を描く
 
 		bool IsJumping() const { return isJumping_; }
-		//跳んでいるか攻撃中で、この間はプレイヤーの番にならない
+		//跳んでいるか攻撃中で、この間は新しい行動を始めない
 		bool IsBusy() const;
-		//このフレームで新しい行動を始めたか
-		bool ActionStartedThisTick() const { return actionStartedThisTick_; }
-		//今までに始めた行動の数
-		int32_t GetActionCount() const { return nextActionTurn_; }
 		//このフレームでジャンプから着地したか
 		bool LandedThisTick() const { return landedThisTick_; }
 		//このフレームでパンチが当たったか
@@ -95,8 +84,6 @@ namespace App
 
 		//近接かパンチの攻撃を始める
 		bool StartAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossActionKind kind);
-		//やりかけの行動を先読みの1つ目にする
-		bool DescribeActiveAction(const Floor& floor, const BossTuning& tuning, BossPlannedAction& action) const;
 		int32_t AdvancePunch(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float deltaTime); //パンチを進めて当たったらダメージを返す
 		void CancelPunch(); //パンチをやめて拳を戻す
 		void StartJump(const Floor& floor, const Cell& landing, float duration, bool isEvacuation = false); //landingのマスへduration秒で跳び始める
@@ -109,8 +96,6 @@ namespace App
 		bool isActive_ = true;
 		Cell cell_{}; //今いるマス
 		Cell next_{}; //次に向かうマス
-		bool actionStartedThisTick_ = false;
-		int32_t nextActionTurn_ = 0; //今までに始めた行動の数
 		int32_t nextPatternTurn_ = 0; //移動と攻撃を交互にするための数
 
 		//崩れそうな床から逃げる

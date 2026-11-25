@@ -18,10 +18,6 @@ namespace App
 		static BossPlannedAction Choose(const Floor& floor, const RyoEngine::Vector3& from, const RyoEngine::Vector3& player,
 			const BossTuning& tuning, float speed, int32_t turn, float elapsed, bool isEvacuating, const RyoEngine::Vector3& evacuationTarget);
 
-		//次のcount回の行動を先読みしてresultに足す
-		static void Forecast(std::vector<BossPlannedAction>& result, const Floor& floor, RyoEngine::Vector3 from, const RyoEngine::Vector3& player,
-			const BossTuning& tuning, float speed, int32_t turn, int32_t count, float stepTime, float elapsed, bool isEvacuating, const RyoEngine::Vector3& evacuationTarget);
-
 		//足元が崩れそうなときに逃げる先を探す
 		static bool TryFindSafetyStep(const Floor& floor, const RyoEngine::Vector3& from, float speed, float elapsed, float margin, RyoEngine::Vector3& destination);
 

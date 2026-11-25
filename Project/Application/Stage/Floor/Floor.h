@@ -42,8 +42,8 @@ namespace App
 		bool IsHole(const Cell& cell) const; //範囲の中で床がない穴か
 		bool IsIsolated(const Cell& cell) const; //切り離された床か
 		bool IsCollapseScheduled(const Cell& cell) const; //崩れる予定か
-		//足場を飛ばすときに穴のとなりなら4倍
-		int32_t GetBarrageMultiplier(const Cell& cell) const;
+		//穴のとなりでヒビが入り、飛ばすと1ダメージの床か
+		bool IsHoleAdjacent(const Cell& cell) const;
 
 		//着地したマスから見た目だけぷるるんと揺らす
 		void Jiggle(const Cell& center, float power) { view_.Jiggle(*this, center, power); }
@@ -56,6 +56,8 @@ namespace App
 		void SetTileMotion(const Cell& cell, const RyoEngine::Vector3& position, const RyoEngine::Vector3& rotate, float scaleRate);
 		//タイルを見えなくする
 		void HideTile(const Cell& cell);
+		//残った床の崩れる予定と切り離しを消して飛ばせる状態にする
+		void PrepareBarrage();
 
 		//マスからマスへ跳ぶ
 		//穴をmaxGap個まで飛び越えてdirectionへ跳んだときの着地マス
@@ -71,8 +73,8 @@ namespace App
 		//全部のタイルをCSVを読んだときの形に戻す
 		void Reset();
 
-		//崩す形の予告
-		//前の予告を消してそのマスに崩す形の予告を出す
+		//崩すマスの予告
+		//前の予告を消してそのマスに崩す予告を出す
 		void SetPreview(const std::vector<Cell>& cells, const RyoEngine::Vector4& color, float blend);
 		//予告を消す
 		void ClearPreview();

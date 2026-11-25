@@ -33,8 +33,14 @@ namespace App
 
 		//シェーダーの0から7番に演出の値とハートの向きを渡す
 		const float seed = static_cast<float>(cell.x) * 7.13f + static_cast<float>(cell.z) * 3.71f;
+		//値が足りないので4番は砕けているときは砕けた割合、そうでなければマイナスにした細いヒビの濃さ
+		float shatterOrWear = -state.wear;
+		if (isShattering)
+		{
+			shatterOrWear = state.shatter;
+		}
 		model.SetShaderParams(0, { state.heartScale, state.heartCrack, state.heartBreak, state.tileCrack });
-		model.SetShaderParams(1, { state.shatter, seed, state.flash, tile.heartAngle });
+		model.SetShaderParams(1, { shatterOrWear, seed, state.flash, tile.heartAngle });
 		//影は砕けないので砕けかけの床は影を落とさない
 		model.SetCastShadow(state.shatter <= 0.0f);
 	}
