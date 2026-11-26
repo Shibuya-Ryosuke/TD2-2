@@ -126,21 +126,28 @@ namespace App
 		CancelPunch();
 		rush_.Cancel();
 		groundPunch_.Cancel();
+		comboRunner_.Cancel();
 	}
 
-	//HPトリガーで決まった攻撃を始める
-	void Boss::StartTriggeredAttack(const Floor& floor, const Vector3& target, const BossTuning& tuning, BossAttackType type) {
+	//コンボの攻撃を始める。skipRecoveryなら硬直を飛ばす
+	void Boss::StartComboAttack(const Floor& floor, const Vector3& target, const BossTuning& tuning, BossAttackType type, bool skipRecovery) {
 		switch (type) {
 		case BossAttackType::Rush:
+			rush_.SetSkipRecovery(skipRecovery);
 			rush_.Start(floor, position_, target, tuning);
 			LookAt(rush_.GetForward());
 			break;
 		case BossAttackType::GroundPunch:
+			groundPunch_.SetSkipRecovery(skipRecovery);
 			groundPunch_.Start(floor, position_, target, tuning);
 			break;
-		case BossAttackType::Melee:
+		case BossAttackType::Melee: {
+			//近接攻撃はStartAttackの中でStopが呼ばれてコンボも止まるので、残りを覚えておいて戻す
+			const BossComboRunner runner = comboRunner_;
 			StartAttack(floor, target, tuning, BossActionKind::Melee);
+			comboRunner_ = runner;
 			break;
+		}
 		default:
 			break;
 		}
@@ -155,6 +162,7 @@ namespace App
 		CancelPunch();
 		rush_.Cancel();
 		groundPunch_.Cancel();
+		comboRunner_.Cancel();
 		isMeleeTellVisible_ = false;
 	}
 
@@ -196,7 +204,7 @@ namespace App
 	//跳んでいるか攻撃中か
 	bool Boss::IsBusy() const
 	{
-		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive() || groundPunch_.IsActive();
+		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive() || groundPunch_.IsActive() || comboRunner_.IsActive();
 	}
 
 	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime)
@@ -273,11 +281,17 @@ namespace App
 			isEvacuating_ = false;
 		}
 
-		//HPトリガーが発動を待っていれば、行動を選ぶ代わりにその攻撃をする
-		BossAttackType triggered{};
-		if (phaseController_.PopTrigger(triggered)) {
-			StartTriggeredAttack(floor, target, tuning, triggered);
-			return 0;
+		//コンボの途中なら、行動を選ぶ代わりに次の攻撃を出す。間隔を待っている間はその場で待つ
+		if (comboRunner_.IsActive()) {
+			BossAttackType attack{};
+			bool skipRecovery = false;
+			if (comboRunner_.Next(deltaTime, attack, skipRecovery)) {
+				StartComboAttack(floor, target, tuning, attack, skipRecovery);
+				return 0;
+			}
+			if (comboRunner_.IsActive()) {
+				return 0;
+			}
 		}
 
 		//試し用の地面パンチの予約があれば、行動を選ぶ代わりに地面パンチする

@@ -1,11 +1,10 @@
 #pragma once
-#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace App {
-	//形態で使える攻撃の種類
+	//ボスの攻撃の種類
 	enum class BossAttackType : int32_t {
 		Rush,        //突進
 		GroundPunch, //地面パンチ
@@ -22,10 +21,23 @@ namespace App {
 	//JSONに書く攻撃の名前
 	inline constexpr const char* kBossAttackIds[kBossAttackTypeCount] = { "Rush", "GroundPunch", "Melee" };
 
-	//形態の中で、HPが減ったときに1回だけ発動するもの
-	struct BossHpTrigger {
-		float hpRate = 0.5f; //この形態のHPがこの割合以下になったら
-		BossAttackType action = BossAttackType::GroundPunch; //発動する攻撃
+	//コンボの1段
+	struct BossComboStep {
+		BossAttackType attack = BossAttackType::Rush; //出す攻撃
+		int32_t repeat = 1; //続けて何回出すか
+		float interval = 0.0f; //1回終わってから次を始めるまでの秒数
+	};
+
+	//攻撃の組み合わせ。上の段から順に出す
+	struct BossCombo {
+		std::string name = "コンボ";
+		std::vector<BossComboStep> steps;
+	};
+
+	//形態で使うコンボと選ばれやすさ
+	struct BossPhaseComboEntry {
+		std::string comboName; //コンボの名前で選ぶ
+		float weight = 1.0f; //選ばれやすさ
 	};
 
 	//形態1つ分の設定
@@ -40,10 +52,7 @@ namespace App {
 		float thinkInterval = 0.0f; //考える間隔の秒数
 		float randomness = 0.0f; //迷い。大きいほど点数の低い行動も選ぶ
 
-		//使える攻撃と選ばれやすさ
-		std::array<bool, kBossAttackTypeCount> enabledAttacks{ true, true, true };
-		std::array<float, kBossAttackTypeCount> attackWeights{ 1.0f, 1.0f, 1.0f };
-
-		std::vector<BossHpTrigger> triggers; //HPトリガー
+		//使うコンボ
+		std::vector<BossPhaseComboEntry> combos;
 	};
 }

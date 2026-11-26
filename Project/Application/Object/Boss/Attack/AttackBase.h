@@ -23,6 +23,9 @@ namespace App {
         virtual void Cancel() { phase_ = AttackPhase::None; }
         virtual bool IsActive() const { return phase_ != AttackPhase::None; }
 
+        //次のStartだけ硬直を飛ばす。コンボの途中の攻撃で使う
+        void SetSkipRecovery(bool skipRecovery) { skipRecovery_ = skipRecovery; }
+
         /// <summary>
         /// 任意のタイム減少（ScaleTimeで減算）
         /// </summary>
@@ -43,5 +46,6 @@ namespace App {
 
         float announcementTime_ = 0.0f; // 予告時間
         float recoveryTime_ = 0.0f; // 硬直時間
+        bool skipRecovery_ = false; // 次のStartだけ硬直を飛ばすか
     };
 }

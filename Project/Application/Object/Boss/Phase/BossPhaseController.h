@@ -1,7 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <deque>
-#include <vector>
 #include "BossPhaseData.h"
 
 namespace App {
@@ -25,9 +23,6 @@ namespace App {
 		//指定した形態にHP満タンで切り替える
 		void ForcePhase(int32_t index);
 
-		//発動を待っているHPトリガーの攻撃を1つ取り出す。なければfalse
-		bool PopTrigger(BossAttackType& action);
-
 		//今の形態の設定
 		const BossPhaseData& GetPhase() const;
 		int32_t GetIndex() const { return index_; }
@@ -38,13 +33,9 @@ namespace App {
 	private:
 		//index番目の形態にHP満タンで入る
 		void EnterPhase(int32_t index);
-		//HPが減ったときにHPトリガーを調べる
-		void CheckTriggers();
 
 		int32_t index_ = 0; //今の形態の番号
 		int32_t hp_ = 0; //今の形態の残りHP
 		bool isDefeated_ = false; //最後の形態まで倒したか
-		std::vector<bool> isTriggerFired_; //今の形態のトリガーをもう発動したか
-		std::deque<BossAttackType> pendingTriggers_; //発動を待っている攻撃
 	};
 }

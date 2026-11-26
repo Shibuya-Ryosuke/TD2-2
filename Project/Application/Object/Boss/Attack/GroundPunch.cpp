@@ -38,7 +38,9 @@ namespace App {
 
 		// 予備動作から始める
 		announcementTime_ = tuning.groundPunchAnnouncement;
-		recoveryTime_ = tuning.groundPunchRecovery;
+		//コンボの途中なら硬直は1フレームで終わらせる
+		recoveryTime_ = skipRecovery_ ? 0.0f : tuning.groundPunchRecovery;
+		skipRecovery_ = false;
 		phase_ = AttackPhase::Announcement;
 	}
 

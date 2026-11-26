@@ -24,7 +24,9 @@ namespace App {
         StoreRouteCenters(floor);
 
         announcementTime_ = tuning.rushWindup;
-        recoveryTime_ = tuning.rushRecovery;
+        //コンボの途中なら硬直は1フレームで終わらせる
+        recoveryTime_ = skipRecovery_ ? 0.0f : tuning.rushRecovery;
+        skipRecovery_ = false;
         phase_ = AttackPhase::Announcement;
 	}
 

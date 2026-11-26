@@ -10,6 +10,7 @@
 #include "Attack/Rush.h"
 #include "Attack/GroundPunch.h"
 #include "Phase/BossPhaseController.h"
+#include "Phase/BossComboRunner.h"
 
 namespace App
 {
@@ -99,6 +100,11 @@ namespace App
 		//試し用: 指定した形態にHP満タンで切り替える
 		void DebugForcePhase(int32_t index);
 
+		//コンボを始める。今の攻撃が終わったら上の段から順に出す
+		void StartCombo(const BossCombo& combo) { comboRunner_.Start(combo); }
+		//コンボの途中か
+		bool IsComboActive() const { return comboRunner_.IsActive(); }
+
 	private:
 		enum class PunchPhase
 		{
@@ -110,8 +116,8 @@ namespace App
 
 		//やりかけの攻撃を全部やめる。位置やジャンプはそのまま
 		void CancelAttacks();
-		//HPトリガーで決まった攻撃を始める
-		void StartTriggeredAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossAttackType type);
+		//コンボの攻撃を始める。skipRecoveryなら硬直を飛ばす
+		void StartComboAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossAttackType type, bool skipRecovery);
 		//近接かパンチの攻撃を始める
 		bool StartAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossActionKind kind);
 		int32_t AdvancePunch(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float deltaTime); //パンチを進めて当たったらダメージを返す
@@ -168,6 +174,9 @@ namespace App
 
 		//HPと形態
 		BossPhaseController phaseController_;
+
+		//コンボ
+		BossComboRunner comboRunner_;
 
 		//見た目
 		BossView view_;

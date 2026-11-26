@@ -17,6 +17,7 @@
   <ItemGroup>
     <ClCompile Include="Application\Object\Boss\Attack\Rush.cpp" />
     <ClCompile Include="Application\Object\Boss\Attack\GroundPunch.cpp" />
+    <ClCompile Include="Application\Object\Boss\Phase\BossComboRunner.cpp" />
     <ClCompile Include="Application\Object\Boss\Phase\BossPhaseController.cpp" />
     <ClCompile Include="Application\Object\Boss\Phase\BossPhaseTable.cpp" />
     <ClCompile Include="Engine\Graphics\3D\Animator.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="Application\Object\Boss\Attack\AttackBase.h" />
     <ClInclude Include="Application\Object\Boss\Attack\Rush.h" />
     <ClInclude Include="Application\Object\Boss\Attack\GroundPunch.h" />
+    <ClInclude Include="Application\Object\Boss\Phase\BossComboRunner.h" />
     <ClInclude Include="Application\Object\Boss\Phase\BossPhaseController.h" />
     <ClInclude Include="Application\Object\Boss\Phase\BossPhaseData.h" />
     <ClInclude Include="Application\Object\Boss\Phase\BossPhaseTable.h" />

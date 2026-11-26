@@ -355,6 +355,9 @@
     <ClCompile Include="Application\Object\Boss\Phase\BossPhaseTable.cpp">
       <Filter>Application\Object\Boss\Phase</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Object\Boss\Phase\BossComboRunner.cpp">
+      <Filter>Application\Object\Boss\Phase</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Test\TestPlayer.h">
@@ -574,6 +577,9 @@
       <Filter>Application\Object\Boss\Phase</Filter>
     </ClInclude>
     <ClInclude Include="Application\Object\Boss\Phase\BossPhaseTable.h">
+      <Filter>Application\Object\Boss\Phase</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Boss\Phase\BossComboRunner.h">
       <Filter>Application\Object\Boss\Phase</Filter>
     </ClInclude>
   </ItemGroup>
