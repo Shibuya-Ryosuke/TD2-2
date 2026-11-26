@@ -118,9 +118,9 @@ namespace App
 		//移動の入力で上下左右のとなりのマスへ跳び、押しっぱなしなら着地してすぐ次へ跳ぶ
 		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement && !isJumping_)
 		{
-			//穴は飛び越えず、穴のマスへ跳んだら落ちる
+			//穴は飛び越えず、もう穴になっているマスへは跳ばない
 			const Cell destination = cell + GridDirection::FromInput(move);
-			if (floor.Contains(destination))
+			if (floor.Contains(destination) && !floor.IsHole(destination))
 			{
 				jumpOrigin_ = position;
 				jumpDestination_ = destination;

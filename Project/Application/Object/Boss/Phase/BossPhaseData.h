@@ -44,12 +44,6 @@ namespace App {
 		std::array<bool, kBossAttackTypeCount> enabledAttacks{ true, true, true };
 		std::array<float, kBossAttackTypeCount> attackWeights{ 1.0f, 1.0f, 1.0f };
 
-		//賢さ。精度は0で使わない、1から10で使う確率
-		int32_t avoidIslandSize = 0; //切り離し認知: この数以下の島には入らない
-		int32_t isolationAccuracy = 0;
-		int32_t historyAccuracy = 0; //プレイヤーの行動履歴を使う
-		int32_t detourAccuracy = 0; //あえて遠回りする
-
 		std::vector<BossHpTrigger> triggers; //HPトリガー
 	};
 }

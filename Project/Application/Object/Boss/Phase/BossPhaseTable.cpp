@@ -48,10 +48,6 @@ namespace App {
 				attack["weight"] = phase.attackWeights[static_cast<size_t>(i)];
 				j["attacks"].push_back(attack);
 			}
-			j["avoidIslandSize"] = phase.avoidIslandSize;
-			j["isolationAccuracy"] = phase.isolationAccuracy;
-			j["historyAccuracy"] = phase.historyAccuracy;
-			j["detourAccuracy"] = phase.detourAccuracy;
 			j["triggers"] = json::array();
 			for (const BossHpTrigger& trigger : phase.triggers) {
 				json t;
@@ -82,10 +78,6 @@ namespace App {
 					phase.attackWeights[static_cast<size_t>(index)] = attack.value("weight", 1.0f);
 				}
 			}
-			phase.avoidIslandSize = j.value("avoidIslandSize", phase.avoidIslandSize);
-			phase.isolationAccuracy = j.value("isolationAccuracy", phase.isolationAccuracy);
-			phase.historyAccuracy = j.value("historyAccuracy", phase.historyAccuracy);
-			phase.detourAccuracy = j.value("detourAccuracy", phase.detourAccuracy);
 			if (j.contains("triggers") && j["triggers"].is_array()) {
 				for (const json& t : j["triggers"]) {
 					BossHpTrigger trigger{};
@@ -331,13 +323,6 @@ namespace App {
 				changed |= ImGui::DragFloat("重み", &phase.attackWeights[static_cast<size_t>(i)], 0.01f, 0.0f, 10.0f);
 				ImGui::PopID();
 			}
-		}
-
-		if (ImGui::CollapsingHeader("賢さ  精度は0で使わない", ImGuiTreeNodeFlags_DefaultOpen)) {
-			changed |= ImGui::DragInt("入らない島の大きさ", &phase.avoidIslandSize, 1.0f, 0, 100);
-			changed |= ImGui::SliderInt("切り離し認知の精度", &phase.isolationAccuracy, 0, 10);
-			changed |= ImGui::SliderInt("行動履歴の精度", &phase.historyAccuracy, 0, 10);
-			changed |= ImGui::SliderInt("遠回りの精度", &phase.detourAccuracy, 0, 10);
 		}
 
 		if (ImGui::CollapsingHeader("HPトリガー", ImGuiTreeNodeFlags_DefaultOpen)) {
