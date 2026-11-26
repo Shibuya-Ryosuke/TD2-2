@@ -9,6 +9,7 @@
 #include "BossView.h"
 #include "Attack/Rush.h"
 #include "Attack/GroundPunch.h"
+#include "Attack/Stamp.h"
 #include "Phase/BossPhaseController.h"
 #include "Phase/BossComboRunner.h"
 
@@ -89,6 +90,7 @@ namespace App
 		// 警告表示で使う
 		const Rush& GetRush() const { return rush_; }
 		const GroundPunch& GetGroundPunch() const { return groundPunch_; }
+		const Stamp& GetStamp() const { return stamp_; }
 
 		//HPと形態
 		//第1形態のHP満タンに戻す
@@ -122,6 +124,8 @@ namespace App
 
 		//やりかけの攻撃を全部やめる。位置やジャンプはそのまま
 		void CancelAttacks();
+		//スタンプを始めて、プレイヤーの方を向く
+		void StartStamp(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning);
 		//コンボの攻撃を始める。skipRecoveryなら硬直を飛ばす
 		void StartComboAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossAttackType type, bool skipRecovery);
 		//近接かパンチの攻撃を始める
@@ -179,6 +183,10 @@ namespace App
 		// 地面パンチ
 		GroundPunch groundPunch_{};
 		bool isGroundPunchRequested_ = false; //試し用: 次に行動を選ぶときに地面パンチする
+
+		// スタンプ
+		Stamp stamp_{};
+		bool isStampRequested_ = false; //試し用: 次に行動を選ぶときにスタンプする
 
 		//HPと形態
 		BossPhaseController phaseController_;

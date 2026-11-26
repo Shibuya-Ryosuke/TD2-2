@@ -9,6 +9,7 @@ namespace App {
 		Rush,        //突進
 		GroundPunch, //地面パンチ
 		Melee,       //近接攻撃
+		Stamp,       //スタンプ
 
 		Count,
 	};
@@ -17,9 +18,9 @@ namespace App {
 	inline constexpr int32_t kBossAttackTypeCount = static_cast<int32_t>(BossAttackType::Count);
 
 	//エディタに出す攻撃の名前
-	inline constexpr const char* kBossAttackNames[kBossAttackTypeCount] = { "突進", "地面パンチ", "近接攻撃" };
+	inline constexpr const char* kBossAttackNames[kBossAttackTypeCount] = { "突進", "地面パンチ", "近接攻撃", "スタンプ" };
 	//JSONに書く攻撃の名前
-	inline constexpr const char* kBossAttackIds[kBossAttackTypeCount] = { "Rush", "GroundPunch", "Melee" };
+	inline constexpr const char* kBossAttackIds[kBossAttackTypeCount] = { "Rush", "GroundPunch", "Melee", "Stamp" };
 
 	//コンボの1段
 	struct BossComboStep {

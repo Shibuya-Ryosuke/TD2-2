@@ -191,9 +191,11 @@ namespace App {
 			instance.isDirty_ = false;
 			return false;
 		}
+		//コードで新しく作った攻撃は、1つだけのコンボを自動で足す。足したら保存していない印を付ける
+		const bool isAdded = instance.AddMissingAttackCombos();
 		instance.selected_ = std::clamp(instance.selected_, 0, static_cast<int32_t>(instance.phases_.size()) - 1);
 		instance.selectedCombo_ = std::clamp(instance.selectedCombo_, 0, std::max(0, static_cast<int32_t>(instance.combos_.size()) - 1));
-		instance.isDirty_ = false;
+		instance.isDirty_ = isAdded;
 		return true;
 	}
 
@@ -237,6 +239,27 @@ namespace App {
 			}
 		}
 		return nullptr;
+	}
+
+	//攻撃1つだけのコンボがない攻撃があれば、攻撃の名前でそのコンボを足す
+	bool BossPhaseTable::AddMissingAttackCombos() {
+		bool isAdded = false;
+		for (int32_t i = 0; i < kBossAttackTypeCount; ++i) {
+			const BossAttackType attack = static_cast<BossAttackType>(i);
+			//この攻撃を1回だけ出すコンボがもうあるか
+			const bool exists = std::any_of(combos_.begin(), combos_.end(), [&](const BossCombo& combo) {
+				return combo.steps.size() == 1 && combo.steps[0].attack == attack;
+			});
+			if (exists) {
+				continue;
+			}
+			BossCombo combo{};
+			combo.name = MakeUniqueComboName(kBossAttackNames[i]);
+			combo.steps.push_back(BossComboStep{ attack, 1, 0.0f });
+			combos_.push_back(combo);
+			isAdded = true;
+		}
+		return isAdded;
 	}
 
 	//ほかのコンボとかぶらない名前を作る。かぶったら後ろに番号を付ける

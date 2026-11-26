@@ -26,6 +26,7 @@ namespace App
 	void Boss::RegisterParams() {
 		ParamEditor::BeginGroup("Boss");
 		groundPunch_.RegisterParams();
+		stamp_.RegisterParams();
 		view_.RegisterParams();
 
 		//層ごとの強さ。6層目からは1層目に戻る
@@ -126,6 +127,7 @@ namespace App
 		CancelPunch();
 		rush_.Cancel();
 		groundPunch_.Cancel();
+		stamp_.Cancel();
 		comboRunner_.Cancel();
 	}
 
@@ -141,6 +143,10 @@ namespace App
 			groundPunch_.SetSkipRecovery(skipRecovery);
 			groundPunch_.Start(floor, position_, target, tuning);
 			break;
+		case BossAttackType::Stamp:
+			stamp_.SetSkipRecovery(skipRecovery);
+			StartStamp(floor, target, tuning);
+			break;
 		case BossAttackType::Melee: {
 			//近接攻撃はStartAttackの中でStopが呼ばれてコンボも止まるので、残りを覚えておいて戻す
 			const BossComboRunner runner = comboRunner_;
@@ -153,6 +159,16 @@ namespace App
 		}
 	}
 
+	//スタンプを始めて、プレイヤーの方を向く
+	void Boss::StartStamp(const Floor& floor, const Vector3& target, const BossTuning& tuning) {
+		stamp_.Start(floor, position_, target, tuning);
+		Vector3 toTarget = target - position_;
+		toTarget.y = 0.0f;
+		if (LengthSquared(toTarget) > 0.0001f) {
+			LookAt(toTarget);
+		}
+	}
+
 	//攻撃とジャンプをやめる
 	void Boss::Stop()
 	{
@@ -162,6 +178,7 @@ namespace App
 		CancelPunch();
 		rush_.Cancel();
 		groundPunch_.Cancel();
+		stamp_.Cancel();
 		comboRunner_.Cancel();
 		isMeleeTellVisible_ = false;
 	}
@@ -204,7 +221,7 @@ namespace App
 	//跳んでいるか攻撃中か
 	bool Boss::IsBusy() const
 	{
-		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive() || groundPunch_.IsActive() || comboRunner_.IsActive();
+		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive() || groundPunch_.IsActive() || stamp_.IsActive() || comboRunner_.IsActive();
 	}
 
 	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime)
@@ -226,6 +243,10 @@ namespace App
 		if (Input::TriggerKey(DIK_G)) {
 			isGroundPunchRequested_ = true;
 		}
+		//試し用: Sキーは移動と重なるので、Bキーを押したら次に行動を選ぶときにスタンプする
+		if (Input::TriggerKey(DIK_B)) {
+			isStampRequested_ = true;
+		}
 #endif
 
 		//突進中はそれだけ進める
@@ -243,6 +264,19 @@ namespace App
 		//地面パンチ中はそれだけ進める
 		if (groundPunch_.IsActive()) {
 			return groundPunch_.Update(floor, position_, target, tuning, deltaTime);
+		}
+
+		//スタンプ中はそれだけ進める
+		if (stamp_.IsActive()) {
+			const int32_t damage = stamp_.Update(floor, position_, target, tuning, deltaTime);
+			position_ = stamp_.GetPosition();
+			//着地したら、穴なら落ちる・切り離しの判定をBossBattleにしてもらう
+			if (stamp_.IsLandedThisTick()) {
+				landedThisTick_ = true;
+				cell_ = floor.GetCellAt(position_);
+				next_ = cell_;
+			}
+			return damage;
 		}
 
 		//やりかけのパンチとジャンプはそれだけ進める
@@ -298,6 +332,13 @@ namespace App
 		if (isGroundPunchRequested_) {
 			isGroundPunchRequested_ = false;
 			groundPunch_.Start(floor, position_, target, tuning);
+			return 0;
+		}
+
+		//試し用のスタンプの予約があれば、行動を選ぶ代わりにスタンプする
+		if (isStampRequested_) {
+			isStampRequested_ = false;
+			StartStamp(floor, target, tuning);
 			return 0;
 		}
 
@@ -366,6 +407,7 @@ namespace App
 		//攻撃をやめて行き先と時間と始まりの位置を決める
 		CancelPunch();
 		groundPunch_.Cancel();
+		stamp_.Cancel();
 		isWindingUp_ = false;
 		isMeleeTellVisible_ = false;
 		isJumping_ = true;

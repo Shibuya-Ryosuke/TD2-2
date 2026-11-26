@@ -116,12 +116,15 @@ namespace App
 		punchTell_->TransferMatrix();
 
 
-		//突進のルートと地面パンチの十字のマスに警告の板を置く
+		//突進のルートと地面パンチの十字とスタンプの9マスに警告の板を置く
 		const Rush& rush = boss.GetRush();
 		const GroundPunch& groundPunch = boss.GetGroundPunch();
+		const Stamp& stamp = boss.GetStamp();
 		std::vector<Vector3> centers = rush.GetRouteCenters();
 		const std::vector<Vector3>& punchCenters = groundPunch.GetWarningCenters();
 		centers.insert(centers.end(), punchCenters.begin(), punchCenters.end());
+		const std::vector<Vector3>& stampCenters = stamp.GetWarningCenters();
+		centers.insert(centers.end(), stampCenters.begin(), stampCenters.end());
 		rushTellCount_ = static_cast<int32_t>(centers.size());
 
 		//足りない分だけ板を作る
@@ -132,10 +135,13 @@ namespace App
 			rushTells_.push_back(std::move(tell));
 		}
 
-		//突進を使っていなければ地面パンチのマスの大きさを使う
+		//突進を使っていなければ地面パンチかスタンプのマスの大きさを使う
 		Vector2 tileSize = rush.GetTileSize();
 		if (!rush.IsActive()) {
 			tileSize = groundPunch.GetTileSize();
+		}
+		if (stamp.IsActive()) {
+			tileSize = stamp.GetTileSize();
 		}
 		for (size_t i = 0; i < centers.size(); ++i) {
 			Model& tell = *rushTells_[i];

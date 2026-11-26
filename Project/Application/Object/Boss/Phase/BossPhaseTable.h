@@ -36,6 +36,8 @@ namespace App {
 		std::string GetFullPath() const;
 		//ほかのコンボとかぶらない名前を作る
 		std::string MakeUniqueComboName(const std::string& base) const;
+		//攻撃1つだけのコンボがない攻撃があれば、そのコンボを足す。足したらtrue
+		bool AddMissingAttackCombos();
 
 		//形態のタブ
 		void DrawPhaseTab(Boss* boss);
