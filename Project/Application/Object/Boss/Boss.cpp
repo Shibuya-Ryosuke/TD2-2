@@ -98,6 +98,54 @@ namespace App
 		nextPatternTurn_ = 0;
 	}
 
+	//今の形態のHPを減らす。次の形態に進んだらやりかけの攻撃はやめる
+	void Boss::Damage(int32_t amount) {
+		if (phaseController_.Damage(amount) == BossPhaseController::Event::PhaseChanged) {
+			CancelAttacks();
+		}
+	}
+
+	//今の形態の移動の速さと飛び越えをtuningに入れる
+	void Boss::ApplyPhaseTuning(BossTuning& tuning) const {
+		const BossPhaseData& phase = phaseController_.GetPhase();
+		//層の強さと同じく床の大きさの倍率をかける
+		tuning.moveSpeed = phase.moveSpeed * GameConfig::kWorldScale;
+		tuning.canJump = phase.canJump;
+	}
+
+	//試し用: 指定した形態にHP満タンで切り替える
+	void Boss::DebugForcePhase(int32_t index) {
+		phaseController_.ForcePhase(index);
+		CancelAttacks();
+	}
+
+	//やりかけの攻撃を全部やめる。位置やジャンプはそのまま
+	void Boss::CancelAttacks() {
+		isWindingUp_ = false;
+		isMeleeTellVisible_ = false;
+		CancelPunch();
+		rush_.Cancel();
+		groundPunch_.Cancel();
+	}
+
+	//HPトリガーで決まった攻撃を始める
+	void Boss::StartTriggeredAttack(const Floor& floor, const Vector3& target, const BossTuning& tuning, BossAttackType type) {
+		switch (type) {
+		case BossAttackType::Rush:
+			rush_.Start(floor, position_, target, tuning);
+			LookAt(rush_.GetForward());
+			break;
+		case BossAttackType::GroundPunch:
+			groundPunch_.Start(floor, position_, target, tuning);
+			break;
+		case BossAttackType::Melee:
+			StartAttack(floor, target, tuning, BossActionKind::Melee);
+			break;
+		default:
+			break;
+		}
+	}
+
 	//攻撃とジャンプをやめる
 	void Boss::Stop()
 	{
@@ -223,6 +271,13 @@ namespace App
 		if (isEvacuating_ && floor.GetCellAt(position_) == evacuationDestination_)
 		{
 			isEvacuating_ = false;
+		}
+
+		//HPトリガーが発動を待っていれば、行動を選ぶ代わりにその攻撃をする
+		BossAttackType triggered{};
+		if (phaseController_.PopTrigger(triggered)) {
+			StartTriggeredAttack(floor, target, tuning, triggered);
+			return 0;
 		}
 
 		//試し用の地面パンチの予約があれば、行動を選ぶ代わりに地面パンチする

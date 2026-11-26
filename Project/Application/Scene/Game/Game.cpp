@@ -5,6 +5,7 @@
 #include "../../Config/GameConfig.h"
 #include "../../Input/GameInput.h"
 #include "../../Object/Boss/Boss.h"
+#include "../../Object/Boss/Phase/BossPhaseTable.h"
 #include "../../Object/Player/Player.h"
 #include "BossContact.h"
 #include "GameHud.h"
@@ -42,7 +43,7 @@ namespace App
 
 		//ゲーム開始
 		health_.Reset();
-		bossHealth_ = GameConfig::kBossMaxHealth;
+		boss_->ResetHealth();
 		floors_.Start(0);
 		ResetFloor(true);
 		UpdateVisuals();
@@ -60,6 +61,9 @@ namespace App
 
 	void Game::Update()
 	{
+		//ボスの形態エディタ。デバッグのときだけ出る
+		BossPhaseTable::DrawEditor(boss_.get());
+
 		//場面切り替えの間は操作もゲームも止める
 		if (transition_.Update())
 		{
@@ -236,7 +240,7 @@ namespace App
 		//いちばん手前に場面切り替えの積み木
 		transition_.Draw();
 		//デバッグ表示
-		GameHud::Draw(GameHud::MakeInfo(health_, floors_, bossHealth_, phase_, pauseMenu_.IsOpen(), bossFall_));
+		GameHud::Draw(GameHud::MakeInfo(health_, floors_, *boss_, phase_, pauseMenu_.IsOpen(), bossFall_));
 		pauseMenu_.Draw();
 	}
 
@@ -305,10 +309,17 @@ namespace App
 		isGameOver_ = true;
 	}
 
+	//今の層のボスの強さに、今の形態の速さなどを入れたもの
+	BossTuning Game::GetTuning() const {
+		BossTuning tuning = GetBossTuning(floors_.GetLayer());
+		boss_->ApplyPhaseTuning(tuning);
+		return tuning;
+	}
+
 	//ボスのダメージ
 	void Game::DamageBoss(int32_t amount)
 	{
-		bossHealth_ = std::max(0, bossHealth_ - amount);
+		boss_->Damage(amount);
 	}
 
 	//すぐに戦闘を始める
@@ -350,7 +361,7 @@ namespace App
 	//足場を飛ばし終わったらクリアか次の戦闘へ
 	void Game::FinishBossFall()
 	{
-		if (bossHealth_ == 0)
+		if (boss_->IsDefeated())
 		{
 			boss_->SetActive(false);
 			isCleared_ = true;

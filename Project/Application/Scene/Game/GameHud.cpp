@@ -3,6 +3,8 @@
 #include "../../Config/GameConfig.h"
 #include "../../Stage/Floor/LayerFloors.h"
 #include "../../Object/Player/PlayerHealth.h"
+#include "../../Object/Boss/Boss.h"
+#include "../../Object/Boss/Phase/BossPhaseTable.h"
 #include <RyoEngine.h>
 #include <algorithm>
 
@@ -11,13 +13,16 @@ using namespace RyoEngine;
 namespace App
 {
 	//ゲームシーンの状態から出すものを集める
-	GameHudInfo GameHud::MakeInfo(const PlayerHealth& health, const LayerFloors& floors, int32_t bossHealth,
+	GameHudInfo GameHud::MakeInfo(const PlayerHealth& health, const LayerFloors& floors, const Boss& boss,
 		GamePhase phase, bool isPaused, const BossFallFlow& bossFall)
 	{
 		GameHudInfo info{};
 		info.hearts = health.GetHearts();
 		info.layer = floors.GetLayer();
-		info.bossHealth = bossHealth;
+		info.bossHealth = boss.GetHp();
+		info.bossMaxHealth = boss.GetMaxHp();
+		info.bossPhase = boss.GetPhaseController().GetIndex();
+		info.bossPhaseCount = static_cast<int32_t>(BossPhaseTable::GetPhases().size());
 		info.phase = phase;
 		info.isPaused = isPaused;
 		info.escapeTimer = bossFall.GetEscapeTimer();
@@ -33,8 +38,9 @@ namespace App
 	void GameHud::Draw(const GameHudInfo& info)
 	{
 		//HPと層とボスのHP
-		PrintText("HP {}/{}   LAYER {}   BOSS HP {}/{}", { 20.0f, 20.0f },
-			info.hearts, GameConfig::kMaxHearts, info.layer + 1, info.bossHealth, GameConfig::kBossMaxHealth);
+		PrintText("HP {}/{}   LAYER {}   BOSS HP {}/{}   FORM {}/{}", { 20.0f, 20.0f },
+			info.hearts, GameConfig::kMaxHearts, info.layer + 1, info.bossHealth, info.bossMaxHealth,
+			info.bossPhase + 1, info.bossPhaseCount);
 
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// //持っているアイテム

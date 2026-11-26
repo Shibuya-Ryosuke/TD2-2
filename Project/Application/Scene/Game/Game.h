@@ -52,7 +52,7 @@ namespace App
 		void ResetFloor(bool showBelow); //床を元に戻してやり直す
 		void PlaceActors(bool keepBossLanding); //プレイヤーとボスを最初の位置に置く
 		Cell GetPlayerCell() const; //プレイヤーのいるマス
-		BossTuning GetTuning() const { return GetBossTuning(floors_.GetLayer()); } //今の層のボスの強さ
+		BossTuning GetTuning() const; //今の層のボスの強さに、今の形態の速さなどを入れたもの
 
 		//ダメージ
 		void FailFall(); //穴に落ちた
@@ -81,7 +81,6 @@ namespace App
 
 		//状態
 		GamePhase phase_ = GamePhase::Battle;
-		int32_t bossHealth_ = 0;
 		PauseMenu pauseMenu_; //TABかメニューボタンで開くポーズメニュー
 		bool isGameOver_ = false;
 		bool isCleared_ = false;

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Scene/SceneSetup.h"
+#include "Object/Boss/Phase/BossPhaseTable.h"
 
 using namespace RyoEngine;
 
@@ -12,9 +13,11 @@ namespace App
 		ParamEditor::SetFolderPath(jsonFolder);
 		LightManager::SetFolderPath(jsonFolder);
 		ParticleManager::SetFolderPath(jsonFolder);
+		BossPhaseTable::SetFolderPath(jsonFolder);
 		ParamEditor::Load();
 		LightManager::Load();
 		ParticleManager::Load();
+		BossPhaseTable::Load();
 
 		//シーンを登録して起動時のシーンを決める
 		SetupScenes();

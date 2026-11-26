@@ -9,6 +9,7 @@
 #include "BossView.h"
 #include "Attack/Rush.h"
 #include "Attack/GroundPunch.h"
+#include "Phase/BossPhaseController.h"
 
 namespace App
 {
@@ -82,6 +83,22 @@ namespace App
 		const Rush& GetRush() const { return rush_; }
 		const GroundPunch& GetGroundPunch() const { return groundPunch_; }
 
+		//HPと形態
+		//第1形態のHP満タンに戻す
+		void ResetHealth() { phaseController_.Reset(); }
+		//今の形態のHPを減らす。尽きたら次の形態へ進み、やりかけの攻撃はやめる
+		void Damage(int32_t amount);
+		//最後の形態まで倒したか
+		bool IsDefeated() const { return phaseController_.IsDefeated(); }
+		int32_t GetHp() const { return phaseController_.GetHp(); }
+		int32_t GetMaxHp() const { return phaseController_.GetMaxHp(); }
+		//今の形態の移動の速さと飛び越えをtuningに入れる
+		void ApplyPhaseTuning(BossTuning& tuning) const;
+		const BossPhaseController& GetPhaseController() const { return phaseController_; }
+		BossPhaseController& GetPhaseController() { return phaseController_; }
+		//試し用: 指定した形態にHP満タンで切り替える
+		void DebugForcePhase(int32_t index);
+
 	private:
 		enum class PunchPhase
 		{
@@ -91,6 +108,10 @@ namespace App
 			Recovery, //拳が戻る
 		};
 
+		//やりかけの攻撃を全部やめる。位置やジャンプはそのまま
+		void CancelAttacks();
+		//HPトリガーで決まった攻撃を始める
+		void StartTriggeredAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossAttackType type);
 		//近接かパンチの攻撃を始める
 		bool StartAttack(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, BossActionKind kind);
 		int32_t AdvancePunch(const Floor& floor, const RyoEngine::Vector3& target, const BossTuning& tuning, float deltaTime); //パンチを進めて当たったらダメージを返す
@@ -144,6 +165,9 @@ namespace App
 		// 地面パンチ
 		GroundPunch groundPunch_{};
 		bool isGroundPunchRequested_ = false; //試し用: 次に行動を選ぶときに地面パンチする
+
+		//HPと形態
+		BossPhaseController phaseController_;
 
 		//見た目
 		BossView view_;

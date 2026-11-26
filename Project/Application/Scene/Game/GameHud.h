@@ -5,6 +5,7 @@
 namespace App
 {
 	class PlayerHealth;
+	class Boss;
 	class LayerFloors;
 	class BossFallFlow;
 
@@ -14,6 +15,9 @@ namespace App
 		int32_t hearts = 0; //プレイヤーのHP
 		int32_t layer = 0; //0から数えた層
 		int32_t bossHealth = 0; //ボスのHP
+		int32_t bossMaxHealth = 0; //今の形態のボスの最大HP
+		int32_t bossPhase = 0; //0から数えた今の形態
+		int32_t bossPhaseCount = 0; //形態の数
 		GamePhase phase = GamePhase::Battle;
 		bool isPaused = false;
 		float escapeTimer = 0.0f; //切り離された床が落ちるまで
@@ -29,7 +33,7 @@ namespace App
 	{
 	public:
 		//ゲームシーンの状態から出すものを集める
-		static GameHudInfo MakeInfo(const PlayerHealth& health, const LayerFloors& floors, int32_t bossHealth,
+		static GameHudInfo MakeInfo(const PlayerHealth& health, const LayerFloors& floors, const Boss& boss,
 			GamePhase phase, bool isPaused, const BossFallFlow& bossFall);
 
 		static void Draw(const GameHudInfo& info);
