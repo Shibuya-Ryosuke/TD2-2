@@ -1,6 +1,7 @@
 #include "GameHud.h"
 #include "BossFallFlow.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
+#include "../../Config/PlayerConfig.h"
 #include "../../Stage/Floor/LayerFloors.h"
 #include "../../Object/Player/PlayerHealth.h"
 #include <RyoEngine.h>
@@ -34,7 +35,7 @@ namespace App
 	{
 		//HPと層とボスのHP
 		PrintText("HP {}/{}   LAYER {}   BOSS HP {}/{}", { 20.0f, 20.0f },
-			info.hearts, GameConfig::kMaxHearts, info.layer + 1, info.bossHealth, GameConfig::kBossMaxHealth);
+			info.hearts, PlayerConfig::kMaxHearts, info.layer + 1, info.bossHealth, BossConfig::kBossMaxHealth);
 
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// //持っているアイテム
@@ -75,7 +76,7 @@ namespace App
 		}
 		else if (info.phase == GamePhase::LandingImpact)
 		{
-			PrintText("FALL DAMAGE {}", noticePosition, GameConfig::kBossFallDamage);
+			PrintText("FALL DAMAGE {}", noticePosition, BossConfig::kBossFallDamage);
 		}
 		else if (info.phase == GamePhase::TileBarrage)
 		{

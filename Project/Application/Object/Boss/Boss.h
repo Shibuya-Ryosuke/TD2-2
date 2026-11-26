@@ -64,6 +64,12 @@ namespace App
 		//倒したら描かない
 		void SetActive(bool isActive) { isActive_ = isActive; }
 		bool IsActive() const { return isActive_; }
+		//寝ている割合で、1なら横になって寝ている見た目
+		void SetSleep(float sleep) { sleep_ = sleep; }
+		float GetSleep() const { return sleep_; }
+		//足場が当たってむぎゅっとつぶれる
+		void Flinch(float power);
+		float GetFlinch() const { return flinch_; }
 
 		//BossViewが読む見た目の値
 		const RyoEngine::Vector3& GetFistLocal() const { return fistLocal_; } //ボスのローカルの拳の位置
@@ -99,6 +105,8 @@ namespace App
 		RyoEngine::Vector3 position_{}; //足元の位置
 		float yawDeg_ = 0.0f; //奥が0の向きの角度
 		bool isActive_ = true;
+		float sleep_ = 0.0f; //寝ている見た目の割合
+		float flinch_ = 0.0f; //足場が当たってつぶれている割合
 		Cell cell_{}; //今いるマス
 		Cell next_{}; //次に向かうマス
 		int32_t nextPatternTurn_ = 0; //移動と攻撃を交互にするための数

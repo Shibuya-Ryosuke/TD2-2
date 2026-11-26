@@ -1,6 +1,6 @@
 #include "FloorPathFinder.h"
 #include "../Floor/Floor.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
 #include <limits>
 
 using namespace RyoEngine;
@@ -44,7 +44,7 @@ namespace App
 				Cell next = current + direction;
 				if (canJump)
 				{
-					next = floor.JumpLanding(current, direction, GameConfig::kBossJumpGap);
+					next = floor.JumpLanding(current, direction, BossConfig::kBossJumpGap);
 				}
 				if (!floor.IsSolid(next))
 				{

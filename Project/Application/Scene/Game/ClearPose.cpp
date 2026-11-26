@@ -41,16 +41,10 @@ namespace App
 		elapsed_ += deltaTime;
 		const float t = SmoothStep(std::clamp(elapsed_ / DirectionConfig::kClearZoomTime, 0.0f, 1.0f));
 
-		//ずらす前のカメラの位置から見て、プレイヤーの胸が画面の真ん中に来るように横と縦だけずらす
-		camera.SetFocusOffset({ 0.0f, 0.0f, 0.0f });
-		const Vector3 cameraPosition = camera.GetViewPosition();
-		const Vector3 forward = camera.GetForward();
+		//プレイヤーの胸が画面の真ん中に来るように横と縦だけずらす
 		const Vector3& feet = player.GetPosition();
 		const Vector3 target = { feet.x, feet.y + DirectionConfig::kClearFocusHeight, feet.z };
-		const Vector3 toTarget = target - cameraPosition;
-		const float depth = toTarget.x * forward.x + toTarget.y * forward.y + toTarget.z * forward.z;
-		const Vector3 shift = toTarget - forward * depth;
-		camera.SetFocusOffset(shift * t);
+		camera.SetFocusOffset(camera.GetCenteringOffset(target) * t);
 		camera.SetOrthoSize(startOrthoSize_ + (DirectionConfig::kClearZoomOrthoSize - startOrthoSize_) * t);
 
 		//寄せ終わったらポーズを1回する

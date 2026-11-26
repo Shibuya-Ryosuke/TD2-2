@@ -11,6 +11,8 @@
 //[アイテム] アイテムは一旦使わないのでコメントアウト
 // #include "../../Object/Item/ItemManager.h"
 #include "PlayerAction.h"
+#include "PlayerFallFlow.h"
+#include "BossWake.h"
 #include "../../Stage/Floor/LayerFloors.h"
 #include "../../Stage/Sky/SkyDome.h"
 #include "../../Object/Player/PlayerHealth.h"
@@ -29,6 +31,17 @@ namespace App
 	class Game : public RyoEngine::BaseScene
 	{
 	public:
+		//シーンをどこから始めるか
+		enum class StartMode
+		{
+			Battle, //ボス戦の最初から
+			AfterTutorial, //チュートリアルで寝ているボスに足場を当てた続きから
+		};
+		//次にゲームシーンを始める所を決める
+		static void SetStartMode(StartMode mode) { startMode_ = mode; }
+		//チュートリアルから寝ているボスとプレイヤーの位置とダメージを受け取る
+		static void SetWakeStart(const WakeStart& start) { wakeStart_ = start; }
+
 		Game(); //PlayerとBossを作る
 		~Game() override;
 
@@ -54,6 +67,11 @@ namespace App
 		Cell GetPlayerCell() const; //プレイヤーのいるマス
 		BossTuning GetTuning() const { return GetBossTuning(floors_.GetLayer()); } //今の層のボスの強さ
 
+		//チュートリアルの続きと穴に落ちたとき
+		void StartAfterTutorial(); //チュートリアルと同じ所に寝ているボスとプレイヤーを置く
+		void UpdateBossWake(float deltaTime); //ボスが起きたらボス戦を始める
+		void UpdatePlayerFall(float deltaTime); //穴に落ちて下の層へ行く流れを進める
+
 		//ダメージ
 		void FailFall(); //穴に落ちた
 		void DamageBoss(int32_t amount); //ボスのダメージ
@@ -78,6 +96,8 @@ namespace App
 		PlayerHealth health_; //プレイヤーのHPと無敵
 		BossBattle battle_; //戦闘中のボスとのやりとり
 		BossFallFlow bossFall_; //ボスを落とす流れ
+		PlayerFallFlow playerFall_; //プレイヤーが穴に落ちて下の層へ行く流れ
+		BossWake bossWake_; //チュートリアルのあとボスが起きる
 
 		//状態
 		GamePhase phase_ = GamePhase::Battle;
@@ -90,6 +110,9 @@ namespace App
 		NearFadeSwitch nearFade_; //ゲーム中だけNearFadeを切る
 		ToneMapSwitch toneMap_; //ゲーム中だけACESを切り替える
 		BlockTransition transition_; //場面切り替えの積み木
-		GameDirection direction_; //画面の演出と着地のぷるるん
+		GameDirection direction_; //画面の演出と揺れと着地のぷるるん
+
+		static inline StartMode startMode_ = StartMode::Battle; //チュートリアルから来たときだけその続きから
+		static inline WakeStart wakeStart_{}; //チュートリアルから受け取った位置とダメージ
 	};
 }

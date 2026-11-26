@@ -51,5 +51,10 @@ namespace App
 	private:
 		//斜めでも長さを1までにする
 		static RyoEngine::Vector2 ClampLength(const RyoEngine::Vector2& value);
+		//RTを半分より押しこんだ瞬間か
+		static bool IsRightTriggerPressed();
+
+		static constexpr BYTE kRightTriggerThreshold = 128; //0から255のRTの押しこみでこれ以上を押したとする
+		static inline bool wasRightTriggerDown_ = false; //前に読んだときRTを押しこんでいたか
 	};
 }

@@ -12,7 +12,7 @@ namespace App
 	{
 		for (size_t i = 0; i < pieces_.size(); ++i)
 		{
-			pieces_[i].Initialize(frame, shader);
+			pieces_[i].Initialize(frame, shader, false);
 		}
 		Hide();
 	}

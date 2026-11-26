@@ -26,6 +26,7 @@ namespace App
 		}
 		else if (choice == PauseMenu::Choice::Retry)
 		{
+			SetStartMode(StartMode::Battle);
 			transition_.Start<Game>();
 		}
 	}

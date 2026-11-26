@@ -20,10 +20,15 @@ namespace App
 		void Initialize();
 		//カメラの位置と向きに合わせて置き、雲をゆっくり横に流す
 		void Update(const StageCamera& camera);
+		//タイトルなどの遠近法のカメラに合わせて置いて雲を流す
+		void UpdatePerspective(const RyoEngine::Camera& camera);
 		//ほかのものより先に描く
 		void Draw();
 
 	private:
+		//カメラの向きと位置と画面の縦の半分の長さと縦横比に合わせて置き、雲を流す
+		void Place(const RyoEngine::Vector3& rotate, const RyoEngine::Vector3& position, float halfHeight, float aspectRatio);
+
 		std::unique_ptr<RyoEngine::Model> model_{}; //天球のモデル
 		float scroll_ = 0.0f; //横に流れた量
 	};

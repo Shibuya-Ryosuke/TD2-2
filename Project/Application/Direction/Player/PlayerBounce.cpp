@@ -7,13 +7,13 @@ using namespace RyoEngine;
 
 namespace App
 {
-	//ほこりを作って体にシェーダーをつける
+	//ハートを作って体にシェーダーをつける
 	void PlayerBounce::Initialize(Model& body)
 	{
 		body_ = &body;
 		const uint32_t shader = ShaderManager::Load(DirectionConfig::kPlayerPopShader);
 		body_->SetShader(shader);
-		dust_.Initialize();
+		hearts_.Initialize();
 	}
 
 	//着地の見つけ方を今の位置からやり直す
@@ -25,11 +25,11 @@ namespace App
 		glow_ = 0.0f;
 	}
 
-	//足元の位置から着地を見つけてピカッとほこりを出す
+	//足元の位置から着地を見つけてハートを出し、ピカッと光る
 	void PlayerBounce::Update(const Vector3& feet)
 	{
 		const float deltaTime = GetDeltaTime();
-		dust_.Update();
+		hearts_.Update();
 		landingPower_ = 0.0f;
 		//初めてか止まっているか置き直したときはやり直す
 		const Vector3 moved = feet - lastFeet_;
@@ -50,19 +50,19 @@ namespace App
 		{
 			const float power = -lastSpeedY_ / DirectionConfig::kPlayerLandSpeedRef; //1でふつうの着地
 			glow_ = DirectionConfig::kPlayerLandGlow * std::min(power, 1.5f);
-			dust_.Puff(feet, power);
+			hearts_.Burst(feet, power);
 			landingPower_ = power;
 		}
 		lastSpeedY_ = speedY;
 
 		//ピカッをだんだん消す
 		glow_ *= std::exp(-DirectionConfig::kPlayerLandGlowDecay * deltaTime);
-		body_->SetShaderParams(0, { glow_, 0.0f, 0.0f, 0.0f });
+		body_->SetShaderParam(0, glow_);
 	}
 
-	//ほこりを描く
-	void PlayerBounce::DrawDust()
+	//ハートを描く
+	void PlayerBounce::DrawHearts()
 	{
-		dust_.Draw();
+		hearts_.Draw();
 	}
 }

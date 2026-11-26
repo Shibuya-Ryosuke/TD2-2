@@ -28,7 +28,7 @@ namespace App {
         phase_ = AttackPhase::Announcement;
 	}
 
-	int32_t Rush::Update(const Floor& floor, const RyoEngine::Vector3& bossPos, const RyoEngine::Vector3& target, const BossTuning& tuning, float deltaTime) {
+	int32_t Rush::Update(const Floor& floor, [[maybe_unused]] const RyoEngine::Vector3& bossPos, const RyoEngine::Vector3& target, const BossTuning& tuning, float deltaTime) {
 		switch (phase_) {
 		case AttackPhase::Announcement:
             //ためている間に穴をあけられたら、ルートも短くなる

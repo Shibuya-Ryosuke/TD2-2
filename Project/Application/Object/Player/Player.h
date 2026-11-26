@@ -1,11 +1,14 @@
 #pragma once
 #include <RyoEngine.h>
+#include <cstdint>
 #include <memory>
 #include "../../Stage/Grid/Cell.h"
 #include "../../Direction/Player/HammerSwing.h"
 #include "../../Direction/Player/PlayerAnimation.h"
 #include "../../Direction/Player/PlayerBounce.h"
+#include "../../Direction/Player/PlayerPose.h"
 #include "../../Direction/Player/PlayerTurnAround.h"
+#include "Rig/PlayerRig.h"
 
 namespace App
 {
@@ -41,6 +44,16 @@ namespace App
 		void StartPose();
 		//クリアのポーズが終わったか
 		bool IsPoseFinished() const { return animation_.IsPoseFinished(); }
+		//落ちるときのじたばたや尻もちの姿勢にして、Normalでいつもに戻す
+		void SetPose(PlayerPose::Kind kind);
+		//足元からハートをはじけさせる
+		void BurstHearts(float power) { bounce_.Burst(position_, power); }
+		//このフレームでハンマーが床に当たったか
+		bool WasHammerImpact() const { return animation_.WasImpact(); }
+		//trueなら床の外へも跳べて落ちる
+		void SetCanLeaveFloor(bool canLeave) { canLeaveFloor_ = canLeave; }
+		//跳び始めた回数
+		int32_t GetJumpCount() const { return jumpCount_; }
 		//床を崩す上下左右の向き
 		const Cell& GetFacing() const { return facing_; }
 
@@ -74,6 +87,8 @@ namespace App
 		HammerSwing hammer_; //足場を壊すときだけ右手に持つハンマー
 		PlayerBounce bounce_; //着地のピカッとほこり
 		PlayerTurnAround turnAround_; //向きが変わったときにクルッと回る見た目の向き
+		PlayerPose pose_; //じたばたと尻もち
+		PlayerRig rig_; //じたばたと尻もちの間だけ見せる分けたパーツのプレイヤー
 		bool isPosing_ = false; //クリアのポーズでカメラの方を向いているか
 		float poseYawDeg_ = 0.0f; //クリアのポーズで向く度数
 
@@ -97,6 +112,8 @@ namespace App
 		bool isKnockbackOverFence_ = false; //床のふちで止めないか
 
 		bool isVisible_ = true;
+		bool canLeaveFloor_ = false; //床の外へも跳べるか
+		int32_t jumpCount_ = 0; //跳び始めた回数
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// bool hasJumpBoost_ = false;              //2マス乗り越えを持っているか
 	};

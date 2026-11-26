@@ -22,6 +22,8 @@ namespace App
 		bool IsFinished() const { return arrived_ >= static_cast<int32_t>(tiles_.size()); }
 		int32_t GetTileCount() const { return static_cast<int32_t>(tiles_.size()); }
 		int32_t GetDamageApplied() const { return damageApplied_; }
+		//そのマスの足場が飛び立ったか、飛ばす足場がないか
+		bool IsLaunched(const Cell& cell) const;
 
 	private:
 		struct BarrageTile

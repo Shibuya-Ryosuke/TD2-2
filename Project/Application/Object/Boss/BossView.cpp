@@ -3,6 +3,8 @@
 #include "../../Config/GameConfig.h"
 #include "BossDetail.h"
 #include "../ModelColor.h"
+#include <cmath>
+#include <numbers>
 
 using namespace RyoEngine;
 using namespace App::BossDetail;
@@ -46,17 +48,43 @@ namespace App
 		punchTell_->SetCastShadow(false);
 	}
 
+	//立っているか仰向けに寝ているかで体の行列を確定する
+	void BossView::UpdateBody(const Boss& boss)
+	{
+		//寝ている間はすうすう息をして、足場が当たるとむぎゅっとつぶれる
+		breath_ += GetDeltaTime();
+		const float sleep = boss.GetSleep();
+		const float breath = 1.0f + std::sin(breath_ * GameConfig::kBossSleepBreathSpeed) * GameConfig::kBossSleepBreath * sleep;
+		const float squash = 1.0f - GameConfig::kBossFlinchSquash * boss.GetFlinch();
+		const float widen = 1.0f + GameConfig::kBossFlinchSquash * 0.5f * boss.GetFlinch();
+		const Vector3& modelScale = GameConfig::kBossModelScale;
+		if (sleep < 0.5f)
+		{
+			body_->SetScale({ modelScale.x * widen, modelScale.y * squash, modelScale.z * widen });
+			body_->SetRotate({ 0.0f, boss.GetYawDeg() + GameConfig::kBossModelYaw, 0.0f });
+			body_->SetTranslate(boss.GetPosition());
+			body_->TransferMatrix();
+			return;
+		}
+
+		//仰向けは正面を上へ倒して、頭を向いていた方の反対へ寝かせ、体のまん中をマスに合わせる
+		const Vector3 forward = boss.GetForward();
+		const Vector3 head = { -forward.x, 0.0f, -forward.z };
+		const float headDeg = std::atan2(head.z, head.x) * 180.0f / std::numbers::pi_v<float>;
+		body_->SetScale({ modelScale.x * breath * squash, modelScale.y * widen, modelScale.z * breath * widen });
+		body_->SetRotate({ headDeg, 0.0f, -90.0f });
+		const float center = GameConfig::kBossSleepCenter * modelScale.y;
+		body_->SetTranslate(boss.GetPosition() + Vector3{ -head.x * center, GameConfig::kBossSleepLift * modelScale.x, -head.z * center });
+		body_->TransferMatrix();
+	}
+
 	//ボスの位置と向きと攻撃に合わせて行列を確定する
 	void BossView::Update(const Boss& boss)
 	{
 		//Y軸だけ回すボスの向き
 		const Vector3 rotate = { 0.0f, boss.GetYawDeg(), 0.0f };
 
-		//足元に置いたボスのモデル
-		body_->SetScale(GameConfig::kBossModelScale);
-		body_->SetRotate({ 0.0f, boss.GetYawDeg() + GameConfig::kBossModelYaw, 0.0f });
-		body_->SetTranslate(boss.ToWorld({ 0.0f, 0.0f, 0.0f }));
-		body_->TransferMatrix();
+		UpdateBody(boss);
 
 		//拳
 		fist_->SetScale(CubeScale(kFistSize));

@@ -11,7 +11,9 @@ namespace App::DirectionConfig
 	//場面切り替えの積み木
 	inline constexpr const char* kTransitionBlockShader = "TransitionBlock"; //積み木と紙吹雪のシェーダー
 	inline constexpr const char* kGustLinesShader = "GustLines"; //吹き飛ぶときの横風のポストエフェクト
-	inline constexpr float kTransitionDepth = 20.0f; //カメラから積み木の壁までの距離
+	inline constexpr float kTransitionDepth = 20.0f; //遠近法のカメラから積み木の壁までの縮める前の距離
+	inline constexpr float kTransitionNearScale = 0.05f; //遠近法のときに積み木をカメラの近くへ縮める倍率で、壁はカメラから1の所に来る
+	inline constexpr float kTransitionOrthoDepth = 2.0f; //平行投影のカメラから積み木の壁までの距離で、床より手前
 	inline constexpr float kTransitionNearHide = 0.5f; //これよりカメラに近づいたブロックは消す
 	inline constexpr float kTransitionMaxDeltaTime = 1.0f / 30.0f; //読み込み直後に一気に進まないよう1フレームで進める秒数の上限
 	//がれき
@@ -32,17 +34,17 @@ namespace App::DirectionConfig
 		{ 1.0f, 0.68f, 0.45f, 1.0f }, //オレンジ
 	} };
 	//積み上がる
-	inline constexpr int32_t kTransitionColumns = 5; //横の数
-	inline constexpr int32_t kTransitionRows = 5; //縦の数
+	inline constexpr int32_t kTransitionColumns = 10; //横に並べられるいちばん多い数で、画面の横幅に合わせて使う数を決める
+	inline constexpr int32_t kTransitionRows = 5; //縦の数で、積み木の大きさは画面の高さをこれで割った正方形
 	inline constexpr float kTransitionBlockGap = 0.015f; //マスに対する積み木どうしのすき間
-	inline constexpr float kTransitionStackTime = 0.9f; //25個積み上がるまでの秒数
+	inline constexpr float kTransitionStackTime = 0.9f; //全部積み上がるまでの秒数
 	inline constexpr float kTransitionBlockFallTime = 0.15f; //1個が落ちてくる秒数
 	inline constexpr float kTransitionGlowTime = 0.2f; //ドン！の縁の光が消えるまでの秒数
-	inline constexpr float kTransitionSquash = 0.55f; //ドン！で高さに対してつぶれる量
+	inline constexpr float kTransitionSquash = 0.3f; //ドン！で高さに対してつぶれる量
 	inline constexpr float kTransitionSquashDamping = 8.0f; //ぽよよんが収まる速さ
 	inline constexpr float kTransitionSquashSpeed = 36.0f; //ぽよよんの細かさ
 	inline constexpr float kTransitionSquashWiden = 0.7f; //つぶれたとき横にふくらむ量
-	inline constexpr float kTransitionFallStretch = 0.4f; //落ちている間に縦にのびる量
+	inline constexpr float kTransitionFallStretch = 0.15f; //落ちている間に縦にのびる量
 	inline constexpr float kTransitionHoldTime = 0.1f; //埋まってから次のシーンへ行くまでの秒数
 	//次のシーンで吹き飛ぶ間は操作させない
 	inline constexpr float kTransitionBlowTime = 0.9f; //全部吹き飛ぶまでの秒数
@@ -107,6 +109,7 @@ namespace App::DirectionConfig
 	inline constexpr float kPlayerSwingImpactTime = 1.39f; //振るアニメーションでハンマーが床に当たる秒
 	inline constexpr float kPlayerSwingAfterSpeed = 1.2f; //当たってから首をかしげ終わるまでの再生の速さ
 	inline constexpr float kSwingImpactDelay = kPlayerSwingImpactTime / kPlayerSwingSpeed; //ボタンを押してからハンマーが当たるまでの秒数
+	inline constexpr float kBreakRejectJiggle = 1.3f; //チュートリアルで壊せないマスを叩いたときのぷるるんの強さ
 
 	//足場を壊すときに右手で振るハンマー
 	inline constexpr const char* kHammerModel = "Model/hanmer/hanmer.obj"; //柄の下が原点で柄が上へのびるハンマー
@@ -124,23 +127,73 @@ namespace App::DirectionConfig
 	inline constexpr float kClearZoomOrthoSize = 4.5f; //寄ったときに画面の縦の半分に映す長さ
 	inline constexpr float kClearFocusHeight = 1.2f; //画面の真ん中に来るプレイヤーの足元からの高さ
 	inline constexpr float kClearHoldTime = 1.0f; //ポーズのあとクリア画面へ行くまで待つ秒数
-	//着地のほこり
-	inline constexpr size_t kDustPoolSize = 40; //使い回すほこりの数
-	inline constexpr int32_t kDustPerLanding = 8; //ふつうの着地で出る数
-	inline constexpr float kDustSize = 0.14f; //大きさ
-	inline constexpr float kDustSpeed = 2.6f; //外へ広がる速さ
-	inline constexpr float kDustLift = 1.2f; //上へふわっと上がる速さ
-	inline constexpr float kDustDrag = 5.0f; //だんだん遅くなる強さ
-	inline constexpr float kDustLife = 0.45f; //消えるまでの秒数
+
+	//じたばたと尻もちの姿勢
+	inline constexpr float kPoseBlendSpeed = 10.0f; //姿勢が切りかわる速さ
+	inline constexpr float kSitDropSpeed = 25.0f; //尻もちでどすんと座る速さ
+	inline constexpr float kFlailSpeed = 22.0f; //じたばたで手足を振る速さ
+	inline constexpr float kSitSink = 1.0f; //尻もちで沈む高さで、プレイヤーの倍率をかける前の長さ
+
+	//ボス戦で穴に落ちたとき
+	inline constexpr float kFallTime = 1.3f; //じたばたしながら下の層へ落ちる秒数
+	inline constexpr float kFallZoomTime = 0.45f; //プレイヤーへ寄りきるまでの秒数
+	inline constexpr float kFallZoomOrthoSize = 6.0f; //寄ったときに画面の縦の半分に映す長さ
+	inline constexpr float kFallFloorShrinkTime = 0.5f; //落ちた層の床が小さくなって消えるまでの秒数
+	inline constexpr float kFallLandJiggle = 1.6f; //尻もちで足場が揺れる強さ
+	inline constexpr float kFallLandHearts = 1.6f; //尻もちで出るハートの強さ
+	inline constexpr float kFallLandShake = 0.35f; //尻もちで画面が揺れる強さ
+	inline constexpr float kFallSitTime = 0.9f; //尻もちをついている秒数
+	inline constexpr float kFallBossDropTime = 0.6f; //ボスが上から降りてくる秒数
+	inline constexpr float kFallBossDropHeight = 14.0f; //ボスが降り始める高さ
+	inline constexpr float kFallBossLandShake = 0.6f; //ボスが着いたときに画面が揺れる強さ
+	inline constexpr float kFallZoomOutTime = 0.5f; //ボスが着いてからカメラが戻りきるまでの秒数
+
+	//ボスが落ちて足場が当たったあと、足場がなくなったプレイヤーも落ちる
+	inline constexpr float kBossFallViewHeight = 0.5f; //上の層から下の層までのどこにカメラを置くかで0.5はまん中
+	inline constexpr float kBossFallViewZoom = 1.15f; //上の層と下の層の両方が入るようにいつもより引く倍率
+	inline constexpr float kBossFallViewReturnTime = 0.6f; //プレイヤーが立ち上がってからカメラが下の層へ戻る秒数
+	inline constexpr float kTumbleTime = 0.9f; //足場がなくなってから下の層に尻もちをつくまでの秒数
+	inline constexpr float kTumbleSitTime = 0.6f; //尻もちをついている秒数
+
+	//跳んだときと着地で足場からはじけて舞い上がるハート
+	inline constexpr const char* kHeartPopShader = "HeartPop";
+	inline constexpr size_t kHeartPoolSize = 64; //使い回すハートの数
+	inline constexpr float kHeartMaxPower = 1.4f; //強い着地でも数と高さがこれ以上ふえない強さ
+	inline constexpr int32_t kHeartPerBurst = 5; //ふつうの着地で出る数で、控えめにする
+	inline constexpr float kHeartSize = 0.5f; //大きさで、形はわかるけど主張しすぎない大きさ
+	inline constexpr float kHeartRingRadius = 0.4f; //足元のどれくらい外から出るか
+	inline constexpr float kHeartOutSpeed = 1.0f; //外へ広がる速さ
+	inline constexpr float kHeartUpSpeed = 1.8f; //上へはじける速さで、足元の少し上までにする
+	inline constexpr float kHeartBuoyancy = 0.3f; //ふわっと浮いていく強さ
+	inline constexpr float kHeartDrag = 2.6f; //だんだん遅くなる強さ
+	inline constexpr float kHeartSwaySpeed = 7.0f; //左右にゆれる速さ
+	inline constexpr float kHeartSwayWidth = 0.1f; //左右にゆれる幅
+	inline constexpr float kHeartBurstPopTime = 0.18f; //ぽんっと出てくる秒数
+	inline constexpr float kHeartLife = 0.8f; //消えるまでの秒数
+	inline constexpr float kHeartTilt = 0.35f; //ハートが左右に傾くいちばん大きいラジアン
+	inline constexpr float kHeartTiltSpeed = 1.5f; //ハートが傾いていく速さのいちばん大きい値
+	inline constexpr float kHeartGlow = 0.8f; //光の強さ
+	inline constexpr std::array<RyoEngine::Vector4, 6> kHeartColors = { { //ホットピンク、桃、ミント、ラベンダー、水色、ピーチ
+		{ 1.0f, 0.18f, 0.55f, 1.0f },
+		{ 1.0f, 0.55f, 0.75f, 1.0f },
+		{ 0.45f, 0.95f, 0.75f, 1.0f },
+		{ 0.75f, 0.55f, 1.0f, 1.0f },
+		{ 0.45f, 0.85f, 1.0f, 1.0f },
+		{ 1.0f, 0.7f, 0.5f, 1.0f } } };
 
 	//ゲームシーンの色の仕上げ
 	inline constexpr bool kGameUsesAces = false; //trueで明るい所をなめらかに詰めるACESを使い、falseで画像の色のまま出す
 
-	//ダメージを受けたときの画面のふち
+	//ダメージを受けたときに赤くぎらっと光る画面のふち
 	inline constexpr const char* kDamageVignetteShader = "DamageVignette";
-	inline constexpr float kDamageFlashRise = 0.05f; //パッと光るまでの秒数
-	inline constexpr float kDamageFlashTime = 0.4f; //光り始めてからすっと消えるまでの秒数
+	inline constexpr float kDamageFlashRise = 0.04f; //パッと光るまでの秒数
+	inline constexpr float kDamageFlashTime = 0.75f; //光り始めてからすっと消えるまでの秒数
 	inline constexpr float kDamageFlashStrength = 1.0f; //シェーダーの値に掛ける強さ
+	inline constexpr float kDamageShakePower = 0.45f; //ダメージで画面が揺れる強さ
+
+	//画面の揺れ
+	inline constexpr float kShakeTime = 0.35f; //強さ1で揺れが収まるまでの秒数
+	inline constexpr float kShakeSpeed = 55.0f; //揺れの速さ
 
 	//層を降りるときに下から上へ流れる線
 	inline constexpr const char* kFallLinesShader = "FallLines";

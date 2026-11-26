@@ -78,9 +78,10 @@ namespace App
 		return command;
 	}
 
-	//床を崩すのはSpaceかAボタン
+	//床を崩すのはSpaceかAボタンかRTを押しこんだ瞬間
 	bool GameInput::IsBreakTriggered()
 	{
+		const bool isRightTriggerPressed = IsRightTriggerPressed();
 		if (Input::TriggerKey(DIK_SPACE))
 		{
 			return true;
@@ -89,7 +90,21 @@ namespace App
 		{
 			return true;
 		}
-		return false;
+		return isRightTriggerPressed;
+	}
+
+	//エンジンにRTを読む関数がないのでXInputから直接読み、半分より押しこんだ瞬間だけtrue
+	bool GameInput::IsRightTriggerPressed()
+	{
+		XINPUT_STATE state{};
+		bool isDown = false;
+		if (XInputGetState(0, &state) == ERROR_SUCCESS)
+		{
+			isDown = state.Gamepad.bRightTrigger >= kRightTriggerThreshold;
+		}
+		const bool isPressed = isDown && !wasRightTriggerDown_;
+		wasRightTriggerDown_ = isDown;
+		return isPressed;
 	}
 
 	//[アイテム] アイテムは一旦使わないのでコメントアウト

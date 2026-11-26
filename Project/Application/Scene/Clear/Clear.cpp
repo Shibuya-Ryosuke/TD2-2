@@ -1,41 +1,62 @@
 #include "Clear.h"
 #include "../Title/Title.h"
-#include "../../Direction/Transition/TransitionCamera.h"
+#include "../../Config/ClearConfig.h"
 #include "../../Input/GameInput.h"
 
 using namespace RyoEngine;
 
 namespace App
 {
-	//演出のカメラを作って場面切り替えを用意する
+	//カメラと空と床とプレイヤーとボスを用意する
 	void Clear::Initialize()
 	{
-		const uint32_t cameraIndex = CameraManager::CreateCamera<TransitionCamera>("Transition");
-		transition_.Initialize(CameraManager::GetCamera<TransitionCamera>(cameraIndex));
+		stage_.Initialize(ClearConfig::kWideEye, ClearConfig::kWideTarget);
+		show_.Initialize();
+		transition_.Initialize(stage_.GetCamera());
 	}
 
-	//EnterかAでタイトルへ
+	//ACESとNearFadeを元に戻す
+	void Clear::Finalize()
+	{
+		stage_.Finalize();
+	}
+
+	//流れを進めて、踊り始めたらEnterかAでタイトルへ
 	void Clear::Update()
 	{
-		//演出の間は操作させない
+		const float deltaTime = GetDeltaTime();
+		show_.Update(deltaTime);
+		Vector3 eye{};
+		Vector3 target{};
+		show_.GetShot(eye, target);
+		stage_.LookAt(eye, target);
+		stage_.Update(deltaTime);
+
+		//演出の間と、踊り始めるまでは操作させない
 		if (transition_.Update())
 		{
 			return;
 		}
-		if (GameInput::IsEnterTriggered())
+		if (show_.IsDancing() && GameInput::IsEnterTriggered())
 		{
 			transition_.Start<Title>();
 		}
 	}
 
-	//文字を出す
+	//床とキャラと文字を描く
 	void Clear::Draw()
 	{
-		//1920x1080が基準の画面の真ん中あたり
-		const float width = static_cast<float>(DirectXCommon::GetGameWidth());
-		const float height = static_cast<float>(DirectXCommon::GetGameHeight());
-		PrintText("GAME CLEAR!", { width * 0.42f, height * 0.45f });
-		PrintText("PRESS ENTER / A", { width * 0.43f, height * 0.5f });
+		stage_.Draw();
+		show_.Draw();
+
+		//踊り始めたら1920x1080が基準の画面の左寄りにタイトルへ戻るメニュー
+		if (show_.IsDancing())
+		{
+			const float width = static_cast<float>(DirectXCommon::GetGameWidth());
+			const float height = static_cast<float>(DirectXCommon::GetGameHeight());
+			PrintText("GAME CLEAR", { width * 0.12f, height * 0.38f });
+			PrintText("> BACK TO TITLE   ENTER / A", { width * 0.12f, height * 0.44f });
+		}
 
 		//いちばん手前に場面切り替えの積み木
 		transition_.Draw();

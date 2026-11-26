@@ -1,5 +1,6 @@
 #include "TileBarrage.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
+#include "../../Config/LayerConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <algorithm>
 
@@ -34,10 +35,10 @@ namespace App
 					{
 						continue;
 					}
-					int32_t damage = GameConfig::kOrdinaryTileDamage;
+					int32_t damage = BossConfig::kOrdinaryTileDamage;
 					if (isAdjacentGroup)
 					{
-						damage = GameConfig::kAdjacentTileDamage;
+						damage = BossConfig::kAdjacentTileDamage;
 					}
 					tiles_.push_back(BarrageTile{ cell, std::max(0, damage) });
 				}
@@ -53,8 +54,8 @@ namespace App
 	//穴のとなりの足場が全部届いて少し待ってからふつうの足場が飛び立つ
 	float TileBarrage::GetLaunchTime(int32_t index) const
 	{
-		const float flight = std::max(0.01f, GameConfig::kTileFlightDuration);
-		const float window = std::max(0.0f, GameConfig::kTileLaunchWindow);
+		const float flight = std::max(0.01f, LayerConfig::kTileFlightDuration);
+		const float window = std::max(0.0f, LayerConfig::kTileLaunchWindow);
 		const int32_t count = GetTileCount();
 
 		//穴のとなりの足場が飛び終わるまでの秒数
@@ -66,7 +67,7 @@ namespace App
 			{
 				adjacentWindow = window;
 			}
-			ordinaryStart = adjacentWindow + flight + std::max(0.0f, GameConfig::kTileBarrageGroupPause);
+			ordinaryStart = adjacentWindow + flight + std::max(0.0f, LayerConfig::kTileBarrageGroupPause);
 		}
 
 		//まとまりの中で少しずつ遅れて飛び立つ
@@ -86,7 +87,7 @@ namespace App
 		arrived_ = 0;
 		int64_t damageUnits = 0;
 		const int32_t count = GetTileCount();
-		const float flight = std::max(0.01f, GameConfig::kTileFlightDuration);
+		const float flight = std::max(0.01f, LayerConfig::kTileFlightDuration);
 
 		for (int32_t i = 0; i < count; ++i)
 		{
@@ -118,7 +119,7 @@ namespace App
 		}
 
 		//上限ありで、前のフレームから増えたダメージを返す
-		const int64_t totalDamage = std::min(damageUnits, static_cast<int64_t>(GameConfig::kMaxTileDamage));
+		const int64_t totalDamage = std::min(damageUnits, static_cast<int64_t>(BossConfig::kMaxTileDamage));
 		const int32_t damage = static_cast<int32_t>(totalDamage);
 		int32_t added = 0;
 		if (damage > damageApplied_)
@@ -127,5 +128,18 @@ namespace App
 			damageApplied_ = damage;
 		}
 		return added;
+	}
+
+	//そのマスの足場が飛び立ったか、飛ばす足場がないか
+	bool TileBarrage::IsLaunched(const Cell& cell) const
+	{
+		for (int32_t i = 0; i < GetTileCount(); ++i)
+		{
+			if (tiles_[static_cast<size_t>(i)].cell == cell)
+			{
+				return timer_ > GetLaunchTime(i);
+			}
+		}
+		return true;
 	}
 }

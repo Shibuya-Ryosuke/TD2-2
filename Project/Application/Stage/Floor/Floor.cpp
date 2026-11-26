@@ -1,7 +1,8 @@
 #include "Floor.h"
 #include "FloorCsv.h"
 #include "../Grid/FloorPathFinder.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/FloorConfig.h"
+#include "../../Config/LayerConfig.h"
 #include <cmath>
 #include <numbers>
 
@@ -342,7 +343,7 @@ namespace App
 			Vector3 position = GetRestPosition(cell);
 			position.x += amplitude * std::sin(phase);
 			At(cell).position = position;
-			At(cell).shakeRate = elapsed / GameConfig::kEscapeDelay;
+			At(cell).shakeRate = elapsed / FloorConfig::kEscapeDelay;
 		}
 	}
 
@@ -366,7 +367,7 @@ namespace App
 			Vector3 position = GetRestPosition(cell);
 			position.y -= distance;
 			At(cell).position = position;
-			At(cell).dropRate = distance / GameConfig::kFloorSpacing;
+			At(cell).dropRate = distance / LayerConfig::kFloorSpacing;
 		}
 	}
 

@@ -1,6 +1,6 @@
 #include "BossBattle.h"
 #include "BossContact.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
 #include "../../Object/Player/PlayerHealth.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Player/Player.h"
@@ -45,7 +45,7 @@ namespace App
 		}
 
 		//床が減るほど速くなるボスをプレイヤーと同時に動かして、攻撃が当たったらダメージ
-		const float bossSpeed = tuning.moveSpeed * (1.0f + GameConfig::kMaxBossSpeedBonus * floor.GetCollapsedFraction());
+		const float bossSpeed = tuning.moveSpeed * (1.0f + BossConfig::kMaxBossSpeedBonus * floor.GetCollapsedFraction());
 		const bool wasVulnerable = !health.IsInvincible();
 		health.Damage(boss.Tick(floor, player.GetPosition(), tuning, bossSpeed, deltaTime));
 		if (health.IsDead())

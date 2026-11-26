@@ -1,4 +1,6 @@
 #include "FloorShards.h"
+#include "../../Config/FloorConfig.h"
+#include "../../Config/ModelConfig.h"
 #include <algorithm>
 #include <cmath>
 
@@ -12,7 +14,7 @@ namespace App
 		const uint32_t shader = ShaderManager::Load(DirectionConfig::kTransitionBlockShader);
 		for (Shard& shard : shards_)
 		{
-			shard.model = Model::Create(GameConfig::kCubeModel);
+			shard.model = Model::Create(ModelConfig::kCubeModel);
 			shard.model->SetShader(shader);
 			shard.model->SetShaderParams(0, { 0.0f, 0.0f, 0.0f, 1.0f }); //木目を消す
 			shard.model->SetColor(DirectionConfig::kShardColor);
@@ -34,7 +36,7 @@ namespace App
 			//タイルの上の面から外と上へはじける
 			const float offsetX = (unit(random_) - 0.5f) * tileSize * 0.8f;
 			const float offsetZ = (unit(random_) - 0.5f) * tileSize * 0.8f;
-			shard.position = { center.x + offsetX, center.y + GameConfig::kTileThickness * 0.5f, center.z + offsetZ };
+			shard.position = { center.x + offsetX, center.y + FloorConfig::kTileThickness * 0.5f, center.z + offsetZ };
 			const float speed = DirectionConfig::kShardSpeed * (0.6f + unit(random_) * 0.8f);
 			const float length = std::max(0.01f, std::sqrt(offsetX * offsetX + offsetZ * offsetZ));
 			shard.velocity = { offsetX / length * speed, DirectionConfig::kShardJump * (0.7f + unit(random_) * 0.6f), offsetZ / length * speed };
@@ -62,7 +64,7 @@ namespace App
 
 			//残りの時間に合わせて小さくする
 			const float rate = std::clamp(shard.life / DirectionConfig::kShardLife, 0.0f, 1.0f);
-			const float scale = shard.size * rate / GameConfig::kCubeModelSize;
+			const float scale = shard.size * rate / ModelConfig::kCubeModelSize;
 			shard.model->SetScale({ scale, scale, scale });
 			shard.model->SetRotate(shard.rotate);
 			shard.model->SetTranslate(shard.position);

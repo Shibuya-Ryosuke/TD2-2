@@ -1,6 +1,8 @@
 #include "FloorView.h"
 #include "Floor.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/FloorConfig.h"
+#include "../../Config/LayerConfig.h"
+#include "../../Config/ModelConfig.h"
 #include "../../Config/DirectionConfig.h"
 #include <algorithm>
 #include <cmath>
@@ -26,7 +28,7 @@ namespace App
 			{
 				continue;
 			}
-			models_[i] = Model::Create(GameConfig::kCubeModel);
+			models_[i] = Model::Create(ModelConfig::kCubeModel);
 			models_[i]->SetShader(shader);
 		}
 	}
@@ -36,16 +38,16 @@ namespace App
 	{
 		//予告のマスの光を弱い強いでゆっくりくり返す
 		previewGlowTime_ += GetDeltaTime();
-		const float wave = 0.5f + 0.5f * std::sin(previewGlowTime_ * GameConfig::kPreviewGlowSpeed * std::numbers::pi_v<float> * 2.0f);
-		const float glow = GameConfig::kPreviewGlowMin + (GameConfig::kPreviewGlowMax - GameConfig::kPreviewGlowMin) * wave;
+		const float wave = 0.5f + 0.5f * std::sin(previewGlowTime_ * FloorConfig::kPreviewGlowSpeed * std::numbers::pi_v<float> * 2.0f);
+		const float glow = FloorConfig::kPreviewGlowMin + (FloorConfig::kPreviewGlowMax - FloorConfig::kPreviewGlowMin) * wave;
 		const Vector4& previewColor = floor.GetPreviewColor();
 		const Vector3 glowColor = { previewColor.x, previewColor.y, previewColor.z };
 
 		//すき間の分だけ小さいタイルの大きさ
-		const float modelScale = 1.0f / GameConfig::kCubeModelSize;
-		const float sizeX = floor.GetTileSizeX() * (1.0f - GameConfig::kTileGap) * modelScale;
-		const float sizeY = GameConfig::kTileThickness * modelScale;
-		const float sizeZ = floor.GetTileSizeZ() * (1.0f - GameConfig::kTileGap) * modelScale;
+		const float modelScale = 1.0f / ModelConfig::kCubeModelSize;
+		const float sizeX = floor.GetTileSizeX() * (1.0f - FloorConfig::kTileGap) * modelScale;
+		const float sizeY = FloorConfig::kTileThickness * modelScale;
+		const float sizeZ = floor.GetTileSizeZ() * (1.0f - FloorConfig::kTileGap) * modelScale;
 
 		//タイルごとに位置と向きと大きさと色を入れる
 		for (size_t i = 0; i < models_.size(); ++i)
@@ -70,7 +72,7 @@ namespace App
 			model->SetColor(GetTileColor(floor, cell));
 			crumble_.Apply(i, *model, crumble, floor, cell);
 
-			//予告のマスを予告の色で光らせてブルームでにじませる
+			//予告のマスの上の面のふちの枠を予告の色で光らせてブルームでにじませる
 			if (IsPreviewGlowing(floor, cell))
 			{
 				model->SetEmissive(glowColor, glow);
@@ -111,13 +113,13 @@ namespace App
 		//切り離された床、穴のとなり、ふつうの順に色を決める
 		if (floor.GetTile(cell).isIsolated)
 		{
-			return GameConfig::kIsolatedColor;
+			return FloorConfig::kIsolatedColor;
 		}
 		if (floor.IsHoleAdjacent(cell))
 		{
-			return GameConfig::kBonusColor;
+			return FloorConfig::kBonusColor;
 		}
-		return GameConfig::kFloorColor;
+		return FloorConfig::kFloorColor;
 	}
 
 	//予告で光らせるマスか
@@ -139,28 +141,16 @@ namespace App
 	//下の層と予告も入れた今の色
 	Vector4 FloorView::GetTileColor(const Floor& floor, const Cell& cell) const
 	{
-		const FloorTile& tile = floor.GetTile(cell);
 		const Vector4 baseColor = GetBaseColor(floor, cell);
 
 		//今いる層でなければ暗くする
 		if (!floor.IsForeground())
 		{
-			const float brightness = GameConfig::kLowerFloorBrightness;
+			const float brightness = LayerConfig::kLowerFloorBrightness;
 			return Vector4{ baseColor.x * brightness, baseColor.y * brightness, baseColor.z * brightness, baseColor.w };
 		}
 
-		//崩す予定でなければいつもの色に予告の色を混ぜる
-		if (!tile.isIsolated && tile.isPreview && tile.remaining < 0.0f)
-		{
-			const Vector4& previewColor = floor.GetPreviewColor();
-			const float t = floor.GetPreviewBlend();
-			return Vector4{
-				baseColor.x + (previewColor.x - baseColor.x) * t,
-				baseColor.y + (previewColor.y - baseColor.y) * t,
-				baseColor.z + (previewColor.z - baseColor.z) * t,
-				baseColor.w + (previewColor.w - baseColor.w) * t,
-			};
-		}
+		//予告のマスも中はいつもの色で、枠だけシェーダーで光らせる
 		return baseColor;
 	}
 }

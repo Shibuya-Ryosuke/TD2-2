@@ -1,5 +1,6 @@
 #include "LayerFloors.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/LayerConfig.h"
+#include "../../Config/TutorialConfig.h"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -85,10 +86,14 @@ namespace App
 	//index層目の床を作る
 	std::unique_ptr<Floor> LayerFloors::CreateFloor(int32_t index, bool isForeground) const
 	{
-		//6層目からは1層目に戻ってcsvを順に使う
-		const int32_t fileNumber = index % GameConfig::kLayerFileCount + 1;
-		const std::string path = "Resources/ApplicationResources/Stage/layer" + std::to_string(fileNumber) + ".csv";
-		const float height = -static_cast<float>(index) * GameConfig::kFloorSpacing;
+		//マイナスは1層目の上のチュートリアルで、6層目からは1層目に戻ってcsvを順に使う
+		std::string path = TutorialConfig::kCsvPath;
+		if (index >= 0)
+		{
+			const int32_t fileNumber = index % LayerConfig::kLayerFileCount + 1;
+			path = "Resources/ApplicationResources/Stage/layer" + std::to_string(fileNumber) + ".csv";
+		}
+		const float height = -static_cast<float>(index) * LayerConfig::kFloorSpacing;
 
 		//床を作って読み込む
 		std::unique_ptr<Floor> floor = std::make_unique<Floor>();
@@ -100,8 +105,8 @@ namespace App
 	Vector3 LayerFloors::GetSpawnPosition(const Floor& floor, int32_t firstLayerX, int32_t firstLayerZ)
 	{
 		//1層目のマスで指定した場所をこの層のマスの数に合わせる
-		int32_t x = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerX) + 0.5f) * static_cast<float>(floor.GetWidth()) / static_cast<float>(GameConfig::kFirstLayerWidth)));
-		int32_t z = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerZ) + 0.5f) * static_cast<float>(floor.GetDepth()) / static_cast<float>(GameConfig::kFirstLayerDepth)));
+		int32_t x = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerX) + 0.5f) * static_cast<float>(floor.GetWidth()) / static_cast<float>(LayerConfig::kFirstLayerWidth)));
+		int32_t z = static_cast<int32_t>(std::floor((static_cast<float>(firstLayerZ) + 0.5f) * static_cast<float>(floor.GetDepth()) / static_cast<float>(LayerConfig::kFirstLayerDepth)));
 
 		//床の外に出ないようにする
 		x = std::clamp(x, 0, floor.GetWidth() - 1);
