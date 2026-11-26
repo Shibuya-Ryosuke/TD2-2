@@ -45,7 +45,7 @@ namespace App
 
 		//チュートリアルから来たらその続きから、リトライならボス戦の最初から
 		health_.Reset();
-		bossHealth_ = BossConfig::kBossMaxHealth;
+		boss_->ResetHealth();
 		if (startMode_ == StartMode::AfterTutorial)
 		{
 			StartAfterTutorial();
@@ -57,9 +57,6 @@ namespace App
 		}
 		//次にこのシーンを開き直したらボス戦の最初から
 		startMode_ = StartMode::Battle;
-		boss_->ResetHealth();
-		floors_.Start(0);
-		ResetFloor(true);
 		UpdateVisuals();
 		//タイトルから来たら積み木が吹き飛ぶ演出から始まる
 		transition_.Initialize(camera_);

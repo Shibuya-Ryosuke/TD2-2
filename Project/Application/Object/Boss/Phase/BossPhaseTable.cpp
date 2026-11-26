@@ -1,6 +1,6 @@
 #include "BossPhaseTable.h"
 #include "../Boss.h"
-#include "../../../Config/GameConfig.h"
+#include "../../../Config/BossConfig.h"
 #include <RyoEngine.h>
 #include <algorithm>
 #include <cstring>
@@ -142,7 +142,7 @@ namespace App {
 
 		BossPhaseData phase{};
 		phase.name = "第1形態";
-		phase.maxHp = GameConfig::kBossMaxHealth;
+		phase.maxHp = BossConfig::kBossMaxHealth;
 		for (int32_t i = 0; i < kBossAttackTypeCount; ++i) {
 			BossCombo combo{};
 			combo.name = kBossAttackNames[i];

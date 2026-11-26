@@ -23,7 +23,8 @@ namespace App
 		boss_->SetActive(true);
 		boss_->Place(floors_.GetCurrent(), wakeStart_.bossPosition);
 		boss_->SetSleep(1.0f);
-		bossHealth_ = std::max(1, BossConfig::kBossMaxHealth - wakeStart_.bossDamage);
+		//チュートリアルで当てたダメージを入れる。ここで倒れないように1は残す
+		boss_->Damage(std::min(wakeStart_.bossDamage, boss_->GetHp() - 1));
 		bossWake_.Begin(wakeStart_.bossPosition);
 		phase_ = GamePhase::BossWake;
 	}
