@@ -8,6 +8,7 @@
 #include "../../Stage/Floor/Floor.h"
 #include "BossView.h"
 #include "Attack/Rush.h"
+#include "Attack/GroundPunch.h"
 
 namespace App
 {
@@ -22,6 +23,8 @@ namespace App
 		Boss& operator=(const Boss&) = delete;
 
 		void Initialize(); //体と拳と攻撃の予告のモデルを作る
+		//ボスの調整する値をまとめてParamEditorに登録する
+		void RegisterParams();
 
 		//攻撃を全部やめて床の上に置く
 		void Place(const Floor& floor, const RyoEngine::Vector3& position);
@@ -77,6 +80,7 @@ namespace App
 
 		// 警告表示で使う
 		const Rush& GetRush() const { return rush_; }
+		const GroundPunch& GetGroundPunch() const { return groundPunch_; }
 
 	private:
 		enum class PunchPhase
@@ -94,6 +98,8 @@ namespace App
 		void StartJump(const Floor& floor, const Cell& landing, float duration, bool isEvacuation = false); //landingのマスへduration秒で跳び始める
 		void AdvanceJump(const Floor& floor, const BossTuning& tuning, float deltaTime); //跳んでいる途中を進める
 		void LookAt(const RyoEngine::Vector3& direction); //その向きを向く
+		//1層分の強さをParamEditorに登録する
+		static void RegisterTuningParams(BossTuning& tuning);
 
 		//状態
 		RyoEngine::Vector3 position_{}; //足元の位置
@@ -134,6 +140,10 @@ namespace App
 
 		// 突進
 		Rush rush_{};
+
+		// 地面パンチ
+		GroundPunch groundPunch_{};
+		bool isGroundPunchRequested_ = false; //試し用: 次に行動を選ぶときに地面パンチする
 
 		//見た目
 		BossView view_;

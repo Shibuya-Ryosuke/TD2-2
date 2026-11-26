@@ -340,7 +340,7 @@
     <ClCompile Include="Engine\Graphics\3D\SkinningManager.cpp">
       <Filter>Engine\Graphics\3D</Filter>
     </ClCompile>
-    <ClCompile Include="Application\Object\Boss\Attack\ShockWave.cpp">
+    <ClCompile Include="Application\Object\Boss\Attack\GroundPunch.cpp">
       <Filter>Application\Object\Boss\Attack</Filter>
     </ClCompile>
     <ClCompile Include="Application\Object\Boss\Attack\Rush.cpp">
@@ -549,7 +549,7 @@
     <ClInclude Include="Engine\Graphics\Particle\ParticleTypes.h">
       <Filter>Engine\Graphics\Particle</Filter>
     </ClInclude>
-    <ClInclude Include="Application\Object\Boss\Attack\ShockWave.h">
+    <ClInclude Include="Application\Object\Boss\Attack\GroundPunch.h">
       <Filter>Application\Object\Boss\Attack</Filter>
     </ClInclude>
     <ClInclude Include="Application\Object\Boss\Attack\AttackBase.h">

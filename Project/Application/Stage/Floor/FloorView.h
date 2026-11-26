@@ -28,6 +28,8 @@ namespace App
 		void Update(const Floor& floor);
 		//着地の強さで着地したマスからぷるるんと揺らす
 		void Jiggle(const Floor& floor, const Cell& center, float power);
+		//地面パンチで、歩数だけ遅らせてマスを跳ねさせる
+		void Bounce(const std::vector<int32_t>& steps, float height, float stepDelay, float speed, float damping);
 
 		//見えているタイルを描く
 		void Draw(const Floor& floor);

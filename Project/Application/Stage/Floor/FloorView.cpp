@@ -91,6 +91,11 @@ namespace App
 		jiggle_.Trigger(floor, center, power);
 	}
 
+	//地面パンチで、歩数だけ遅らせてマスを跳ねさせる
+	void FloorView::Bounce(const std::vector<int32_t>& steps, float height, float stepDelay, float speed, float damping) {
+		jiggle_.TriggerBounce(steps, height, stepDelay, speed, damping);
+	}
+
 	//見えているタイルを描く
 	void FloorView::Draw(const Floor& floor)
 	{

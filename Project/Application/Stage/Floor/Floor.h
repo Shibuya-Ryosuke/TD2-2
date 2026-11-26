@@ -47,6 +47,8 @@ namespace App
 
 		//着地したマスから見た目だけぷるるんと揺らす
 		void Jiggle(const Cell& center, float power) { view_.Jiggle(*this, center, power); }
+		//地面パンチで、歩数だけ遅らせてマスを跳ねさせる
+		void Bounce(const std::vector<int32_t>& steps, float height, float stepDelay, float speed, float damping) { view_.Bounce(steps, height, stepDelay, speed, damping); }
 
 		//タイル
 		size_t GetTileCount() const { return tiles_.size(); }

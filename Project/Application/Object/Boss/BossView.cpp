@@ -46,6 +46,15 @@ namespace App
 		punchTell_->SetCastShadow(false);
 	}
 
+	//調整する値をParamEditorに登録する
+	void BossView::RegisterParams() {
+		ParamEditor::BeginGroup("警告の板");
+		ParamEditor::RegisterValue("床からの高さ", &rushTellY_, 0.005f, 0.0f, 2.0f);
+		ParamEditor::RegisterValue("板の厚さ", &rushTellHeight_, 0.005f, 0.001f, 1.0f);
+		ParamEditor::RegisterValue("1マスに対する大きさ", &rushTellScale_, 0.01f, 0.1f, 1.0f);
+		ParamEditor::EndGroup();
+	}
+
 	//ボスの位置と向きと攻撃に合わせて行列を確定する
 	void BossView::Update(const Boss& boss)
 	{
@@ -79,9 +88,12 @@ namespace App
 		punchTell_->TransferMatrix();
 
 
-		//突進のルートのマスに警告の板を置く
+		//突進のルートと地面パンチの十字のマスに警告の板を置く
 		const Rush& rush = boss.GetRush();
-		const std::vector<Vector3>& centers = rush.GetRouteCenters();
+		const GroundPunch& groundPunch = boss.GetGroundPunch();
+		std::vector<Vector3> centers = rush.GetRouteCenters();
+		const std::vector<Vector3>& punchCenters = groundPunch.GetWarningCenters();
+		centers.insert(centers.end(), punchCenters.begin(), punchCenters.end());
 		rushTellCount_ = static_cast<int32_t>(centers.size());
 
 		//足りない分だけ板を作る
@@ -92,7 +104,11 @@ namespace App
 			rushTells_.push_back(std::move(tell));
 		}
 
-		const Vector2& tileSize = rush.GetTileSize();
+		//突進を使っていなければ地面パンチのマスの大きさを使う
+		Vector2 tileSize = rush.GetTileSize();
+		if (!rush.IsActive()) {
+			tileSize = groundPunch.GetTileSize();
+		}
 		for (size_t i = 0; i < centers.size(); ++i) {
 			Model& tell = *rushTells_[i];
 			tell.SetScale(CubeScale({ tileSize.x * rushTellScale_, rushTellHeight_, tileSize.y * rushTellScale_ }));

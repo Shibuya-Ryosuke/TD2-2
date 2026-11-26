@@ -16,7 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\Object\Boss\Attack\Rush.cpp" />
-    <ClCompile Include="Application\Object\Boss\Attack\ShockWave.cpp" />
+    <ClCompile Include="Application\Object\Boss\Attack\GroundPunch.cpp" />
     <ClCompile Include="Engine\Graphics\3D\Animator.cpp" />
     <ClCompile Include="Engine\Graphics\3D\SkinningManager.cpp" />
     <ClCompile Include="Engine\Graphics\Particle\ParticleCommon.cpp" />
@@ -78,7 +78,7 @@
   <ItemGroup>
     <ClInclude Include="Application\Object\Boss\Attack\AttackBase.h" />
     <ClInclude Include="Application\Object\Boss\Attack\Rush.h" />
-    <ClInclude Include="Application\Object\Boss\Attack\ShockWave.h" />
+    <ClInclude Include="Application\Object\Boss\Attack\GroundPunch.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleCommon.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleEmitter.h" />
     <ClInclude Include="Engine\Graphics\Particle\ParticleManager.h" />

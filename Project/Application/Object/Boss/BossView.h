@@ -19,6 +19,8 @@ namespace App
 
 		//mtlの色のままのボスのモデルと拳と予告を作る
 		void Initialize();
+		//調整する値をParamEditorに登録する
+		void RegisterParams();
 		//ボスの位置と向きと攻撃に合わせて行列を確定する
 		void Update(const Boss& boss);
 		//倒したボス以外の体と、パンチ中の拳と予告を描く

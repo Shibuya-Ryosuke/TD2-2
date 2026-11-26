@@ -59,6 +59,21 @@ namespace App
 			player.ApplyKnockback(floor, boss.GetPunchPushDirection(), tuning.punchPushSpeed, tuning.punchPushDuration, tuning.punchLiftSpeed, false);
 		}
 
+		//地面パンチが地面を叩いたら、歩数だけ遅らせて盤面を跳ねさせる
+		const GroundPunch& groundPunch = boss.GetGroundPunch();
+		if (groundPunch.IsImpactThisTick()) {
+			floor.Bounce(groundPunch.GetSteps(), groundPunch.GetBounceHeight(), groundPunch.GetWaveStepDelay(),
+				groundPunch.GetBounceSpeed(), groundPunch.GetBounceDamping());
+		}
+		//地面パンチが当たったら、外へ向かってマスの数だけ吹っ飛ばす
+		if (wasVulnerable && groundPunch.IsHitThisTick()) {
+			const Cell& direction = groundPunch.GetKnockbackDirection();
+			const Vector3 push = { static_cast<float>(direction.x), 0.0f, static_cast<float>(direction.z) };
+			const float tileSize = (direction.x != 0) ? floor.GetTileSizeX() : floor.GetTileSizeZ();
+			const float distance = tileSize * static_cast<float>(groundPunch.GetKnockbackCells());
+			player.ApplyKnockback(floor, push, distance / tuning.punchPushDuration, tuning.punchPushDuration, tuning.punchLiftSpeed, false);
+		}
+
 		//ボスの着地した所が穴か切り離された島なら落ちる
 		if (boss.LandedThisTick())
 		{

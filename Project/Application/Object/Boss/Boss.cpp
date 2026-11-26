@@ -4,6 +4,8 @@
 #include "BossPlanner.h"
 #include "BossDetail.h"
 #include <algorithm>
+#include <array>
+#include <string>
 #include <cmath>
 #include <numbers>
 
@@ -17,6 +19,72 @@ namespace App
 		//体と拳と攻撃の予告のモデルはBossViewが作る
 		view_.Initialize();
 		fistLocal_ = kFistRest;
+		RegisterParams();
+	}
+
+	//ボスの調整する値をまとめてParamEditorに登録する
+	void Boss::RegisterParams() {
+		ParamEditor::BeginGroup("Boss");
+		groundPunch_.RegisterParams();
+		view_.RegisterParams();
+
+		//層ごとの強さ。6層目からは1層目に戻る
+		ParamEditor::BeginGroup("層ごとの強さ");
+		std::array<BossTuning, kBossTuningLayerCount>& table = GetBossTuningTable();
+		for (int32_t i = 0; i < kBossTuningLayerCount; ++i) {
+			ParamEditor::BeginGroup(std::to_string(i + 1) + "層目");
+			RegisterTuningParams(table[static_cast<size_t>(i)]);
+			ParamEditor::EndGroup();
+		}
+		ParamEditor::EndGroup();
+
+		ParamEditor::EndGroup();
+	}
+
+	//1層分の強さをParamEditorに登録する
+	//長さと速さは床の大きさの倍率をかける前の値
+	void Boss::RegisterTuningParams(BossTuning& tuning) {
+		ParamEditor::RegisterValue("移動の速さ", &tuning.moveSpeed, 0.01f, 0.0f, 20.0f);
+		ParamEditor::RegisterValue("ダメージ", &tuning.damage, 1.0f, 0, 10);
+
+		ParamEditor::BeginGroup("近接攻撃");
+		ParamEditor::RegisterValue("届く距離", &tuning.meleeRange, 0.01f, 0.0f, 10.0f);
+		ParamEditor::RegisterValue("予告の秒数", &tuning.meleeWindup, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("上下に届く距離", &tuning.meleeHeight, 0.01f, 0.0f, 10.0f);
+		ParamEditor::EndGroup();
+
+		ParamEditor::BeginGroup("ジャンプ");
+		ParamEditor::RegisterFlag("穴を飛び越える", &tuning.canJump);
+		ParamEditor::RegisterValue("跳ぶ高さ", &tuning.jumpHeight, 0.01f, 0.0f, 10.0f);
+		ParamEditor::RegisterValue("逃げるときに跳ぶ秒数", &tuning.jumpDuration, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("着地の余裕の秒数", &tuning.landingSafetyMargin, 0.01f, 0.0f, 5.0f);
+		ParamEditor::EndGroup();
+
+		ParamEditor::BeginGroup("パンチ");
+		ParamEditor::RegisterFlag("使う", &tuning.punch);
+		ParamEditor::RegisterValue("届く距離", &tuning.punchRange, 0.01f, 0.0f, 20.0f);
+		ParamEditor::RegisterValue("横の幅", &tuning.punchWidth, 0.01f, 0.0f, 20.0f);
+		ParamEditor::RegisterValue("予告の秒数", &tuning.punchWindup, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("拳が伸びる秒数", &tuning.punchStrikeDuration, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("拳が戻る秒数", &tuning.punchRecovery, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("はじく速さ", &tuning.punchPushSpeed, 0.1f, 0.0f, 50.0f);
+		ParamEditor::RegisterValue("はじかれる秒数", &tuning.punchPushDuration, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("浮く速さ", &tuning.punchLiftSpeed, 0.1f, 0.0f, 20.0f);
+		ParamEditor::EndGroup();
+
+		ParamEditor::BeginGroup("突進");
+		ParamEditor::RegisterValue("ためる秒数", &tuning.rushWindup, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("速さ", &tuning.rushSpeed, 0.1f, 0.0f, 50.0f);
+		ParamEditor::RegisterValue("硬直の秒数", &tuning.rushRecovery, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("最大の距離", &tuning.rushMaxDistance, 0.5f, 0.0f, 200.0f);
+		ParamEditor::RegisterValue("体の半径", &tuning.rushBodyRadius, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("当たる距離", &tuning.rushHitRadius, 0.01f, 0.0f, 5.0f);
+		ParamEditor::EndGroup();
+
+		ParamEditor::BeginGroup("地面パンチ");
+		ParamEditor::RegisterValue("予備動作の秒数", &tuning.groundPunchAnnouncement, 0.01f, 0.0f, 5.0f);
+		ParamEditor::RegisterValue("硬直の秒数", &tuning.groundPunchRecovery, 0.01f, 0.0f, 5.0f);
+		ParamEditor::EndGroup();
 	}
 
 	//攻撃を全部やめて床の上に置く
@@ -38,6 +106,7 @@ namespace App
 		isJumping_ = false;
 		CancelPunch();
 		rush_.Cancel();
+		groundPunch_.Cancel();
 		isMeleeTellVisible_ = false;
 	}
 
@@ -79,7 +148,7 @@ namespace App
 	//跳んでいるか攻撃中か
 	bool Boss::IsBusy() const
 	{
-		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive();
+		return isJumping_ || isWindingUp_ || punchPhase_ != PunchPhase::None || rush_.IsActive() || groundPunch_.IsActive();
 	}
 
 	int32_t Boss::Tick(const Floor& floor, const Vector3& target, const BossTuning& tuning, float moveSpeed, float deltaTime)
@@ -97,6 +166,10 @@ namespace App
 			rush_.Start(floor, position_, target, tuning);
 			LookAt(rush_.GetForward());
 		}
+		//試し用: Gキーを押したら、次に行動を選ぶときに地面パンチする
+		if (Input::TriggerKey(DIK_G)) {
+			isGroundPunchRequested_ = true;
+		}
 #endif
 
 		//突進中はそれだけ進める
@@ -109,6 +182,11 @@ namespace App
 				next_ = cell_;
 			}
 			return damage;
+		}
+
+		//地面パンチ中はそれだけ進める
+		if (groundPunch_.IsActive()) {
+			return groundPunch_.Update(floor, position_, target, tuning, deltaTime);
 		}
 
 		//やりかけのパンチとジャンプはそれだけ進める
@@ -145,6 +223,13 @@ namespace App
 		if (isEvacuating_ && floor.GetCellAt(position_) == evacuationDestination_)
 		{
 			isEvacuating_ = false;
+		}
+
+		//試し用の地面パンチの予約があれば、行動を選ぶ代わりに地面パンチする
+		if (isGroundPunchRequested_) {
+			isGroundPunchRequested_ = false;
+			groundPunch_.Start(floor, position_, target, tuning);
+			return 0;
 		}
 
 		//BossPlannerで何をするか決める
@@ -211,6 +296,7 @@ namespace App
 		}
 		//攻撃をやめて行き先と時間と始まりの位置を決める
 		CancelPunch();
+		groundPunch_.Cancel();
 		isWindingUp_ = false;
 		isMeleeTellVisible_ = false;
 		isJumping_ = true;

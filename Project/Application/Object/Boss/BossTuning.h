@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cstdint>
 #include "../../Config/GameConfig.h"
 
@@ -43,6 +44,10 @@ namespace App
 		float rushMaxDistance = 100.0f; //どこまで突っ込むか
 		float rushBodyRadius = 0.5f;    //ルートを調べる体の半径
 		float rushHitRadius = 1.0f;     //プレイヤーに当たる距離
+
+		//地面パンチ
+		float groundPunchAnnouncement = 1.0f; //予備動作の秒数
+		float groundPunchRecovery = 0.6f;     //硬直の秒数
 	};
 
 	//何層目のボスの強さを長さの倍率をかける前の数字で作る
@@ -90,10 +95,32 @@ namespace App
 		return tuning;
 	}
 
+	//層ごとの強さの数。6層目からは1層目に戻る
+	inline constexpr int32_t kBossTuningLayerCount = 5;
+
+	//ParamEditorで変えられるように、層ごとの強さをしまっておく表
+	//最初はMakeBossTuningの値で埋める
+	inline std::array<BossTuning, kBossTuningLayerCount>& GetBossTuningTable() {
+		static std::array<BossTuning, kBossTuningLayerCount> table = [] {
+			std::array<BossTuning, kBossTuningLayerCount> result{};
+			for (int32_t i = 0; i < kBossTuningLayerCount; ++i) {
+				result[static_cast<size_t>(i)] = MakeBossTuning(i);
+			}
+			return result;
+		}();
+		return table;
+	}
+
 	//床の大きさに合わせて速さと届く距離を長さの倍率で大きくした何層目のボスの強さ
 	inline BossTuning GetBossTuning(int32_t layerIndex)
 	{
-		BossTuning tuning = MakeBossTuning(layerIndex);
+		//表から読むので、ParamEditorで変えた値がそのまま使われる
+		int32_t index = layerIndex % kBossTuningLayerCount;
+		if (index < 0)
+		{
+			index = 0;
+		}
+		BossTuning tuning = GetBossTuningTable()[static_cast<size_t>(index)];
 		const float scale = GameConfig::kWorldScale;
 		tuning.moveSpeed *= scale;
 		tuning.meleeRange *= scale;
