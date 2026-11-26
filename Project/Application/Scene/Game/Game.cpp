@@ -2,7 +2,9 @@
 #include "../Clear/Clear.h"
 #include "../GameOver/GameOver.h"
 #include "../../Camera/StageCamera.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
+#include "../../Config/LayerConfig.h"
+#include "../../Config/PlayerConfig.h"
 #include "../../Input/GameInput.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Boss/Phase/BossPhaseTable.h"
@@ -41,8 +43,20 @@ namespace App
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// items_.Initialize();
 
-		//ゲーム開始
+		//チュートリアルから来たらその続きから、リトライならボス戦の最初から
 		health_.Reset();
+		bossHealth_ = BossConfig::kBossMaxHealth;
+		if (startMode_ == StartMode::AfterTutorial)
+		{
+			StartAfterTutorial();
+		}
+		else
+		{
+			floors_.Start(0);
+			ResetFloor(true);
+		}
+		//次にこのシーンを開き直したらボス戦の最初から
+		startMode_ = StartMode::Battle;
 		boss_->ResetHealth();
 		floors_.Start(0);
 		ResetFloor(true);
@@ -110,6 +124,18 @@ namespace App
 		health_.Update(deltaTime);
 		player_->SetVisible(health_.IsVisible());
 
+		//ボスが起きる所と穴に落ちた流れはそれぞれで動かす
+		if (phase_ == GamePhase::BossWake)
+		{
+			UpdateBossWake(deltaTime);
+			return;
+		}
+		if (phase_ == GamePhase::PlayerFall)
+		{
+			UpdatePlayerFall(deltaTime);
+			return;
+		}
+
 		//ボスが落ちて足場が飛んでいく間はプレイヤーは動かせない
 		if (BossFallFlow::IsLockedPhase(phase_))
 		{
@@ -167,7 +193,7 @@ namespace App
 	//ボスを落とす流れを進める
 	void Game::UpdateBossFall(float deltaTime)
 	{
-		const BossFallFlow::Result result = bossFall_.Update(deltaTime, floors_, *player_, *boss_, *camera_);
+		const BossFallFlow::Result result = bossFall_.Update(deltaTime, floors_, *player_, *boss_, *camera_, direction_);
 		DamageBoss(result.bossDamage);
 
 		//揺れ終わったとき切り離された床にいたらプレイヤーも落ちる
@@ -217,8 +243,12 @@ namespace App
 	//見た目を確定する
 	void Game::UpdateVisuals()
 	{
+		//層を降りる間は落ちる線を出し、揺れはカメラに渡す
+		const bool isFalling = playerFall_.IsFalling() || bossFall_.IsPlayerFalling();
+		direction_.Update(health_, isFalling, *player_, *boss_, floors_.GetCurrent());
+		camera_->SetShakeOffset(direction_.GetShakeOffset());
+
 		//戦闘中だけ床に正面の1マスの予告を出す
-		direction_.Update(health_, phase_, *player_, *boss_, floors_.GetCurrent());
 		action_.UpdatePreview(floors_.GetCurrent(), *player_, phase_ == GamePhase::Battle);
 		floors_.UpdateVisuals();
 		player_->UpdateVisuals();
@@ -272,7 +302,7 @@ namespace App
 		Vector3 fallingFrom = boss_->GetPosition();
 		if (!keepBossLanding)
 		{
-			fallingFrom = LayerFloors::GetSpawnPosition(floor, GameConfig::kBossSpawnX, GameConfig::kBossSpawnZ);
+			fallingFrom = LayerFloors::GetSpawnPosition(floor, LayerConfig::kBossSpawnX, LayerConfig::kBossSpawnZ);
 		}
 		const Vector3 bossPosition = SpawnPlanner::FindBossPosition(floor, fallingFrom);
 		player_->Place(SpawnPlanner::FindPlayerPosition(floor, bossPosition));
@@ -287,19 +317,18 @@ namespace App
 		return floors_.GetCurrent().GetCellAt(player_->GetPosition());
 	}
 
-	//穴に落ちたらハートを減らしてやり直す
+	//穴に落ちたらハートを減らして、じたばた下の層へ落ちる
 	void Game::FailFall()
 	{
-		//生きていれば床を戻して少しの間無敵
 		health_.ClearInvincible();
-		health_.Damage(GameConfig::kFallDamage);
+		health_.Damage(PlayerConfig::kFallDamage);
 		if (health_.IsDead())
 		{
 			Defeat();
 			return;
 		}
-		ResetFloor(true);
-		health_.StartInvincible();
+		playerFall_.Begin(floors_, *player_, *boss_);
+		phase_ = GamePhase::PlayerFall;
 	}
 
 	//HPが0になったらボスを止めてゲームオーバー
@@ -348,14 +377,19 @@ namespace App
 		phase_ = bossFall_.GetPhase();
 	}
 
-	//下の層に着いたらハートを少し回復してキャラを置き直す
+	//ボスが下の層に着いたらハートを少し回復して、ボスを置き直してプレイヤーが尻もちをつく所を決める
 	void Game::OnArrivedBelow()
 	{
 		//[アイテム] 新しい層でアイテムがまた出るようにするのでコメントアウト
 		// items_.ResetForNewLayer();
-		health_.Heal(GameConfig::kDescentHeal);
+		health_.Heal(PlayerConfig::kDescentHeal);
 		health_.ClearInvincible();
-		PlaceActors(true);
+		const Floor& floor = floors_.GetCurrent();
+		const Vector3 bossPosition = SpawnPlanner::FindBossPosition(floor, boss_->GetPosition());
+		battle_.Reset();
+		boss_->SetActive(true);
+		boss_->Place(floor, bossPosition);
+		bossFall_.SetPlayerLanding(SpawnPlanner::FindPlayerPosition(floor, bossPosition));
 	}
 
 	//足場を飛ばし終わったらクリアか次の戦闘へ

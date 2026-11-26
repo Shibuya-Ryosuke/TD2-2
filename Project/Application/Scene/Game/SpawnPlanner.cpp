@@ -1,5 +1,7 @@
 #include "SpawnPlanner.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
+#include "../../Config/LayerConfig.h"
+#include "../../Config/PlayerConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <algorithm>
 #include <cmath>
@@ -47,7 +49,7 @@ namespace App
 	//ボスの体の半分とプレイヤーの半径に少し足した近さ
 	float SpawnPlanner::GetContactSpacing()
 	{
-		return std::max(GameConfig::kBossContactSizeX, GameConfig::kBossContactSizeZ) * 0.5f + GameConfig::kPlayerContactRadius + 0.1f;
+		return std::max(BossConfig::kBossContactSizeX, BossConfig::kBossContactSizeZ) * 0.5f + PlayerConfig::kPlayerContactRadius + 0.1f;
 	}
 
 	//カメラの右と画面の上を地面に平らにした向き
@@ -126,6 +128,31 @@ namespace App
 		return best;
 	}
 
+	//positionの真下にいちばん近い立てる床の真ん中
+	Vector3 SpawnPlanner::FindNearestStand(const Floor& floor, const Vector3& position)
+	{
+		Vector3 best = GetCenterPosition(floor);
+		float bestDistance = std::numeric_limits<float>::infinity();
+		for (int32_t z = 0; z < floor.GetDepth(); ++z)
+		{
+			for (int32_t x = 0; x < floor.GetWidth(); ++x)
+			{
+				if (!CanStand(floor, x, z))
+				{
+					continue;
+				}
+				const Vector3 center = floor.GetCellCenter({ x, z });
+				const float distance = FlatDistanceSquared(center, position);
+				if (distance < bestDistance)
+				{
+					bestDistance = distance;
+					best = center;
+				}
+			}
+		}
+		return best;
+	}
+
 	//プレイヤーを反対側に置けたらtrueで、置けないときはいちばん遠いマスをbestに入れる
 	bool SpawnPlanner::TryFindPlayerPosition(const Floor& floor, const Vector3& bossPosition, Vector3& best)
 	{
@@ -136,7 +163,7 @@ namespace App
 		float farthestTiles = -1.0f;
 		Vector3 farthest = best;
 		const float spacing = GetContactSpacing();
-		const float minTiles = GameConfig::kMinSpawnDistanceTiles;
+		const float minTiles = LayerConfig::kMinSpawnDistanceTiles;
 
 		for (int32_t z = 0; z < floor.GetDepth(); ++z)
 		{

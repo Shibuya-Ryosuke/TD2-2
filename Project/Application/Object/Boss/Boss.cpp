@@ -416,7 +416,15 @@ namespace App
 
 	void Boss::UpdateVisuals()
 	{
+		//当たってつぶれたのがだんだん戻る
+		flinch_ = std::max(0.0f, flinch_ - RyoEngine::GetDeltaTime() * GameConfig::kBossFlinchRecover);
 		view_.Update(*this);
+	}
+
+	//足場が当たってむぎゅっとつぶれる
+	void Boss::Flinch(float power)
+	{
+		flinch_ = std::min(1.0f, std::max(flinch_, power));
 	}
 
 	//体と拳と攻撃の予告を描く

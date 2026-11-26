@@ -1,6 +1,6 @@
 #include "PlayerAnimation.h"
 #include "../../Config/DirectionConfig.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/PlayerConfig.h"
 
 using namespace RyoEngine;
 
@@ -38,16 +38,22 @@ namespace App
 		Play(DirectionConfig::kPlayerIdleClip, true, 1.0f, State::Idle);
 	}
 
+	//まっすぐ立った待機の最初の姿勢で止めて、脚を動かすシェーダーが使いやすいようにする
+	void PlayerAnimation::Freeze()
+	{
+		Play(DirectionConfig::kPlayerIdleClip, true, 0.0f, State::Frozen);
+	}
+
 	//1回跳ぶ
 	void PlayerAnimation::PlayJump()
 	{
-		//ハンマーを振っている間は振るアニメーションを最後まで見せる
-		if (IsSwinging())
+		//ハンマーを振っている間は振るアニメーションを最後まで見せ、止めている間は止めたまま
+		if (IsSwinging() || state_ == State::Frozen)
 		{
 			return;
 		}
 		//アニメーションで足が床に着くときにちょうど1マス跳び終わる速さ
-		const float speed = DirectionConfig::kPlayerJumpLandTime / GameConfig::kJumpDuration;
+		const float speed = DirectionConfig::kPlayerJumpLandTime / PlayerConfig::kJumpDuration;
 		Play(DirectionConfig::kPlayerJumpClip, false, speed, State::Jump);
 	}
 
@@ -67,9 +73,11 @@ namespace App
 	void PlayerAnimation::Update()
 	{
 		//ハンマーが床に当たったら首かしげはゆっくり見せる
+		isImpactNow_ = false;
 		if (state_ == State::Swing && !isAfterImpact_ && body_->GetAnimationTime() >= DirectionConfig::kPlayerSwingImpactTime)
 		{
 			isAfterImpact_ = true;
+			isImpactNow_ = true;
 			body_->SetAnimationSpeed(DirectionConfig::kPlayerSwingAfterSpeed);
 		}
 

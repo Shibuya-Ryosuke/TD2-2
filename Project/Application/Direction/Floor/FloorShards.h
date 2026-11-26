@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <memory>
 #include <random>
-#include "../../Config/GameConfig.h"
 #include "../../Config/DirectionConfig.h"
 
 namespace App

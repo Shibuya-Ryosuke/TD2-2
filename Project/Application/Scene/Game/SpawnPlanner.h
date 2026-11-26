@@ -16,6 +16,9 @@ namespace App
 		//ボスの反対側で決めたマス数より離れたプレイヤーの位置
 		static RyoEngine::Vector3 FindPlayerPosition(const Floor& floor, const RyoEngine::Vector3& bossPosition);
 
+		//positionの真下にいちばん近い立てる床の真ん中で、どこにもなければ床の真ん中
+		static RyoEngine::Vector3 FindNearestStand(const Floor& floor, const RyoEngine::Vector3& position);
+
 	private:
 		//プレイヤーを反対側に置けたらtrueで、置けないときはいちばん遠いマスをbestに入れる
 		static bool TryFindPlayerPosition(const Floor& floor, const RyoEngine::Vector3& bossPosition, RyoEngine::Vector3& best);

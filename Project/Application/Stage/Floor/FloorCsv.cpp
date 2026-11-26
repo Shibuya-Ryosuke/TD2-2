@@ -73,16 +73,24 @@ namespace App
 		layout.width = static_cast<int32_t>(maxWidth);
 		layout.depth = static_cast<int32_t>(rows.size());
 
-		//CSVの一番下の行が手前になるように並べ直す
+		//CSVの一番下の行が手前になるように並べ直し、1以上は床で数字も残す
 		layout.solid.assign(static_cast<size_t>(layout.width * layout.depth), false);
+		layout.codes.assign(static_cast<size_t>(layout.width * layout.depth), 0);
 		for (int32_t z = 0; z < layout.depth; ++z)
 		{
 			const std::vector<int32_t>& row = rows[static_cast<size_t>(layout.depth - 1 - z)];
 			for (int32_t x = 0; x < layout.width; ++x)
 			{
-				if (static_cast<size_t>(x) < row.size() && row[static_cast<size_t>(x)] == 1)
+				if (static_cast<size_t>(x) >= row.size())
 				{
-					layout.solid[static_cast<size_t>(z * layout.width + x)] = true;
+					continue;
+				}
+				const int32_t code = row[static_cast<size_t>(x)];
+				const size_t index = static_cast<size_t>(z * layout.width + x);
+				layout.codes[index] = code;
+				if (code >= 1)
+				{
+					layout.solid[index] = true;
 				}
 			}
 		}
@@ -96,6 +104,7 @@ namespace App
 		layout.width = width;
 		layout.depth = depth;
 		layout.solid.assign(static_cast<size_t>(width * depth), true);
+		layout.codes.assign(static_cast<size_t>(width * depth), 1);
 		return layout;
 	}
 }

@@ -90,10 +90,22 @@ namespace App
 		void Shake(float elapsed, float amplitude, float frequency);
 		//見た目を残して切り離された床を穴にする
 		void Release();
+		//切り離されて落ちていく床のマス
+		const std::vector<Cell>& GetDroppingCells() const { return dropping_; }
 		//切り離された床をdistanceだけ下げる
 		void AnimateDrop(float distance);
 		//穴になった床を全部消す
 		void FinishDrop();
+
+		//演出とチュートリアルから床を直接いじる
+		//見えているタイルを全部rateの大きさにして、0なら消す
+		void ShrinkAll(float rate);
+		//穴になったマスをCSVのときの床に戻して、戻せたらtrue
+		bool RestoreTile(const Cell& cell);
+		//崩す予定のマスの穴になるまでの残りを、ハンマーが当たった瞬間に合わせ直す
+		void SyncCollapse(const Cell& cell, float remaining);
+		//残っている床の崩れる予定を全部やめる
+		void CancelCollapses();
 
 	private:
 		void OpenHole(const Cell& cell); //穴にする

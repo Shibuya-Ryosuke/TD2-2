@@ -1,27 +1,80 @@
 #include "StageCamera.h"
+#include <cmath>
 
 using namespace RyoEngine;
 
 namespace App
 {
-	//位置と向きをImGuiで調整できるようにする
+	//位置と向きと広さをImGuiで調整できるようにする
 	void StageCamera::Initialize()
 	{
 		//縦横比などの初期値はエンジンに任せる
 		Camera::Initialize();
-
-		//原点を見下ろす向き
-		rotate_ = { 0.7183f, -0.5779f, 0.0f };
 		nearZ_ = 0.3f;
 		farZ_ = 100.0f;
 
+		//ImGuiの値はシーンをまたいで残るので、ゲーム中に書きかえない値だけを登録する
 		ParamEditor::BeginGroup("StageCamera");
 		ParamEditor::RegisterValue("位置 (1層目)", &origin_, 0.1f, -100.0f, 100.0f);
-		ParamEditor::RegisterValue("向き (ラジアン)", &rotate_, 0.01f, -3.14f, 3.14f);
-		ParamEditor::RegisterValue("映す広さ (縦の半分)", &orthoSize_, 0.1f, 1.0f, 100.0f);
+		ParamEditor::RegisterValue("向き (ラジアン)", &baseRotate_, 0.01f, -3.14f, 3.14f);
+		ParamEditor::RegisterValue("映す広さ (縦の半分)", &baseOrthoSize_, 0.1f, 1.0f, 100.0f);
 		ParamEditor::EndGroup();
 
+		//前のシーンで寄せたままにならないように、いつもの映し方から始める
+		ResetShot();
 		Update();
+	}
+
+	//寄せる・ずらす・傾ける・揺らすを全部やめる
+	void StageCamera::ResetShot()
+	{
+		focusOffset_ = { 0.0f, 0.0f, 0.0f };
+		zoomOrthoSize_ = 0.0f;
+		pitchOffset_ = 0.0f;
+		shakeOffset_ = { 0.0f, 0.0f, 0.0f };
+	}
+
+	//寄せていなければいつもの広さ
+	float StageCamera::GetOrthoSize() const
+	{
+		if (zoomOrthoSize_ > 0.0f)
+		{
+			return zoomOrthoSize_;
+		}
+		return baseOrthoSize_;
+	}
+
+	//床の高さとずらした分と揺れを足したカメラの位置
+	Vector3 StageCamera::GetViewPosition() const
+	{
+		return
+		{
+			origin_.x + focusOffset_.x + shakeOffset_.x,
+			origin_.y + floorHeight_ + focusOffset_.y + shakeOffset_.y,
+			origin_.z + focusOffset_.z + shakeOffset_.z
+		};
+	}
+
+	//いつもの向きに縦の傾きを足す
+	Vector3 StageCamera::GetViewRotate() const
+	{
+		return { baseRotate_.x + pitchOffset_, baseRotate_.y, baseRotate_.z };
+	}
+
+	//傾けた分も入れた正面の向き
+	Vector3 StageCamera::GetViewForward() const
+	{
+		return Normalize(TransformVector3({ 0.0f, 0.0f, 1.0f }, MakeRotateMatrix(GetViewRotate())));
+	}
+
+	//ずらす前の位置から見て、正面の向きに垂直な分だけずらせばその点が真ん中に来る
+	Vector3 StageCamera::GetCenteringOffset(const Vector3& target) const
+	{
+		const Vector3 cameraPosition = { origin_.x, origin_.y + floorHeight_, origin_.z };
+		const Vector3 forward = GetViewForward();
+		const Vector3 toTarget = target - cameraPosition;
+		const float depth = toTarget.x * forward.x + toTarget.y * forward.y + toTarget.z * forward.z;
+		return toTarget - forward * depth;
 	}
 
 	//平行投影でカメラの行列を毎フレーム作る
@@ -33,21 +86,38 @@ namespace App
 			return;
 		}
 
-		//今映している床の高さの分だけ上下する
+		//今映している床の高さの分だけ上下して、傾けた分も向きに入れる
 		translate_ = GetViewPosition();
+		rotate_ = GetViewRotate();
 
 		//カメラのワールド行列の逆行列がビュー行列
 		const Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f, 1.0f, 1.0f }, rotate_, translate_);
 		viewMatrix_ = Inverse(cameraMatrix);
 
 		//平行投影のプロジェクション行列
-		const float halfHeight = orthoSize_;
-		const float halfWidth = orthoSize_ * aspectRatio_;
+		const float halfHeight = GetOrthoSize();
+		const float halfWidth = halfHeight * aspectRatio_;
 		projectionMatrix_ = MakeOrthographicMatrix(-halfWidth, halfHeight, halfWidth, -halfHeight, nearZ_, farZ_);
 
 		viewProjectionMatrix_ = viewMatrix_ * projectionMatrix_;
 
 		//画面外のモデルを省くための6平面を作り直す
 		UpdateFrustumPlanes();
+	}
+
+	//ワールドの位置を1920x1080が基準のデバッグ表示の画面の位置にする
+	Vector2 StageCamera::WorldToScreen(const Vector3& world) const
+	{
+		const Matrix4x4& m = GetViewProjectionMatrix();
+		const float x = world.x * m.m[0][0] + world.y * m.m[1][0] + world.z * m.m[2][0] + m.m[3][0];
+		const float y = world.x * m.m[0][1] + world.y * m.m[1][1] + world.z * m.m[2][1] + m.m[3][1];
+		float w = world.x * m.m[0][3] + world.y * m.m[1][3] + world.z * m.m[2][3] + m.m[3][3];
+		if (std::abs(w) < 0.0001f)
+		{
+			w = 1.0f;
+		}
+		const float width = static_cast<float>(DirectXCommon::GetGameWidth());
+		const float height = static_cast<float>(DirectXCommon::GetGameHeight());
+		return { (x / w * 0.5f + 0.5f) * width, (0.5f - y / w * 0.5f) * height };
 	}
 }

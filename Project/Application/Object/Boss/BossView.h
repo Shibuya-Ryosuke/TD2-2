@@ -27,10 +27,12 @@ namespace App
 		void Draw(const Boss& boss);
 
 	private:
+		void UpdateBody(const Boss& boss); //立っているか仰向けに寝ているかで体の行列を確定する
 		std::unique_ptr<RyoEngine::Model> body_{}; //ボスのモデル
 		std::unique_ptr<RyoEngine::Model> fist_{}; //パンチ中だけ出す箱の拳
 		std::unique_ptr<RyoEngine::Model> meleeTell_{}; //足元の板の近接攻撃の予告
 		std::unique_ptr<RyoEngine::Model> punchTell_{}; //前にのびる板のパンチの予告
+		float breath_ = 0.0f; //寝ているときの息の時間
 
 		std::vector<std::unique_ptr<RyoEngine::Model>> rushTells_{}; //突進のルートのマスに置く板
 		int32_t rushTellCount_ = 0; //今描く板の数

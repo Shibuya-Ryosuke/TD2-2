@@ -1,12 +1,13 @@
-//ハートが出てひびが入り、ぱっかーん割れてガラスみたいに砕け、穴のとなりでは細いヒビが入る床のタイル
+//ハートが出てひびが入り、ぱっかーん割れてガラスみたいに砕け、穴のとなりではピンクに光るヒビが入る床のタイル
 //params[0].xはハートの大きさ
 //params[0].yはハートのヒビ
 //params[0].zはぱっかーん
 //params[0].wはタイルのひび
-//params[1].xはプラスなら穴になってから砕けた割合で、マイナスなら穴のとなりの細いヒビの濃さ
+//params[1].xはプラスなら穴になってから砕けた割合で、マイナスなら穴のとなりのヒビの広がり
 //params[1].yはマスごとに模様をずらす値
 //params[1].zはガン！の光
 //params[1].wはプレイヤーの向きのハートの向き
+//SetEmissiveの光は正面1マスの予告で、上の面のふちだけに出す
 
 static const float3 kPink = float3(1.0f, 0.3f, 0.62f); //ハートとひびと光の色
 
@@ -24,11 +25,15 @@ static const float kCrackBrightness = 2.2f;
 static const float kShardBrightness = 1.2f;
 //ガン！
 static const float kFlashBrightness = 1.2f;
-//穴のとなりの細いヒビ
-static const float kWearScale = 2.6f; //ヒビの網目の細かさ
-static const float kWearWidth = 0.028f; //ヒビの太さ
-static const float kWearDarkness = 0.6f; //ヒビの所を床の色からどれだけ暗くするか
-static const float kWearKeep = 0.45f; //網目のうちヒビとして残す割合で、小さいほど途切れる
+//穴のとなりのヒビ
+static const float kWearReach = 0.8f; //ヒビがタイルのどこまで広がるかで、崩れるときのひびは1
+static const float kWearBrightness = 1.4f; //崩れるときより少し弱い光
+static const float kWearPulseSpeed = 3.0f; //ゆっくり明滅する速さ
+static const float kWearPulseDepth = 0.35f; //明滅で暗くなる割合
+//正面1マスの予告の枠
+static const float kFrameWidth = 0.09f; //上の面に対する枠の太さ
+static const float kFrameSoftness = 0.05f; //枠の内側のぼかし
+static const float kFrameCoreBrightness = 0.6f; //枠のまん中の白っぽい線の明るさ
 
 //0から1のでたらめな値2つ
 float2 Hash22(float2 p)
@@ -163,21 +168,18 @@ void DrawShatter(SurfaceInput input, inout SurfaceOutput output, float shatter, 
     output.emissive += lightPink * (soon + glint * 0.8f) * kShardBrightness;
 }
 
-//穴のとなりの床に、床の色を暗くした細いヒビを1点から広げる
+//穴のとなりの床に、崩れるときと同じ模様のピンクのヒビを広げてゆっくり明滅させる
 void DrawWear(SurfaceInput input, inout SurfaceOutput output, float wear, float seed)
 {
-    //網目の一部だけ残して枝分かれしたヒビに見せる
-    float2 uv = FaceUv(input);
     float pieceRandom;
-    float edge = VoronoiEdge(uv * kWearScale + seed * 1.7f + 11.0f, pieceRandom);
-    float crackLine = 1.0f - smoothstep(kWearWidth * 0.5f, kWearWidth, edge);
-    crackLine *= step(pieceRandom, kWearKeep);
-
-    //マスごとに決めた1点から外へ広がる
-    float2 origin = Hash22(float2(seed, seed * 0.37f)) * 0.6f + 0.2f;
-    float reach = wear * 1.3f - length(frac(input.uv) - origin);
-    crackLine *= saturate(reach * 12.0f);
-    output.color *= 1.0f - crackLine * kWearDarkness;
+    float edge = CrackPattern(FaceUv(input), seed, pieceRandom);
+    float crackLine = 1.0f - smoothstep(kCrackWidth * 0.5f, kCrackWidth, edge);
+    //真ん中から外へ走り、崩れるときより手前で止まる
+    float reach = wear * kWearReach * 1.1f - length(frac(input.uv) - 0.5f) * 1.4f;
+    crackLine *= saturate(reach * 10.0f);
+    float pulse = 1.0f - kWearPulseDepth * (0.5f + 0.5f * sin(input.time * kWearPulseSpeed + seed));
+    output.color = lerp(output.color, kPink, crackLine * 0.6f);
+    output.emissive += kPink * crackLine * pulse * kWearBrightness;
 }
 
 #define USE_CUSTOM_VERTEX
@@ -201,7 +203,19 @@ void Surface(SurfaceInput input, inout SurfaceOutput output)
     float seed = input.params[1].y;
     float flash = input.params[1].z;
 
-    //穴のとなりの細いヒビは崩れる演出より先に描く
+    //予告の光は上の面のふちの枠だけにして、中はいつもの見た目のまま
+    float3 previewGlow = output.emissive;
+    output.emissive = float3(0.0f, 0.0f, 0.0f);
+    if (input.normal.y > 0.5f && dot(previewGlow, previewGlow) > 0.0f)
+    {
+        float2 fromEdge = min(input.uv, 1.0f - input.uv);
+        float edge = min(fromEdge.x, fromEdge.y);
+        float frame = 1.0f - smoothstep(kFrameWidth, kFrameWidth + kFrameSoftness, edge);
+        float core = 1.0f - smoothstep(0.0f, kFrameWidth * 0.5f, abs(edge - kFrameWidth * 0.5f));
+        output.emissive += previewGlow * frame + float3(1.0f, 1.0f, 1.0f) * core * kFrameCoreBrightness * frame;
+    }
+
+    //穴のとなりのヒビは崩れる演出より先に描く
     if (wear > 0.0f)
     {
         DrawWear(input, output, wear, seed);

@@ -46,6 +46,18 @@
     <Filter Include="Application\Scene\Game">
       <UniqueIdentifier>{5b055ce5-560a-42b1-b9fb-50a3850ecc98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Scene\Tutorial">
+      <UniqueIdentifier>{656ebcd1-bfa0-4cdf-bf1e-022c17bd48b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Scene\Showcase">
+      <UniqueIdentifier>{85929670-71f9-4689-b60b-a251fb72f8a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Tsumiki">
+      <UniqueIdentifier>{73f8e98a-f254-4082-b36b-c697d2dde225}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Object\Player\Rig">
+      <UniqueIdentifier>{5bdc5606-95c6-48e6-be6f-d04a94f1c29c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Application\Scene\GameOver">
       <UniqueIdentifier>{7bd208c0-6e0a-4516-8170-7cd0283d0904}</UniqueIdentifier>
     </Filter>
@@ -801,12 +813,6 @@
     <ClInclude Include="Application\Direction\Player\PlayerTurnAround.h">
       <Filter>Application\Direction\Player</Filter>
     </ClInclude>
-    <ClCompile Include="Application\Direction\Player\PlayerDust.cpp">
-      <Filter>Application\Direction\Player</Filter>
-    </ClCompile>
-    <ClInclude Include="Application\Direction\Player\PlayerDust.h">
-      <Filter>Application\Direction\Player</Filter>
-    </ClInclude>
     <ClCompile Include="Application\Direction\Screen\DamageFlash.cpp">
       <Filter>Application\Direction\Screen</Filter>
     </ClCompile>
@@ -822,8 +828,200 @@
     <ClCompile Include="Application\Direction\Screen\FallLines.cpp">
       <Filter>Application\Direction\Screen</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Direction\Screen\ScreenShake.cpp">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\Player\HeartBurst.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\Player\PlayerPose.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\PlayerFallFlow.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\GameFlow.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Stage\Floor\FloorControl.cpp">
+      <Filter>Application\Stage\Floor</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialMap.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialFlow.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialSteps.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialText.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialFinale.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialBlock.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\PlayerLaunch.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\Tutorial.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Tutorial\TutorialSpot.cpp">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\BossWake.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\PlayerTumble.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Tsumiki\Tsumiki.cpp">
+      <Filter>Application\Object\Tsumiki</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Title\TitleDrop.cpp">
+      <Filter>Application\Scene\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Clear\ClearBoss.cpp">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Clear\ClearPoses.cpp">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Clear\ClearShow.cpp">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Player\Rig\RigPose.cpp">
+      <Filter>Application\Object\Player\Rig</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Object\Player\Rig\PlayerRig.cpp">
+      <Filter>Application\Object\Player\Rig</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Showcase\ShowcaseStage.cpp">
+      <Filter>Application\Scene\Showcase</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Title\TitlePoses.cpp">
+      <Filter>Application\Scene\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\GameOver\GameOverBury.cpp">
+      <Filter>Application\Scene\GameOver</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\GameOver\GameOverMenu.cpp">
+      <Filter>Application\Scene\GameOver</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Direction\Screen\FallLines.h">
       <Filter>Application\Direction\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Screen\ScreenShake.h">
+      <Filter>Application\Direction\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\HeartBurst.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\PlayerPose.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\PlayerFallFlow.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\TutorialConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\TutorialMap.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\TutorialFlow.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\TutorialFinale.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\TutorialBlock.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\PlayerLaunch.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\Tutorial.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Tutorial\TutorialSpot.h">
+      <Filter>Application\Scene\Tutorial</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\BossWake.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\PlayerTumble.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Tsumiki\Tsumiki.h">
+      <Filter>Application\Object\Tsumiki</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Title\TitleDrop.h">
+      <Filter>Application\Scene\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Clear\ClearBoss.h">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Clear\ClearPoses.h">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Clear\ClearShow.h">
+      <Filter>Application\Scene\Clear</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\FloorConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\LayerConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\PlayerConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\BossConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\SkyConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\ModelConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\TitleConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\ClearConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\GameOverConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Player\Rig\RigPose.h">
+      <Filter>Application\Object\Player\Rig</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Player\Rig\PlayerRig.h">
+      <Filter>Application\Object\Player\Rig</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Showcase\ShowcaseStage.h">
+      <Filter>Application\Scene\Showcase</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Title\TitlePoses.h">
+      <Filter>Application\Scene\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\GameOver\GameOverBury.h">
+      <Filter>Application\Scene\GameOver</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\RigConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\ShowcaseConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\GameOver\GameOverMenu.h">
+      <Filter>Application\Scene\GameOver</Filter>
     </ClInclude>
     <ClCompile Include="Application\Direction\Transition\BlockTransition.cpp">
       <Filter>Application\Direction\Transition</Filter>

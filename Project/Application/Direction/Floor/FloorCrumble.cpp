@@ -1,5 +1,5 @@
 #include "FloorCrumble.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/FloorConfig.h"
 #include "../../Config/DirectionConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <algorithm>
@@ -72,7 +72,7 @@ namespace App
 			{
 				progress = 1.0f;
 			}
-			ApplyHammer(effect, progress, GameConfig::kEscapeDelay);
+			ApplyHammer(effect, progress, FloorConfig::kEscapeDelay);
 			const float shatterStart = DirectionConfig::kIsolatedDissolveStart;
 			effect.shatter = std::clamp((tile.dropRate - shatterStart) / (1.0f - shatterStart), 0.0f, 1.0f);
 			return effect;
@@ -82,7 +82,7 @@ namespace App
 		if (!tile.isSolid)
 		{
 			const float drop = std::clamp(tile.dropRate, 0.0f, 1.0f);
-			ApplyHammer(effect, 1.0f, GameConfig::kCollapseDelay);
+			ApplyHammer(effect, 1.0f, FloorConfig::kCollapseDelay);
 			effect.shatter = drop;
 			const float pop = std::clamp(drop / DirectionConfig::kDropPopTime, 0.0f, 1.0f);
 			effect.scale = 1.0f + std::sin(pi * pop) * DirectionConfig::kDropPop;
@@ -92,7 +92,7 @@ namespace App
 		//崩す予定の床はハンマーの演出をして直前にガタガタぷくっ
 		if (tile.remaining >= 0.0f && floor.IsForeground())
 		{
-			ApplyHammer(effect, std::clamp(1.0f - tile.remaining / GameConfig::kCollapseDelay, 0.0f, 1.0f), GameConfig::kCollapseDelay);
+			ApplyHammer(effect, std::clamp(1.0f - tile.remaining / FloorConfig::kCollapseDelay, 0.0f, 1.0f), FloorConfig::kCollapseDelay);
 			if (tile.remaining < DirectionConfig::kCrumbleShakeTime)
 			{
 				const float shake = 1.0f - tile.remaining / DirectionConfig::kCrumbleShakeTime; //だんだん強くなる揺れの割合

@@ -1,5 +1,6 @@
 #include "BossContact.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/BossConfig.h"
+#include "../../Config/PlayerConfig.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Player/Player.h"
 #include "../../Object/Player/PlayerHealth.h"
@@ -15,7 +16,7 @@ namespace App
 	{
 		if (IsTouching(player, boss))
 		{
-			health.Damage(GameConfig::kContactDamage);
+			health.Damage(BossConfig::kContactDamage);
 		}
 	}
 
@@ -23,10 +24,10 @@ namespace App
 	bool BossContact::IsTouching(const Player& player, const Boss& boss)
 	{
 		const Vector3 local = boss.ToLocal(player.GetPosition());
-		const float gapX = std::max(0.0f, std::abs(local.x) - GameConfig::kBossContactSizeX * 0.5f);
-		const float gapZ = std::max(0.0f, std::abs(local.z) - GameConfig::kBossContactSizeZ * 0.5f);
-		const float radius = GameConfig::kPlayerContactRadius;
-		if (local.y > GameConfig::kBossContactSizeY || local.y + GameConfig::kPlayerContactHeight < 0.0f)
+		const float gapX = std::max(0.0f, std::abs(local.x) - BossConfig::kBossContactSizeX * 0.5f);
+		const float gapZ = std::max(0.0f, std::abs(local.z) - BossConfig::kBossContactSizeZ * 0.5f);
+		const float radius = PlayerConfig::kPlayerContactRadius;
+		if (local.y > BossConfig::kBossContactSizeY || local.y + PlayerConfig::kPlayerContactHeight < 0.0f)
 		{
 			return false;
 		}

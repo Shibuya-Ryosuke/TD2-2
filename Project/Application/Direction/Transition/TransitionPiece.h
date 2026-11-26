@@ -16,8 +16,8 @@ namespace App
 		TransitionPiece(const TransitionPiece&) = delete;
 		TransitionPiece& operator=(const TransitionPiece&) = delete;
 
-		//カメラを親にしてモデルを作る
-		void Initialize(RyoEngine::WorldTransform* frame, uint32_t shader);
+		//カメラを親にして、積み木なら木目のTsumikiで、紙吹雪なら仮の箱でモデルを作る
+		void Initialize(RyoEngine::WorldTransform* frame, uint32_t shader, bool isTsumiki);
 
 		//viewに合わせて行列を確定する
 		void Apply(const TransitionView& view);
@@ -35,5 +35,6 @@ namespace App
 
 	private:
 		std::unique_ptr<RyoEngine::Model> model_{};
+		bool isTsumiki_ = false; //木目のTsumikiのモデルか
 	};
 }

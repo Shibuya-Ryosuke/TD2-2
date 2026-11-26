@@ -6,7 +6,7 @@
 
 namespace App
 {
-	//今いる層と下の層と上の層の3つの床をまとめて、layer1から5のcsvを順に使う
+	//今いる層と下の層と上の層の3つの床をまとめて、チュートリアルのあとlayer1から5のcsvを順に使う
 	class LayerFloors
 	{
 	public:
@@ -18,6 +18,10 @@ namespace App
 
 		//layer層目の今いる層だけ作って始める
 		void Start(int32_t layer);
+		//1層目の上のチュートリアルの床から始める
+		void StartTutorial() { Start(-1); }
+		//チュートリアルの床にいるか
+		bool IsTutorial() const { return layer_ < 0; }
 		//下の層がまだなければ作る
 		void EnsureBelow();
 		//下の層へ1つ進めて、その下を新しく作る
@@ -29,7 +33,7 @@ namespace App
 		const Floor& GetCurrent() const { return *current_; }
 		Floor* GetBelow() { return below_.get(); } //まだないときはnullptr
 		Floor* GetUpper() { return upper_.get(); } //ないときはnullptr
-		int32_t GetLayer() const { return layer_; } //0から数えた今いる層
+		int32_t GetLayer() const { return layer_; } //0から数えた今いる層で、チュートリアルは-1
 
 		void UpdateVisuals(); //3つの床の見た目を確定する
 		void Draw(); //下の層、今の層、上の層の順に描く

@@ -1,6 +1,5 @@
 #include "BlockTransition.h"
 #include "../../Camera/StageCamera.h"
-#include "../../Config/GameConfig.h"
 #include "../../Config/DirectionConfig.h"
 #include <algorithm>
 #include <cmath>
@@ -33,7 +32,7 @@ namespace App
 	{
 		stageCamera_ = camera;
 		view_.isOrthographic = true;
-		view_.refDepth = DirectionConfig::kTransitionDepth;
+		view_.refDepth = DirectionConfig::kTransitionOrthoDepth;
 		view_.halfHeight = camera->GetOrthoSize();
 		Setup(camera);
 	}
@@ -157,8 +156,14 @@ namespace App
 			position = stageCamera_->GetViewPosition();
 			view_.halfHeight = stageCamera_->GetOrthoSize(); //ImGuiで広さを変えても合わせる
 		}
+		//シーンのどのモデルよりも手前に来るように、遠近法は見た目の大きさを変えずにカメラの近くへ縮め、平行投影は近くに置く
+		float scale = DirectionConfig::kTransitionNearScale;
+		if (view_.isOrthographic)
+		{
+			scale = 1.0f;
+		}
 		const Vector3 rotate = camera_->GetRotate();
-		frame_.SetLocal({ { 1.0f, 1.0f, 1.0f }, { rotate.x * kRadToDeg, rotate.y * kRadToDeg, rotate.z * kRadToDeg }, position });
+		frame_.SetLocal({ { scale, scale, scale }, { rotate.x * kRadToDeg, rotate.y * kRadToDeg, rotate.z * kRadToDeg }, position });
 		frame_.UpdateMatrix();
 	}
 

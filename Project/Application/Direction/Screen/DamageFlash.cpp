@@ -44,6 +44,7 @@ namespace App
 			strength *= strength; //最後はゆっくり消える
 		}
 		PostEffectManager::SetParam(effect_, 0, strength * DirectionConfig::kDamageFlashStrength);
+		PostEffectManager::SetParam(effect_, 1, timer_);
 
 		//消えきったら重くならないように止める
 		if (timer_ >= DirectionConfig::kDamageFlashTime)

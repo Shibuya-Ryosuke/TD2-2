@@ -1,11 +1,13 @@
 //場面切り替えの積み木と、紙吹雪や欠片やほこりの単色
 //params[0].xは積み木のドン！の縁の光
+//params[0].zは1でUVが面ごとに分かれていない木目のTsumikiなので、縁ではなく面全体をふわっと光らせる
 //params[0].wは1で木目を消してモデルの色だけで塗る
 //params[1].xyzは縁の光の色
 
 //面のUVに対する縁の光の太さと明るさ
 static const float kEdgeWidth = 0.12f;
 static const float kEdgeBrightness = 3.0f;
+static const float kFaceBrightness = 0.8f; //Tsumikiの面全体の光の明るさ
 
 void Surface(SurfaceInput input, inout SurfaceOutput output)
 {
@@ -18,6 +20,7 @@ void Surface(SurfaceInput input, inout SurfaceOutput output)
     float2 uv = frac(input.uv);
     float edge = min(min(uv.x, 1.0f - uv.x), min(uv.y, 1.0f - uv.y));
     float edgeMask = 1.0f - smoothstep(0.0f, kEdgeWidth, edge);
+    edgeMask = lerp(edgeMask, kFaceBrightness / kEdgeBrightness, input.params[0].z);
     output.emissive += glowColor * edgeMask * glow * kEdgeBrightness;
     output.color = lerp(output.color, glowColor, glow * 0.35f);
 }

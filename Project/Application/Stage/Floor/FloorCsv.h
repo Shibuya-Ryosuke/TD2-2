@@ -5,15 +5,16 @@
 
 namespace App
 {
-	//CSVから読んだ0が穴で1が床の形
+	//CSVから読んだ0が穴で1以上が床の形
 	struct FloorLayout
 	{
 		int32_t width = 0; //横のマスの数
 		int32_t depth = 0; //奥のマスの数
 		std::vector<bool> solid; //手前の行から順に左から右へ、床ならtrue
+		std::vector<int32_t> codes; //solidと同じ並びのCSVの数字で、チュートリアルの印に使う
 	};
 
-	//上の行が奥で1が床、それ以外は穴の床のCSVを読む
+	//上の行が奥で1以上が床、それ以外は穴の床のCSVを読む
 	class FloorCsv
 	{
 	public:

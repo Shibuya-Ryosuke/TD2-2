@@ -4,14 +4,13 @@
 #include <cstdint>
 #include <random>
 #include "TransitionPiece.h"
-#include "../../Config/GameConfig.h"
 #include "../../Config/DirectionConfig.h"
 
 namespace App
 {
 	struct TransitionView;
 
-	//画面を埋める5x5の積み木で、ドン！と積み上がって横に吹き飛ぶ
+	//画面を埋める正方形の積み木で、ドン！と積み上がって横に吹き飛ぶ
 	class TransitionWall
 	{
 	public:
@@ -54,8 +53,16 @@ namespace App
 
 		//下の段の左から数えたブロックの置き場所
 		RyoEngine::Vector3 GetHomePosition(int32_t index, const TransitionView& view) const;
-		//すき間の分だけ小さいブロックの大きさ
+		//すき間の分だけ小さい、元のモデルをそのまま大きくした正方形のブロックの大きさ
 		RyoEngine::Vector3 GetBlockSize(const TransitionView& view) const;
+		//画面の高さで割ったマスの1辺
+		float GetCellSize(const TransitionView& view) const;
+		//画面の横幅を埋めるのに使う列の数
+		int32_t GetUsedColumns(const TransitionView& view) const;
+		//使う列の中のブロックか
+		bool IsUsed(int32_t index, const TransitionView& view) const;
+		//下の段の左から数えた積む順番
+		int32_t GetStackOrder(int32_t index, const TransitionView& view) const;
 		//全部の行列を確定する
 		void ApplyAll(const TransitionView& view);
 		//シェーダーに縁の光を渡す

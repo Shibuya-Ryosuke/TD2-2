@@ -11,5 +11,7 @@ namespace App
 		Descent, //ボスが落ちてプレイヤーも下の層へ
 		LandingImpact, //ボスが着地した直後の待ち
 		TileBarrage, //上の層の足場がボスへ飛んでいく
+		PlayerFall, //プレイヤーが穴に落ちて下の層へ
+		BossWake, //チュートリアルのあと寝ていたボスが起きる
 	};
 }

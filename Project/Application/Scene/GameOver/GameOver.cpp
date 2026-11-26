@@ -1,41 +1,72 @@
 #include "GameOver.h"
 #include "../Title/Title.h"
-#include "../../Direction/Transition/TransitionCamera.h"
+#include "../Game/Game.h"
+#include "../../Config/GameOverConfig.h"
+#include "../../Config/ShowcaseConfig.h"
 #include "../../Input/GameInput.h"
 
 using namespace RyoEngine;
 
 namespace App
 {
-	//演出のカメラを作って場面切り替えを用意する
+	//カメラと空と床とプレイヤーと積み木を用意する
 	void GameOver::Initialize()
 	{
-		const uint32_t cameraIndex = CameraManager::CreateCamera<TransitionCamera>("Transition");
-		transition_.Initialize(CameraManager::GetCamera<TransitionCamera>(cameraIndex));
+		stage_.Initialize(GameOverConfig::kOverEye, GameOverConfig::kOverTarget);
+		bury_.Initialize();
+		menuTimer_ = 0.0f;
+		transition_.Initialize(stage_.GetCamera());
 	}
 
-	//EnterかAでタイトルへ
+	//ACESを元に戻す
+	void GameOver::Finalize()
+	{
+		stage_.Finalize();
+	}
+
+	//埋もれる演出を進めて、埋もれたら選んだ方へ積み木で切り替える
 	void GameOver::Update()
 	{
-		//演出の間は操作させない
+		stage_.Update(GetDeltaTime());
+		bury_.Update(GetDeltaTime());
+
+		//演出の間と、埋もれてメニューが出るまでは操作させない
 		if (transition_.Update())
 		{
 			return;
 		}
-		if (GameInput::IsEnterTriggered())
+		if (bury_.IsBuried())
+		{
+			menuTimer_ += GetDeltaTime();
+		}
+		if (menuTimer_ < GameOverConfig::kMenuDelay)
+		{
+			return;
+		}
+		const GameOverMenu::Choice choice = menu_.Update();
+		if (choice == GameOverMenu::Choice::Retry)
+		{
+			//やり直しはチュートリアルを飛ばしてボス戦の最初から
+			Game::SetStartMode(Game::StartMode::Battle);
+			transition_.Start<Game>();
+		}
+		else if (choice == GameOverMenu::Choice::Title)
 		{
 			transition_.Start<Title>();
 		}
 	}
 
-	//文字を出す
+	//積み木とプレイヤーと文字を描く
 	void GameOver::Draw()
 	{
-		//1920x1080が基準の画面の真ん中あたり
-		const float width = static_cast<float>(DirectXCommon::GetGameWidth());
-		const float height = static_cast<float>(DirectXCommon::GetGameHeight());
-		PrintText("GAME OVER", { width * 0.42f, height * 0.45f });
-		PrintText("PRESS ENTER / A", { width * 0.43f, height * 0.5f });
+		stage_.Draw();
+		bury_.Draw();
+
+		//埋もれてから1920x1080が基準の画面の真ん中あたりにメニュー
+		if (menuTimer_ >= GameOverConfig::kMenuDelay)
+		{
+			menu_.Draw();
+		}
 
 		//いちばん手前に場面切り替えの積み木
 		transition_.Draw();

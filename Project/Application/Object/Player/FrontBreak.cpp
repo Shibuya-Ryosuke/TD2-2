@@ -1,6 +1,6 @@
 #include "FrontBreak.h"
 #include "../../Config/DirectionConfig.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/FloorConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <cmath>
 
@@ -24,7 +24,7 @@ namespace App
 		//崩れる演出のハートをプレイヤーの向きへ向ける
 		const float heartAngle = std::atan2(static_cast<float>(facing.x), static_cast<float>(facing.z));
 		//ハンマーが当たるまでの分だけ遅らせて、当たった瞬間にハートが出るようにする
-		const float delay = GameConfig::kCollapseDelay + DirectionConfig::kSwingImpactDelay;
+		const float delay = FloorConfig::kCollapseDelay + DirectionConfig::kSwingImpactDelay;
 		return floor.ScheduleCellsCollapse(cells_, delay, heartAngle) > 0;
 	}
 
@@ -37,6 +37,6 @@ namespace App
 			return;
 		}
 		CollectCell(floor, playerCell, facing);
-		floor.SetPreview(cells_, GameConfig::kBreakPreviewColor, GameConfig::kShapePreviewBlend);
+		floor.SetPreview(cells_, FloorConfig::kBreakPreviewColor, FloorConfig::kShapePreviewBlend);
 	}
 }

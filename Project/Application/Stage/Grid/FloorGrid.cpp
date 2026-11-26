@@ -1,5 +1,5 @@
 #include "FloorGrid.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/FloorConfig.h"
 #include <algorithm>
 #include <cmath>
 
@@ -32,8 +32,8 @@ namespace App
 		height_ = height;
 
 		//床全体をマスの数で割って1マスの大きさにする
-		tileSizeX_ = GameConfig::kFloorSize / static_cast<float>(width_);
-		tileSizeZ_ = GameConfig::kFloorSize / static_cast<float>(depth_);
+		tileSizeX_ = FloorConfig::kFloorSize / static_cast<float>(width_);
+		tileSizeZ_ = FloorConfig::kFloorSize / static_cast<float>(depth_);
 	}
 
 	//位置からマスへ
@@ -60,7 +60,7 @@ namespace App
 	Vector3 FloorGrid::GetRestPosition(const Cell& cell) const
 	{
 		Vector3 position = GetCellCenter(cell);
-		position.y -= GameConfig::kTileThickness * 0.5f;
+		position.y -= FloorConfig::kTileThickness * 0.5f;
 		return position;
 	}
 

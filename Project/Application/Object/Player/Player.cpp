@@ -1,5 +1,5 @@
 #include "Player.h"
-#include "../../Config/GameConfig.h"
+#include "../../Config/PlayerConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include "../../Stage/Grid/GridDirection.h"
 #include "../ModelColor.h"
@@ -13,15 +13,16 @@ namespace App
 	//glbの色のままのアニメーションするプレイヤーのモデルとハンマーを作る
 	void Player::Initialize()
 	{
-		body_ = Model::Create(GameConfig::kPlayerModel);
-		ModelColor::Apply(*body_, GameConfig::kPlayerModel);
+		body_ = Model::Create(PlayerConfig::kPlayerModel);
+		ModelColor::Apply(*body_, PlayerConfig::kPlayerModel);
 
 		//待機から始めるアニメーションと、右手に持たせるハンマー
 		animation_.Initialize(*body_);
 		hammer_.Initialize(*body_);
 
-		//着地でピカッと光るシェーダーもつける着地の演出
+		//着地でピカッと光るシェーダーをつける着地の演出と、じたばたと尻もちで見せる分けたパーツ
 		bounce_.Initialize(*body_);
+		rig_.Initialize();
 	}
 
 	//位置に置いて動きの状態を全部戻す
@@ -39,7 +40,26 @@ namespace App
 		isGrounded_ = true;
 		turnAround_.Reset(facingYawDeg_);
 		isPosing_ = false;
+		canLeaveFloor_ = false;
+		pose_.Reset();
 		animation_.PlayIdle();
+		hammer_.Hide();
+	}
+
+	//落ちるときのじたばたや尻もちは待機の最初の姿勢で止めてから脚を動かす
+	void Player::SetPose(PlayerPose::Kind kind)
+	{
+		if (kind == pose_.Get())
+		{
+			return;
+		}
+		pose_.Set(kind);
+		if (kind == PlayerPose::Kind::Normal)
+		{
+			animation_.PlayIdle();
+			return;
+		}
+		animation_.Freeze();
 		hammer_.Hide();
 	}
 
@@ -105,7 +125,7 @@ namespace App
 		//床の高さと重力と今の位置とマス
 		const float floorHeight = floor.GetHeight();
 		floorHeight_ = floorHeight;
-		const float gravity = std::max(0.01f, GameConfig::kGravity);
+		const float gravity = std::max(0.01f, PlayerConfig::kGravity);
 		Vector3 position = position_;
 		Cell cell = floor.GetCellAt(position);
 
@@ -122,6 +142,7 @@ namespace App
 			const Cell destination = cell + GridDirection::FromInput(move);
 			if (floor.Contains(destination) && !floor.IsHole(destination))
 			{
+				++jumpCount_;
 				jumpOrigin_ = position;
 				jumpDestination_ = destination;
 				jumpElapsed_ = 0.0f;
@@ -137,9 +158,9 @@ namespace App
 		if (isJumping_)
 		{
 			jumpElapsed_ += deltaTime;
-			const float t = std::clamp(jumpElapsed_ / GameConfig::kJumpDuration, 0.0f, 1.0f);
+			const float t = std::clamp(jumpElapsed_ / PlayerConfig::kJumpDuration, 0.0f, 1.0f);
 			Vector3 jumpPosition = Floor::AlongGrid(jumpOrigin_, floor.GetCellCenter(jumpDestination_), t);
-			jumpPosition.y += 4.0f * GameConfig::kJumpHeight * t * (1.0f - t);
+			jumpPosition.y += 4.0f * PlayerConfig::kJumpHeight * t * (1.0f - t);
 			position_ = jumpPosition;
 			if (t < 1.0f)
 			{
@@ -150,7 +171,7 @@ namespace App
 			isGrounded_ = floor.IsSolid(jumpDestination_);
 			if (!isGrounded_)
 			{
-				verticalSpeed_ = -4.0f * GameConfig::kJumpHeight / GameConfig::kJumpDuration;
+				verticalSpeed_ = -4.0f * PlayerConfig::kJumpHeight / PlayerConfig::kJumpDuration;
 			}
 			return false;
 		}
@@ -165,7 +186,7 @@ namespace App
 		//ボスに触れてはじかれたとき以外は床のふちで止める
 		if (!isKnockbackOverFence_)
 		{
-			position = floor.ClampToBoundary(position, GameConfig::kPlayerContactRadius);
+			position = floor.ClampToBoundary(position, PlayerConfig::kPlayerContactRadius);
 		}
 
 		//今のマスに床があるか
@@ -196,7 +217,7 @@ namespace App
 		position_ = position;
 
 		//床より下まで落ちたら落ちたことにする
-		return position.y < floorHeight - GameConfig::kFallThreshold;
+		return position.y < floorHeight - PlayerConfig::kFallThreshold;
 	}
 
 	//見た目
@@ -205,6 +226,7 @@ namespace App
 		//着地のピカッとほこりと、終わったアニメーションを待機に戻す
 		bounce_.Update(position_);
 		animation_.Update();
+		pose_.Update(GetDeltaTime());
 
 		//向いている向きへクルッと回る
 		float lookYawDeg = facingYawDeg_;
@@ -216,13 +238,19 @@ namespace App
 		turnAround_.Update(lookYawDeg);
 
 		//足の裏がposition_に来るように置いて、見た目の向きへ回す
-		const float scale = GameConfig::kPlayerModelScale;
-		const float yawDeg = turnAround_.GetYawDeg() + GameConfig::kPlayerModelYaw;
-		const float lift = GameConfig::kPlayerModelLift * scale;
+		const float scale = PlayerConfig::kPlayerModelScale;
+		const float yawDeg = turnAround_.GetYawDeg() + PlayerConfig::kPlayerModelYaw;
+		const float lift = PlayerConfig::kPlayerModelLift * scale;
 		body_->SetScale({ scale, scale, scale });
 		body_->SetRotate({ 0.0f, yawDeg, 0.0f });
 		body_->SetTranslate({ position_.x, position_.y + lift, position_.z });
 		body_->TransferMatrix();
+
+		//じたばたと尻もちの間は分けたパーツをコードで動かす
+		if (pose_.IsRigVisible())
+		{
+			rig_.Apply(pose_.MakeRigPose(), position_, turnAround_.GetYawDeg(), scale);
+		}
 
 		//右手について振り、頭が床より下に行かないようにするハンマー
 		hammer_.Update(animation_.IsSwinging(), floorHeight_);
@@ -231,9 +259,14 @@ namespace App
 	//点滅中以外の体とハンマーと、いつものほこりを描く
 	void Player::Draw()
 	{
-		bounce_.DrawDust();
+		bounce_.DrawHearts();
 		if (!isVisible_)
 		{
+			return;
+		}
+		if (pose_.IsRigVisible())
+		{
+			rig_.Draw();
 			return;
 		}
 		body_->Draw();
