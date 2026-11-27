@@ -24,6 +24,15 @@ namespace App
 	class BossFallFlow
 	{
 	public:
+		BossFallFlow() = default;
+		~BossFallFlow() = default;
+
+		//モデルを持つパーツのボスを持つのでコピーとムーブを禁止する
+		BossFallFlow(const BossFallFlow&) = delete;
+		BossFallFlow& operator=(const BossFallFlow&) = delete;
+		BossFallFlow(BossFallFlow&&) = delete;
+		BossFallFlow& operator=(BossFallFlow&&) = delete;
+
 		//このフレームで起きたこと
 		struct Result
 		{

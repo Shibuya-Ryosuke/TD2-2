@@ -9,6 +9,15 @@ namespace App
 	class BossFallShow
 	{
 	public:
+		BossFallShow() = default;
+		~BossFallShow() = default;
+
+		//モデルを持つパーツのボスを持つのでコピーとムーブを禁止する
+		BossFallShow(const BossFallShow&) = delete;
+		BossFallShow& operator=(const BossFallShow&) = delete;
+		BossFallShow(BossFallShow&&) = delete;
+		BossFallShow& operator=(BossFallShow&&) = delete;
+
 		void Initialize(); //パーツと煙と光の輪を用意する
 		//feetの位置でfaceYawDeg度を向いて、足元がなくなって「えっ」となる
 		void Begin(const RyoEngine::Vector3& feet, float faceYawDeg);
