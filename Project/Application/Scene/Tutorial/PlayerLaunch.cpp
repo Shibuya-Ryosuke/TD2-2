@@ -95,7 +95,7 @@ namespace App
 			player.Place(target_);
 			player.SetPose(PlayerPose::Kind::Sit);
 			floor.Jiggle(floor.GetCellAt(target_), TutorialConfig::kLaunchLandJiggle);
-			player.BurstHearts(TutorialConfig::kLaunchHearts);
+			player.PlayLandingParticles();
 			direction.Shake(TutorialConfig::kLaunchShake);
 			stage_ = Stage::Land;
 			timer_ = 0.0f;

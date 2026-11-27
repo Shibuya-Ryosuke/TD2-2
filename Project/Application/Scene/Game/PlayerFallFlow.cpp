@@ -111,10 +111,10 @@ namespace App
 		player.Place(landing_);
 		player.SetPose(PlayerPose::Kind::Sit);
 
-		//どすんと揺れてハートが飛ぶ
+		//着地で足場が揺れてピンクの光が弾ける
 		Floor& current = floors.GetCurrent();
 		current.Jiggle(current.GetCellAt(landing_), DirectionConfig::kFallLandJiggle);
-		player.BurstHearts(DirectionConfig::kFallLandHearts);
+		player.PlayLandingParticles();
 		direction.Shake(DirectionConfig::kFallLandShake);
 		stage_ = Stage::Sit;
 		timer_ = 0.0f;

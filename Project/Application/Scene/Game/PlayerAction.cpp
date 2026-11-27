@@ -10,12 +10,13 @@ using namespace RyoEngine;
 
 namespace App
 {
-	//向きの入力があればその向きを全方位で、なければ跳ぶ上下左右の向きをまっすぐ向く
+	//向きの入力があればいちばん近い上下左右へ、なければ跳ぶ上下左右の向きをまっすぐ向く
 	void PlayerAction::ApplyLook(const PlayerCommand& command, Player& player) const
 	{
 		if (command.hasLook)
 		{
-			player.SetFacingDirection(GridDirection::ToWorld(command.look));
+			const Cell look = GridDirection::FromInput(command.look);
+			player.SetFacingDirection({ static_cast<float>(look.x), 0.0f, static_cast<float>(look.z) });
 			return;
 		}
 		if (command.hasMovement)
@@ -48,6 +49,9 @@ namespace App
 				player.StartSwing();
 				rejectTimer_ = DirectionConfig::kSwingImpactDelay;
 				rejectCell_ = front;
+				impactCell_ = front;
+				doesImpactBreak_ = false;
+				isWaitingImpact_ = true;
 				wasBreakRejected_ = true;
 			}
 		}
@@ -56,7 +60,8 @@ namespace App
 			//ハンマーを振り下ろして、当たった瞬間から床が崩れ始める
 			player.StartSwing();
 			wasBreakSucceeded_ = true;
-			breakCell_ = front;
+			impactCell_ = front;
+			doesImpactBreak_ = true;
 			isWaitingImpact_ = true;
 		}
 
@@ -105,7 +110,7 @@ namespace App
 		}
 	}
 
-	//ハンマーが床に当たった瞬間に、足場のハートと崩れ始めを当たった時にそろえる
+	//ハンマーの打撃に合わせて足場からハートを出して崩れ始めをそろえる
 	void PlayerAction::UpdateImpact(Player& player, Floor& floor)
 	{
 		if (!isWaitingImpact_ || !player.WasHammerImpact())
@@ -113,7 +118,14 @@ namespace App
 			return;
 		}
 		isWaitingImpact_ = false;
-		floor.SyncCollapse(breakCell_, FloorConfig::kCollapseDelay);
+		if (floor.IsSolid(impactCell_))
+		{
+			player.BurstHammerHearts(floor.GetCellCenter(impactCell_));
+		}
+		if (doesImpactBreak_)
+		{
+			floor.SyncCollapse(impactCell_, FloorConfig::kCollapseDelay);
+		}
 	}
 
 	//床に正面の1マスの予告を出す

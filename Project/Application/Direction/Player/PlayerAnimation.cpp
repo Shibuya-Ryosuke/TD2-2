@@ -17,8 +17,14 @@ namespace App
 		PlayIdle();
 	}
 
-	//アニメーションを最初から速さを決めて流す
+	//アニメーションを最初から速さを決めて、いつもの秒数で混ぜて流す
 	void PlayerAnimation::Play(const char* clip, bool isLoop, float speed, State state)
+	{
+		Play(clip, isLoop, speed, state, DirectionConfig::kPlayerAnimBlend);
+	}
+
+	//アニメーションを最初から速さと混ぜる秒数を決めて流す
+	void PlayerAnimation::Play(const char* clip, bool isLoop, float speed, State state, float blend)
 	{
 		state_ = state;
 		isAfterImpact_ = false;
@@ -28,7 +34,7 @@ namespace App
 		{
 			return;
 		}
-		body_->PlayAnimation(clip, isLoop, DirectionConfig::kPlayerAnimBlend, true);
+		body_->PlayAnimation(clip, isLoop, blend, true);
 		body_->SetAnimationSpeed(speed);
 	}
 
@@ -57,10 +63,14 @@ namespace App
 		Play(DirectionConfig::kPlayerJumpClip, false, speed, State::Jump);
 	}
 
-	//ハンマーを振り下ろして首をかしげる
+	//腕が動き始める所からすぐにハンマーを振り下ろして首をかしげる
 	void PlayerAnimation::PlaySwing()
 	{
-		Play(DirectionConfig::kPlayerSwingClip, false, DirectionConfig::kPlayerSwingSpeed, State::Swing);
+		Play(DirectionConfig::kPlayerSwingClip, false, DirectionConfig::kPlayerSwingSpeed, State::Swing, DirectionConfig::kPlayerSwingBlend);
+		if (!isClipMissing_)
+		{
+			body_->SetAnimationTime(DirectionConfig::kPlayerSwingStartTime);
+		}
 	}
 
 	//クリアのポーズを1回する

@@ -4,7 +4,7 @@
 
 namespace App
 {
-	//着地でハートがはじけてピカッと光る見た目だけの動き
+	//着地で体を光らせて打撃でハートを描く
 	class PlayerBounce
 	{
 	public:
@@ -16,10 +16,12 @@ namespace App
 
 		//ハートを作って体にシェーダーをつける
 		void Initialize(RyoEngine::Model& body);
-		//足元の位置から着地を見つけてハートを出し、ピカッと光る
+		//足元の位置から着地を見つけて体を光らせる
 		void Update(const RyoEngine::Vector3& feet);
 		//好きな所からハートをはじけさせる
-		void Burst(const RyoEngine::Vector3& feet, float power) { hearts_.Burst(feet, power); }
+		void Burst(const RyoEngine::Vector3& feet, float power, float sizeScale = 1.0f) { hearts_.Burst(feet, power, sizeScale); }
+		//ポーズが決まったときに肩の外側へハートを飛ばす
+		void BurstVictory(const RyoEngine::Vector3& origin, const RyoEngine::Vector3& outward, const RyoEngine::Vector3& up) { hearts_.BurstVictory(origin, outward, up); }
 		//着地の見つけ方を今の位置からやり直す
 		void Reset(const RyoEngine::Vector3& feet);
 

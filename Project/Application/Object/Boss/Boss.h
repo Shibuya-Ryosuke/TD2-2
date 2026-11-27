@@ -75,6 +75,8 @@ namespace App
 		//足場が当たってむぎゅっとつぶれる
 		void Flinch(float power);
 		float GetFlinch() const { return flinch_; }
+		//やられ演出などで体と拳をalphaの濃さに透かして、0なら描かない
+		void SetFade(float alpha) { view_.SetFade(alpha); }
 
 		//BossViewが読む見た目の値
 		const RyoEngine::Vector3& GetFistLocal() const { return fistLocal_; } //ボスのローカルの拳の位置

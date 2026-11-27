@@ -8,7 +8,7 @@
 
 namespace App
 {
-	//床が砕けたときに飛び散るピンクの欠片を使い回す
+	//床が砕けたときに飛び散る木片を使い回す
 	class FloorShards
 	{
 	public:
@@ -41,7 +41,7 @@ namespace App
 			RyoEngine::Vector3 velocity{};
 			RyoEngine::Vector3 rotate{};
 			RyoEngine::Vector3 spin{}; //1秒に回る角度
-			float size = 0.0f;
+			RyoEngine::Vector3 size{};
 			float life = 0.0f; //残りの時間で0以下は使っていない
 		};
 

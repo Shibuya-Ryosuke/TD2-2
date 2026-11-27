@@ -3,38 +3,51 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
+#include <random>
 
 using namespace RyoEngine;
 
 namespace App
 {
-	namespace
-	{
-		//0から1におさめる
-		float Clamp01(float value)
-		{
-			return std::clamp(value, 0.0f, 1.0f);
-		}
-	}
-
-	//ブロックを作る
 	void TransitionWall::Initialize(WorldTransform* frame, uint32_t shader)
 	{
-		for (int32_t i = 0; i < kBlockCount; ++i)
+		for (TransitionPiece& piece : pieces_)
 		{
-			TransitionPiece& piece = pieces_[static_cast<size_t>(i)];
 			piece.Initialize(frame, shader, true);
-			//ドン！の縁の光の色をパステルの斜めのしま模様に並べる
-			const int32_t column = i % DirectionConfig::kTransitionColumns;
-			const int32_t row = i / DirectionConfig::kTransitionColumns;
-			const size_t colorIndex = static_cast<size_t>(column + row * 2) % DirectionConfig::kTransitionPopColors.size();
-			const Vector4& color = DirectionConfig::kTransitionPopColors[colorIndex];
-			piece.shaderParams1 = { color.x, color.y, color.z, 0.0f }; //縁の光の色
 		}
 		Hide();
 	}
 
-	//全部消す
+	//飛ぶ向きと速さと置かれる角度を積み木ごとにずらす
+	void TransitionWall::Begin(uint32_t seed)
+	{
+		std::mt19937 random{ seed };
+		std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+		const auto signedUnit = [&]() { return unit(random) * 2.0f - 1.0f; };
+
+		for (size_t i = 0; i < pieces_.size(); ++i)
+		{
+			Motion& motion = motions_[i];
+			const float angle = unit(random) * (2.0f * std::numbers::pi_v<float>);
+			motion.offset = { signedUnit(), signedUnit(), signedUnit() };
+			motion.launch = { std::cos(angle), std::sin(angle), 0.48f + 1.08f * unit(random) };
+			motion.settleRotate = { 13.0f * signedUnit(), 15.0f * signedUnit(), 27.0f * signedUnit() };
+			motion.flightSpin = { 250.0f * signedUnit(), 290.0f * signedUnit(), 205.0f * signedUnit() };
+			motion.dropSpin = { 73.0f * signedUnit(), 86.0f * signedUnit(), 210.0f * signedUnit() };
+			motion.size = 1.73f + 0.23f * unit(random);
+			motion.flightTime = 0.37f + 0.25f * unit(random);
+			motion.arrivalJitter = 0.19f * signedUnit();
+			motion.dropJitter = 0.13f * unit(random);
+
+			const size_t colorIndex = static_cast<size_t>(random()) % DirectionConfig::kTransitionPopColors.size();
+			const Vector4& color = DirectionConfig::kTransitionPopColors[colorIndex];
+			TransitionPiece& piece = pieces_[i];
+			piece.SetColor({ 0.72f + color.x * 0.28f, 0.72f + color.y * 0.28f, 0.72f + color.z * 0.28f, 1.0f });
+			piece.shaderParams1 = { color.x, color.y, color.z, 0.0f };
+		}
+		Hide();
+	}
+
 	void TransitionWall::Hide()
 	{
 		for (TransitionPiece& piece : pieces_)
@@ -43,205 +56,145 @@ namespace App
 		}
 	}
 
-	//画面の高さで割ったマスの1辺
-	float TransitionWall::GetCellSize(const TransitionView& view) const
-	{
-		return view.halfHeight * 2.0f / static_cast<float>(DirectionConfig::kTransitionRows);
-	}
-
-	//正方形のマスで画面の横幅を埋めるのに使う列の数
+	//中央の前に最後の積み木を置けるように列数を奇数にする
 	int32_t TransitionWall::GetUsedColumns(const TransitionView& view) const
 	{
-		const int32_t needed = static_cast<int32_t>(std::ceil(view.GetHalfWidth() * 2.0f / GetCellSize(view) - 0.001f));
-		return std::clamp(needed, 1, DirectionConfig::kTransitionColumns);
+		const int32_t count = static_cast<int32_t>(std::ceil(view.aspectRatio * static_cast<float>(kRows)));
+		return std::clamp(count | 1, 3, kColumns);
 	}
 
-	//使う列の中のブロックか
-	bool TransitionWall::IsUsed(int32_t index, const TransitionView& view) const
+	void TransitionWall::UpdateCover(float time, const TransitionView& view)
 	{
-		return index % DirectionConfig::kTransitionColumns < GetUsedColumns(view);
-	}
-
-	//下の段の左から数えた積む順番
-	int32_t TransitionWall::GetStackOrder(int32_t index, const TransitionView& view) const
-	{
-		const int32_t column = index % DirectionConfig::kTransitionColumns;
-		const int32_t row = index / DirectionConfig::kTransitionColumns;
-		return row * GetUsedColumns(view) + column;
-	}
-
-	//正方形のマスを画面のまん中にそろえて並べたときの置き場所で、はみ出す分は左右に半分ずつ
-	Vector3 TransitionWall::GetHomePosition(int32_t index, const TransitionView& view) const
-	{
-		const int32_t column = index % DirectionConfig::kTransitionColumns;
-		const int32_t row = index / DirectionConfig::kTransitionColumns;
-		const float cell = GetCellSize(view);
-		const float left = -cell * static_cast<float>(GetUsedColumns(view)) * 0.5f;
-		return Vector3{
-			left + (static_cast<float>(column) + 0.5f) * cell,
-			-view.halfHeight + (static_cast<float>(row) + 0.5f) * cell,
-			view.refDepth };
-	}
-
-	//元のモデルの形のまま全部の辺を同じ倍率で大きくする
-	Vector3 TransitionWall::GetBlockSize(const TransitionView& view) const
-	{
-		const float side = GetCellSize(view) * (1.0f - DirectionConfig::kTransitionBlockGap);
-		return Vector3{ side, side, side };
-	}
-
-	//積み上げる
-	void TransitionWall::UpdateStack(float time, const TransitionView& view)
-	{
-		//最後の1個がちょうど積み上がる時間で着くように少しずつずらして落とす
-		const int32_t usedCount = GetUsedColumns(view) * DirectionConfig::kTransitionRows;
-		const float interval = (DirectionConfig::kTransitionStackTime - DirectionConfig::kTransitionBlockFallTime) / static_cast<float>(std::max(usedCount - 1, 1));
-		const Vector3 blockSize = GetBlockSize(view);
-		const float startY = view.halfHeight + blockSize.y * 2.0f; //画面の上の外から落ちてくる
+		const int32_t columns = GetUsedColumns(view);
+		const float halfWidth = view.GetHalfWidth();
+		const float cellWidth = 2.0f * halfWidth / static_cast<float>(columns);
+		const float cellHeight = 2.0f * view.halfHeight / static_cast<float>(kRows);
+		const float tilt = std::min(1.0f, view.refDepth / std::max(cellWidth, cellHeight));
 
 		for (int32_t i = 0; i < kBlockCount; ++i)
 		{
 			TransitionPiece& piece = pieces_[static_cast<size_t>(i)];
-			const Vector3 home = GetHomePosition(i, view);
-			const float localTime = time - interval * static_cast<float>(GetStackOrder(i, view));
-			piece.isVisible = IsUsed(i, view) && localTime >= 0.0f;
-			piece.rotate = { 0.0f, 0.0f, 0.0f };
-			piece.size = blockSize;
-			piece.position = home;
-			SetGlow(i, 0.0f);
+			const Motion& motion = motions_[static_cast<size_t>(i)];
+			const int32_t column = i % kColumns;
+			const int32_t row = i / kColumns;
+			piece.isVisible = false;
+			if (column >= columns)
+			{
+				continue;
+			}
+
+			const int32_t x = column - columns / 2;
+			const int32_t y = row - kRows / 2;
+			const bool isCenter = x == 0 && y == 0;
+			const float screenX = static_cast<float>(x) * cellWidth;
+			const float screenY = static_cast<float>(y) * cellHeight;
+			const float radius = std::max(std::abs(screenX) / halfWidth, std::abs(screenY) / view.halfHeight);
+			float arrival = std::clamp(1.98f - radius * 1.50f + motion.arrivalJitter, 0.32f, 1.99f);
+			if (isCenter)
+			{
+				arrival = DirectionConfig::kTransitionImpactTime;
+			}
+			const float local = time - arrival;
+			if (local < -motion.flightTime)
+			{
+				continue;
+			}
+
+			//奥行きが違っても狙った画面位置で積み木どうしを重ねる
+			float spread = 1.0f;
+			float depth = 1.0f + motion.offset.z * 0.18f;
+			float size = motion.size + 0.10f * radius;
+			if (std::abs(x) + std::abs(y) == 1)
+			{
+				spread = 1.33f;
+			}
+			if (isCenter)
+			{
+				depth = 0.82f;
+				size = 1.87f;
+			}
+			piece.isVisible = true;
+			piece.position = {
+				(screenX * spread + cellWidth * motion.offset.x * 0.14f) * depth,
+				(screenY * spread + cellHeight * motion.offset.y * 0.14f) * depth,
+				view.refDepth * depth
+			};
+			piece.size = { cellWidth * size * depth, cellHeight * size * depth, view.refDepth * depth * 0.29f };
+			piece.rotate = { motion.settleRotate.x * tilt, motion.settleRotate.y * tilt, motion.settleRotate.z };
+			float glow = 0.0f;
+
+			if (local < 0.0f)
+			{
+				const float t = 1.0f + local / motion.flightTime;
+				const float remaining = 1.0f - t * t;
+				//横と縦と奥から別々の軌道で飛び込みながら三軸で回る
+				const float spreadInAir = 1.0f - 0.78f * static_cast<float>(isCenter);
+				piece.position.x += (motion.launch.x * halfWidth * 2.8f - screenX) * remaining * spreadInAir;
+				piece.position.y += (motion.launch.y * view.halfHeight * 2.65f - screenY) * remaining * spreadInAir;
+				piece.position.z += view.refDepth * motion.launch.z * remaining;
+				piece.rotate = piece.rotate + motion.flightSpin * remaining;
+			}
+			else
+			{
+				const float bounce = std::sin(27.0f * local) * std::exp(-16.0f * local);
+				float bounceDepth = 0.055f;
+				if (isCenter)
+				{
+					bounceDepth = 0.13f;
+				}
+				piece.position.z += view.refDepth * bounceDepth * bounce;
+				glow = 0.58f * std::exp(-11.0f * local);
+				const float waveTime = time - DirectionConfig::kTransitionImpactTime - radius * 0.10f;
+				if (isCenter)
+				{
+					glow = 1.8f * std::exp(-11.0f * local);
+				}
+				else if (waveTime >= 0.0f)
+				{
+					glow += 0.66f * std::exp(-17.0f * waveTime);
+				}
+			}
+
+			piece.shaderParams0 = { glow, 0.0f, 1.0f, 0.0f };
+		}
+	}
+
+	void TransitionWall::UpdateDrop(float time, const TransitionView& view)
+	{
+		//切り替え前の積み木を同じ向きから落とす
+		UpdateCover(DirectionConfig::kTransitionCoverTime, view);
+		for (int32_t i = 0; i < kBlockCount; ++i)
+		{
+			TransitionPiece& piece = pieces_[static_cast<size_t>(i)];
 			if (!piece.isVisible)
 			{
 				continue;
 			}
 
-			//落ちてくる途中はだんだん速く縦にのびる
-			const float fall = localTime / DirectionConfig::kTransitionBlockFallTime;
-			if (fall < 1.0f)
-			{
-				const float stretch = fall * DirectionConfig::kTransitionFallStretch;
-				piece.size.y = blockSize.y * (1.0f + stretch);
-				piece.size.x = blockSize.x * (1.0f - stretch * DirectionConfig::kTransitionSquashWiden);
-				piece.position.y = startY + (home.y - startY) * fall * fall;
-				continue;
-			}
-
-			//着いたらドン！で縁が光ってぽよよんと弾む
-			const float landed = localTime - DirectionConfig::kTransitionBlockFallTime;
-			SetGlow(i, Clamp01(1.0f - landed / DirectionConfig::kTransitionGlowTime));
-			const float bounce = DirectionConfig::kTransitionSquash * std::exp(-DirectionConfig::kTransitionSquashDamping * landed)
-				* std::cos(DirectionConfig::kTransitionSquashSpeed * landed);
-			piece.size.y = blockSize.y * (1.0f - bounce);
-			piece.size.x = blockSize.x * (1.0f + bounce * DirectionConfig::kTransitionSquashWiden);
-			piece.position.y = home.y - blockSize.y * bounce * 0.5f;
-		}
-		ApplyAll(view);
-	}
-
-	//全部置いた状態にする
-	void TransitionWall::SetCovered(const TransitionView& view)
-	{
-		const Vector3 blockSize = GetBlockSize(view);
-		for (int32_t i = 0; i < kBlockCount; ++i)
-		{
-			TransitionPiece& piece = pieces_[static_cast<size_t>(i)];
-			piece.isVisible = IsUsed(i, view);
-			piece.position = GetHomePosition(i, view);
-			piece.rotate = { 0.0f, 0.0f, 0.0f };
-			piece.size = blockSize;
-			SetGlow(i, 0.0f);
-		}
-		ApplyAll(view);
-	}
-
-	//シェーダーに縁の光を渡す
-	void TransitionWall::SetGlow(int32_t index, float glow)
-	{
-		pieces_[static_cast<size_t>(index)].shaderParams0 = { glow, 0.0f, 1.0f, 0.0f };
-	}
-
-	//ブロックごとの飛ばされ方を決めて埋まった状態から始める
-	void TransitionWall::BeginBlow(std::mt19937& random, const TransitionView& view)
-	{
-		std::uniform_real_distribution<float> unit(0.0f, 1.0f);
-		for (int32_t i = 0; i < kBlockCount; ++i)
-		{
-			const int32_t column = i % DirectionConfig::kTransitionColumns;
-			const Vector3 home = GetHomePosition(i, view);
-			BlowMotion& motion = motions_[static_cast<size_t>(i)];
-
-			//風は左からなので左の列から少しばらつかせて飛ばす
-			motion.delay = static_cast<float>(column) * DirectionConfig::kTransitionBlowColumnDelay
-				+ unit(random) * DirectionConfig::kTransitionBlowRandomDelay;
-			//どのブロックも右の画面の外まで出る長さ
-			motion.travel = (view.GetHalfWidth() - home.x) + view.GetHalfWidth() * DirectionConfig::kTransitionBlowDistance * (0.8f + unit(random) * 0.4f);
-			motion.lift = view.halfHeight * DirectionConfig::kTransitionBlowLift * (unit(random) * 1.4f - 0.2f);
-			motion.towardCamera = view.refDepth * unit(random) * 0.15f;
-			motion.spinZ = -(240.0f + unit(random) * 360.0f); //右へ転がる向き
-			motion.spinX = (unit(random) - 0.5f) * 360.0f;
-			motion.spinY = (unit(random) - 0.5f) * 240.0f;
-		}
-		SetCovered(view);
-	}
-
-	//横に吹き飛ばす
-	void TransitionWall::UpdateBlow(float time, const TransitionView& view)
-	{
-		const Vector3 blockSize = GetBlockSize(view);
-		const float pi = std::numbers::pi_v<float>;
-		for (int32_t i = 0; i < kBlockCount; ++i)
-		{
-			TransitionPiece& piece = pieces_[static_cast<size_t>(i)];
-			const BlowMotion& motion = motions_[static_cast<size_t>(i)];
-			const Vector3 home = GetHomePosition(i, view);
-			piece.size = blockSize;
-
-			//使わない列のブロックは出さない
-			if (!IsUsed(i, view))
+			const Motion& motion = motions_[static_cast<size_t>(i)];
+			const float height = std::clamp(piece.position.y / view.halfHeight, -1.0f, 1.0f);
+			const float delay = 0.04f + (height + 1.0f) * 0.19f + motion.dropJitter;
+			const float progress = std::clamp((time - delay) / (DirectionConfig::kTransitionDropTime - delay), 0.0f, 1.0f);
+			if (progress >= 1.0f)
 			{
 				piece.isVisible = false;
 				continue;
 			}
 
-			//まだ風が来ていないブロックは置いたまま
-			if (time < motion.delay)
-			{
-				piece.position = home;
-				piece.rotate = { 0.0f, 0.0f, 0.0f };
-				continue;
-			}
-
-			//だんだん速く右へ、ふわっと上下に流れてくるくる転がる
-			const float flightTime = std::max(0.01f, DirectionConfig::kTransitionBlowTime - motion.delay);
-			const float t = Clamp01((time - motion.delay) / flightTime);
-			const float ease = t * t;
-			piece.position.x = home.x + motion.travel * ease;
-			piece.position.y = home.y + motion.lift * std::sin(pi * 0.5f * t);
-			piece.position.z = home.z - motion.towardCamera * t;
-			const float spin = std::pow(t, 1.3f);
-			piece.rotate = { motion.spinX * spin, motion.spinY * spin, motion.spinZ * spin };
-
-			if (t >= 1.0f)
-			{
-				piece.isVisible = false;
-			}
+			const float gravity = progress * progress;
+			const float travel = piece.position.y + view.halfHeight * 1.9f + std::max(piece.size.x, piece.size.y);
+			piece.position.y -= travel * gravity;
+			piece.position.x += motion.launch.x * piece.size.x * gravity * 0.7f;
+			piece.rotate = piece.rotate + motion.dropSpin * gravity;
+			piece.shaderParams0.x *= std::exp(-8.0f * time);
 		}
-		ApplyAll(view);
 	}
 
-	//行列を確定する
-	void TransitionWall::ApplyAll(const TransitionView& view)
+	void TransitionWall::Draw(const TransitionView& view)
 	{
 		for (TransitionPiece& piece : pieces_)
 		{
 			piece.Apply(view);
-		}
-	}
-
-	//見えているブロックを描く
-	void TransitionWall::Draw()
-	{
-		for (TransitionPiece& piece : pieces_)
-		{
 			piece.Draw();
 		}
 	}

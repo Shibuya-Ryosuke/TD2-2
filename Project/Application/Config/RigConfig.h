@@ -1,16 +1,20 @@
 #pragma once
 #include <RyoEngine.h>
+#include <array>
 
 //頭と体と両腕と両足に分けたプレイヤーのモデルをコードで動かすときの数値
 namespace App::RigConfig
 {
 	//分けたパーツのモデル
 	inline constexpr const char* kHeadModel = "Model/player/Head/playerHead.obj";
-	inline constexpr const char* kBodyModel = "Model/player/Body/player.Body.obj";
+	inline constexpr const char* kBodyModel = "Model/player/Body/Body.obj";
 	inline constexpr const char* kLeftArmModel = "Model/player/LeftArm/playerLeftArm.obj";
 	inline constexpr const char* kRightArmModel = "Model/player/RightArm/playerRightArm.obj";
 	inline constexpr const char* kLeftLegModel = "Model/player/LeftFeet/playerLeftFeet.obj";
 	inline constexpr const char* kRightLegModel = "Model/player/RightFeet/playerRightFeet.obj";
+
+	//読みこんだあとに面の向きを直す、Body.objの服とリボンのマテリアルの名前
+	inline constexpr std::array<const char*, 2> kFlippedBodyMaterials = { { "マテリアル.003", "マテリアル.007" } };
 
 	//関節の位置で、読みこむときにXが反転したあとのモデルの中の位置
 	inline constexpr RyoEngine::Vector3 kWaistPivot = { -0.09f, 1.20f, -0.05f }; //腰で、上半身はここを中心に傾く

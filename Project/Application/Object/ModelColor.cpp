@@ -1,6 +1,5 @@
 #include "ModelColor.h"
-#include <cstdint>
-#include <cstring>
+#include "GlbJson.h"
 #include <fstream>
 #include <json.hpp>
 #include <sstream>
@@ -74,24 +73,8 @@ namespace App
 		std::vector<MtlColor> LoadGlbColors(const std::string& path)
 		{
 			std::vector<MtlColor> colors;
-			std::ifstream file(path, std::ios::binary);
-
-			//12バイトの頭のあとに4バイトのJSONの長さと4バイトの種類があり、そのあとがJSON
-			char header[20] = {};
-			if (!file.read(header, sizeof(header)))
-			{
-				return colors;
-			}
-			uint32_t length = 0;
-			std::memcpy(&length, header + 12, sizeof(length));
-			std::string text(length, '\0');
-			if (!file.read(text.data(), static_cast<std::streamsize>(length)))
-			{
-				return colors;
-			}
-
-			const nlohmann::json json = nlohmann::json::parse(text, nullptr, false);
-			if (json.is_discarded() || !json.contains("materials"))
+			const nlohmann::json json = GlbJson::Read(path);
+			if (!json.contains("materials"))
 			{
 				return colors;
 			}

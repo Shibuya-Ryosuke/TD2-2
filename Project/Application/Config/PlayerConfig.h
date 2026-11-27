@@ -1,5 +1,6 @@
 #pragma once
 #include <RyoEngine.h>
+#include <array>
 #include <cstdint>
 #include "FloorConfig.h"
 
@@ -23,10 +24,21 @@ namespace App::PlayerConfig
 	inline constexpr float kHitBlinkFrequency = 9.0f; //無敵の間に1秒に点滅する回数
 
 	//モデルで色はmtlのまま使う
-	inline constexpr const char* kPlayerModel = "animation/Player/playerIdol.glb"; //待機のアニメーションが入ったボーンつきのプレイヤーのモデル
+	inline constexpr const char* kPlayerModel = "Model/player/animation/Player/playerIdol.glb"; //待機のアニメーションが入ったボーンつきのプレイヤーのモデル
 	inline constexpr float kPlayerModelScale = 0.75f; //プレイヤーのモデルの大きさの倍率
 	inline constexpr float kPlayerModelYaw = 90.0f; //横を向いているプレイヤーのモデルを正面に向ける度数
 	inline constexpr float kPlayerModelLift = 0.04f; //足の裏が床に来るようにプレイヤーのモデルを上げる高さ
+
+	//腕を肩を中心に大きくして、全部のシーンで同じ太さと長さにする
+	inline constexpr float kArmScale = 1.15f; //腕の大きさの倍率で、1で元のまま
+	inline constexpr const char* kArmShaderLeft = "PlayerArmLeft"; //左腕を肩から大きくするシェーダー
+	inline constexpr const char* kArmShaderRight = "PlayerArmRight"; //右腕を肩から大きくするシェーダー
+	inline constexpr const char* kArmJointLeft = "UpperArm.L"; //左腕を大きくする中心の肩のボーン
+	inline constexpr const char* kArmJointRight = "UpperArm.R"; //右腕を大きくする中心の肩のボーン
+	inline constexpr const char* kSleeveNode = "Sleeve.R"; //体と両方の袖がまとめて入っているglbのノードの名前
+	inline constexpr const char* kSleeveMaterialLeft = "マテリアル.014"; //そのノードの中の左の袖のマテリアルの名前
+	inline constexpr const char* kSleeveMaterialRight = "マテリアル.025"; //そのノードの中の右の袖のマテリアルの名前
+	inline constexpr std::array<const char*, 4> kArmMeshNames = { { "UpperArm_Block", "Forearm_Block", "Hand_Block", "Simple_" } }; //glbの中の腕のメッシュのノードの名前の頭
 
 	//[アイテム] アイテムは一旦使わないのでコメントアウト
 	// //HPが少ないとき1層に1個だけ降ってくるアイテム

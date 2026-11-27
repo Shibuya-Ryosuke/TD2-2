@@ -19,6 +19,7 @@ namespace App
 		float elapsed_ = 0.0f; //寄せ始めてからの秒数
 		float startOrthoSize_ = 0.0f; //寄せ始める前の映す広さ
 		bool isPosing_ = false; //寄せ終わってポーズを始めたか
+		bool hasVictoryBurst_ = false; //ポーズが決まった瞬間の粒を出したか
 		float holdElapsed_ = 0.0f; //ポーズが終わってからの秒数
 	};
 }

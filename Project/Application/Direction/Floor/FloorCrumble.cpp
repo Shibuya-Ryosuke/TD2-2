@@ -1,5 +1,6 @@
 #include "FloorCrumble.h"
 #include "../../Config/FloorConfig.h"
+#include "../../Config/LightConfig.h"
 #include "../../Config/DirectionConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <algorithm>
@@ -23,7 +24,7 @@ namespace App
 	{
 		const FloorTile& tile = floor.GetTile(cell);
 
-		//見えている床が砕け始めた瞬間にピンクの欠片を飛ばす
+		//見えている床が砕け始めた瞬間に木片を飛ばす
 		const bool isShattering = state.shatter > 0.0f;
 		if (isShattering && wasShattering_[index] == 0 && tile.isVisible)
 		{
@@ -41,8 +42,8 @@ namespace App
 		}
 		model.SetShaderParams(0, { state.heartScale, state.heartCrack, state.heartBreak, state.tileCrack });
 		model.SetShaderParams(1, { shatterOrWear, seed, state.flash, tile.heartAngle });
-		//影は砕けないので砕けかけの床は影を落とさない
-		model.SetCastShadow(state.shatter <= 0.0f);
+		//影は砕けないので砕けかけの床は影を落とさず、床の影を切っているときはいつも落とさない
+		model.SetCastShadow(LightConfig::kFloorCastsShadow && state.shatter <= 0.0f);
 	}
 
 	//飛び散る欠片を動かす

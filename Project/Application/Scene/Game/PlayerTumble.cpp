@@ -40,11 +40,11 @@ namespace App
 				return false;
 			}
 
-			//どすんと尻もちで足場が揺れてハートが飛ぶ
+			//尻もちで足場が揺れてピンクの光が弾ける
 			player.Place(landing_);
 			player.SetPose(PlayerPose::Kind::Sit);
 			landingFloor.Jiggle(landingFloor.GetCellAt(landing_), DirectionConfig::kFallLandJiggle);
-			player.BurstHearts(DirectionConfig::kFallLandHearts);
+			player.PlayLandingParticles();
 			direction.Shake(DirectionConfig::kFallLandShake);
 			stage_ = Stage::Sit;
 			timer_ = 0.0f;

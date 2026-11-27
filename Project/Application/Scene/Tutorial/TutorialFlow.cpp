@@ -31,6 +31,8 @@ namespace App
 		Floor& floor = context.floors.GetCurrent();
 		context.floors.EnsureBelow();
 		context.player.Place(GetStartPosition(floor));
+		//チュートリアルは見えない壁なしで、穴にも床の外にも飛び降りられる
+		context.player.SetCanLeaveFloor(true);
 
 		//ボスは下の層のいつもの最初のマスで仰向けに寝ている
 		const Floor& below = *context.floors.GetBelow();
@@ -132,10 +134,6 @@ namespace App
 		{
 			isReleased_ = false;
 			isDropFinished_ = false;
-		}
-		else if (step == Step::GoDown)
-		{
-			context.player.SetCanLeaveFloor(true);
 		}
 	}
 

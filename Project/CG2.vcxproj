@@ -512,6 +512,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Direction\Floor\FloorWear.cpp" />
     <ClCompile Include="Application\Direction\Floor\FloorShards.cpp" />
     <ClCompile Include="Application\Direction\Player\PlayerBounce.cpp" />
+    <ClCompile Include="Application\Direction\Player\PlayerParticles.cpp" />
     <ClCompile Include="Application\Direction\Player\PlayerAnimation.cpp" />
     <ClCompile Include="Application\Direction\Player\HammerSwing.cpp" />
     <ClCompile Include="Application\Direction\Player\PlayerTurnAround.cpp" />
@@ -534,7 +535,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Scene\Tutorial\Tutorial.cpp" />
     <ClCompile Include="Application\Scene\Tutorial\TutorialSpot.cpp" />
     <ClCompile Include="Application\Scene\Game\BossWake.cpp" />
-    <ClCompile Include="Application\Scene\Game\PlayerTumble.cpp" />
     <ClCompile Include="Application\Object\Tsumiki\Tsumiki.cpp" />
     <ClCompile Include="Application\Scene\Title\TitleDrop.cpp" />
     <ClCompile Include="Application\Scene\Clear\ClearBoss.cpp" />
@@ -558,6 +558,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Object\Boss\BossPlanner.cpp" />
     <ClCompile Include="Application\Object\Boss\BossView.cpp" />
     <ClCompile Include="Application\Object\Player\Player.cpp" />
+    <ClCompile Include="Application\Object\Player\PlayerArms.cpp" />
     <ClCompile Include="Application\Object\Player\FrontBreak.cpp" />
     <ClCompile Include="Application\Object\Player\PlayerHealth.cpp" />
     <ClCompile Include="Application\Scene\Clear\Clear.cpp" />
@@ -566,11 +567,24 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Scene\Game\PlayerAction.cpp" />
     <ClCompile Include="Application\Scene\Game\SpawnPlanner.cpp" />
     <ClCompile Include="Application\Scene\Game\BossFallFlow.cpp" />
+    <ClCompile Include="Application\Direction\BossFall\BossFallPoses.cpp" />
+    <ClCompile Include="Application\Direction\BossFall\BossFallRig.cpp" />
+    <ClCompile Include="Application\Direction\BossFall\BossFallShow.cpp" />
+    <ClCompile Include="Application\Direction\BossFall\BossFallParticles.cpp" />
+    <ClCompile Include="Application\Direction\BossFall\TileLift.cpp" />
+    <ClCompile Include="Application\Scene\Game\BossFallCamera.cpp" />
+    <ClCompile Include="Application\Scene\Game\PlayerDive.cpp" />
+    <ClCompile Include="Application\Scene\Game\PlayerEdgeHop.cpp" />
+    <ClCompile Include="Application\Scene\Game\BossFallStages.cpp" />
     <ClCompile Include="Application\Scene\Game\DescentSequence.cpp" />
     <ClCompile Include="Application\Scene\Game\Game.cpp" />
     <ClCompile Include="Application\Scene\Game\PauseMenu.cpp" />
     <ClCompile Include="Application\Scene\Game\ClearPose.cpp" />
+    <ClCompile Include="Application\Scene\Game\DefeatBossFade.cpp" />
+    <ClCompile Include="Application\Scene\Game\DefeatPoses.cpp" />
+    <ClCompile Include="Application\Scene\Game\DefeatSequence.cpp" />
     <ClCompile Include="Application\Scene\Game\GamePause.cpp" />
+    <ClCompile Include="Application\Scene\Game\GameBossFall.cpp" />
     <ClCompile Include="Application\Scene\Game\GameHud.cpp" />
     <ClCompile Include="Application\Scene\Game\TileBarrage.cpp" />
     <ClCompile Include="Application\Scene\GameOver\GameOver.cpp" />
@@ -583,7 +597,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClCompile Include="Application\Stage\Grid\GridDirection.cpp" />
     <ClCompile Include="Application\Stage\Floor\LayerFloors.cpp" />
     <ClCompile Include="Application\Stage\Sky\SkyDome.cpp" />
+    <ClCompile Include="Application\Stage\Light\SunLight.cpp" />
     <ClCompile Include="Application\Object\ModelColor.cpp" />
+    <ClCompile Include="Application\Object\GlbJson.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\Application.h" />
@@ -597,6 +613,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Direction\Floor\FloorWear.h" />
     <ClInclude Include="Application\Direction\Floor\FloorShards.h" />
     <ClInclude Include="Application\Direction\Player\PlayerBounce.h" />
+    <ClInclude Include="Application\Direction\Player\PlayerParticles.h" />
     <ClInclude Include="Application\Direction\Player\PlayerAnimation.h" />
     <ClInclude Include="Application\Direction\Player\HammerSwing.h" />
     <ClInclude Include="Application\Direction\Player\PlayerTurnAround.h" />
@@ -616,7 +633,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Scene\Tutorial\Tutorial.h" />
     <ClInclude Include="Application\Scene\Tutorial\TutorialSpot.h" />
     <ClInclude Include="Application\Scene\Game\BossWake.h" />
-    <ClInclude Include="Application\Scene\Game\PlayerTumble.h" />
     <ClInclude Include="Application\Object\Tsumiki\Tsumiki.h" />
     <ClInclude Include="Application\Scene\Title\TitleDrop.h" />
     <ClInclude Include="Application\Scene\Clear\ClearBoss.h" />
@@ -629,6 +645,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Config\SkyConfig.h" />
     <ClInclude Include="Application\Config\ModelConfig.h" />
     <ClInclude Include="Application\Config\TitleConfig.h" />
+    <ClInclude Include="Application\Config\LightConfig.h" />
     <ClInclude Include="Application\Config\ClearConfig.h" />
     <ClInclude Include="Application\Config\GameOverConfig.h" />
     <ClInclude Include="Application\Object\Player\Rig\RigPose.h" />
@@ -653,6 +670,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Object\Boss\BossTuning.h" />
     <ClInclude Include="Application\Object\Boss\BossView.h" />
     <ClInclude Include="Application\Object\Player\Player.h" />
+    <ClInclude Include="Application\Object\Player\PlayerArms.h" />
     <ClInclude Include="Application\Object\Player\FrontBreak.h" />
     <ClInclude Include="Application\Object\Player\PlayerHealth.h" />
     <ClInclude Include="Application\Scene\Clear\Clear.h" />
@@ -661,10 +679,23 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Scene\Game\PlayerAction.h" />
     <ClInclude Include="Application\Scene\Game\SpawnPlanner.h" />
     <ClInclude Include="Application\Scene\Game\BossFallFlow.h" />
+    <ClInclude Include="Application\Direction\BossFall\BossFallPoses.h" />
+    <ClInclude Include="Application\Direction\BossFall\BossFallRig.h" />
+    <ClInclude Include="Application\Direction\BossFall\BossFallShow.h" />
+    <ClInclude Include="Application\Direction\BossFall\BossFallParticles.h" />
+    <ClInclude Include="Application\Direction\BossFall\TileLift.h" />
+    <ClInclude Include="Application\Scene\Game\BossFallCamera.h" />
+    <ClInclude Include="Application\Scene\Game\PlayerDive.h" />
+    <ClInclude Include="Application\Scene\Game\PlayerEdgeHop.h" />
+    <ClInclude Include="Application\Direction\BossFall\BossPose.h" />
+    <ClInclude Include="Application\Config\BossFallConfig.h" />
     <ClInclude Include="Application\Scene\Game\DescentSequence.h" />
     <ClInclude Include="Application\Scene\Game\Game.h" />
     <ClInclude Include="Application\Scene\Game\PauseMenu.h" />
     <ClInclude Include="Application\Scene\Game\ClearPose.h" />
+    <ClInclude Include="Application\Scene\Game\DefeatBossFade.h" />
+    <ClInclude Include="Application\Scene\Game\DefeatPoses.h" />
+    <ClInclude Include="Application\Scene\Game\DefeatSequence.h" />
     <ClInclude Include="Application\Scene\Game\GameHud.h" />
     <ClInclude Include="Application\Scene\Game\GamePhase.h" />
     <ClInclude Include="Application\Scene\Game\TileBarrage.h" />
@@ -681,7 +712,9 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     <ClInclude Include="Application\Stage\Grid\GridDirection.h" />
     <ClInclude Include="Application\Stage\Floor\LayerFloors.h" />
     <ClInclude Include="Application\Stage\Sky\SkyDome.h" />
+    <ClInclude Include="Application\Stage\Light\SunLight.h" />
     <ClInclude Include="Application\Object\ModelColor.h" />
+    <ClInclude Include="Application\Object\GlbJson.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,7 +3,6 @@
 #include "../../Config/TutorialConfig.h"
 #include <algorithm>
 #include <cmath>
-#include <string>
 
 using namespace RyoEngine;
 
@@ -86,12 +85,11 @@ namespace App
 	//index層目の床を作る
 	std::unique_ptr<Floor> LayerFloors::CreateFloor(int32_t index, bool isForeground) const
 	{
-		//マイナスは1層目の上のチュートリアルで、6層目からは1層目に戻ってcsvを順に使う
-		std::string path = TutorialConfig::kCsvPath;
+		//チュートリアルだけ専用の床を使い、本編の各層は同じ床を読み込む
+		const char* path = TutorialConfig::kCsvPath;
 		if (index >= 0)
 		{
-			const int32_t fileNumber = index % LayerConfig::kLayerFileCount + 1;
-			path = "Resources/ApplicationResources/Stage/layer" + std::to_string(fileNumber) + ".csv";
+			path = LayerConfig::kBattleCsvPath;
 		}
 		const float height = -static_cast<float>(index) * LayerConfig::kFloorSpacing;
 

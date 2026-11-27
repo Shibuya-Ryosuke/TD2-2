@@ -3,6 +3,7 @@
 #include "../../Config/GameConfig.h"
 #include "BossDetail.h"
 #include "../ModelColor.h"
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 
@@ -32,6 +33,12 @@ namespace App
 		//mtlの色のままのボスのモデル
 		body_ = Model::Create(GameConfig::kBossModel);
 		ModelColor::Apply(*body_, GameConfig::kBossModel);
+		//透かしたあとに戻せるように、塗った色と混ぜ方を覚えておく
+		for (size_t i = 0; i < body_->GetMeshCount(); ++i)
+		{
+			bodyColors_.push_back(body_->GetColor(i));
+			bodyBlends_.push_back(body_->GetBlendMode(i));
+		}
 
 		//モデルの手と同じ緑の箱の拳
 		fist_ = Model::Create(GameConfig::kCubeModel);
@@ -153,10 +160,20 @@ namespace App
 		{
 			return;
 		}
+		//透けきったら何も描かない
+		if (fade_ <= 0.0f)
+		{
+			return;
+		}
 		body_->Draw();
 		if (boss.IsPunching())
 		{
 			fist_->Draw();
+		}
+		//透けている間は床の予告を出さない
+		if (fade_ < 1.0f)
+		{
+			return;
 		}
 		if (boss.IsMeleeTellVisible())
 		{
@@ -170,5 +187,36 @@ namespace App
 		for (int32_t i = 0; i < rushTellCount_; ++i) {
 			rushTells_[static_cast<size_t>(i)]->Draw();
 		}
+	}
+
+	//体と拳をalphaの濃さに透かして、透けている間は影も落とさない
+	void BossView::SetFade(float alpha)
+	{
+		fade_ = std::clamp(alpha, 0.0f, 1.0f);
+		const bool isOpaque = fade_ >= 1.0f;
+		for (size_t i = 0; i < bodyColors_.size(); ++i)
+		{
+			Vector4 color = bodyColors_[i];
+			color.w *= fade_;
+			BlendMode blend = bodyBlends_[i];
+			if (!isOpaque)
+			{
+				blend = BlendMode::Normal;
+			}
+			body_->SetColor(color, static_cast<int32_t>(i));
+			body_->SetBlendMode(blend, static_cast<int32_t>(i));
+		}
+		body_->SetCastShadow(isOpaque);
+
+		Vector4 fistColor = GameConfig::kBossFistColor;
+		fistColor.w *= fade_;
+		fist_->SetColor(fistColor);
+		BlendMode fistBlend = BlendMode::None;
+		if (!isOpaque)
+		{
+			fistBlend = BlendMode::Normal;
+		}
+		fist_->SetBlendMode(fistBlend);
+		fist_->SetCastShadow(isOpaque);
 	}
 }

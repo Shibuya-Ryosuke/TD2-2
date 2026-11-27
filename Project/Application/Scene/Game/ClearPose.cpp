@@ -27,6 +27,7 @@ namespace App
 		startOrthoSize_ = camera.GetOrthoSize();
 		isPosing_ = false;
 		holdElapsed_ = 0.0f;
+		hasVictoryBurst_ = false;
 
 		//カメラの向きと反対の水平な向きがカメラの方
 		const Vector3 forward = camera.GetForward();
@@ -59,11 +60,18 @@ namespace App
 			return false;
 		}
 
-		//ポーズが終わったら少し待つ
+		//ポーズが決まるまでハートと星の発生を待つ
 		if (!player.IsPoseFinished())
 		{
 			return false;
 		}
+		if (!hasVictoryBurst_)
+		{
+			hasVictoryBurst_ = true;
+			player.PlayVictoryParticles(target, camera.GetRight(), camera.GetUp(), camera.GetForward());
+			return false;
+		}
+
 		holdElapsed_ += deltaTime;
 		return holdElapsed_ >= DirectionConfig::kClearHoldTime;
 	}

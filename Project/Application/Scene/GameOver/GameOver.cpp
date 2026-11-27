@@ -63,7 +63,7 @@ namespace App
 		bury_.Draw();
 
 		//埋もれてから1920x1080が基準の画面の真ん中あたりにメニュー
-		if (menuTimer_ >= GameOverConfig::kMenuDelay)
+		if (!transition_.IsBusy() && menuTimer_ >= GameOverConfig::kMenuDelay)
 		{
 			menu_.Draw();
 		}

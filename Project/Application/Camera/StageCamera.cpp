@@ -32,6 +32,8 @@ namespace App
 		zoomOrthoSize_ = 0.0f;
 		pitchOffset_ = 0.0f;
 		shakeOffset_ = { 0.0f, 0.0f, 0.0f };
+		yawOffset_ = 0.0f;
+		orbitPivot_ = { 0.0f, 0.0f, 0.0f };
 	}
 
 	//寄せていなければいつもの広さ
@@ -44,34 +46,48 @@ namespace App
 		return baseOrthoSize_;
 	}
 
-	//床の高さとずらした分と揺れを足したカメラの位置
+	//床の高さとずらした分の位置を中心のまわりに回り込ませて、揺れを足したカメラの位置
 	Vector3 StageCamera::GetViewPosition() const
 	{
-		return
+		Vector3 position =
 		{
-			origin_.x + focusOffset_.x + shakeOffset_.x,
-			origin_.y + floorHeight_ + focusOffset_.y + shakeOffset_.y,
-			origin_.z + focusOffset_.z + shakeOffset_.z
+			origin_.x + focusOffset_.x,
+			origin_.y + floorHeight_ + focusOffset_.y,
+			origin_.z + focusOffset_.z
 		};
+		//向きと同じ回し方で中心から見た位置を回すと、中心は画面の同じ所に残る
+		if (std::abs(yawOffset_) > 0.0f)
+		{
+			const Vector3 fromPivot = TransformVector3(position - orbitPivot_, MakeRotateMatrix({ 0.0f, yawOffset_, 0.0f }));
+			position = orbitPivot_ + fromPivot;
+		}
+		return position + shakeOffset_;
 	}
 
 	//いつもの向きに縦の傾きを足す
 	Vector3 StageCamera::GetViewRotate() const
 	{
-		return { baseRotate_.x + pitchOffset_, baseRotate_.y, baseRotate_.z };
+		return { baseRotate_.x + pitchOffset_, baseRotate_.y + yawOffset_, baseRotate_.z };
 	}
 
-	//傾けた分も入れた正面の向き
+	//傾けた分と回り込んだ分も入れた正面の向き
 	Vector3 StageCamera::GetViewForward() const
 	{
-		return Normalize(TransformVector3({ 0.0f, 0.0f, 1.0f }, MakeRotateMatrix(GetViewRotate())));
+		return GetOrbitForward(yawOffset_);
 	}
 
-	//ずらす前の位置から見て、正面の向きに垂直な分だけずらせばその点が真ん中に来る
+	//縦の傾きは今のままで、yawOffsetだけ横へ回り込んだときの正面の向き
+	Vector3 StageCamera::GetOrbitForward(float yawOffset) const
+	{
+		const Vector3 rotate = { baseRotate_.x + pitchOffset_, baseRotate_.y + yawOffset, baseRotate_.z };
+		return Normalize(TransformVector3({ 0.0f, 0.0f, 1.0f }, MakeRotateMatrix(rotate)));
+	}
+
+	//ずらす前の位置から見て、回り込む前の正面の向きに垂直な分だけずらせばその点が真ん中に来る
 	Vector3 StageCamera::GetCenteringOffset(const Vector3& target) const
 	{
 		const Vector3 cameraPosition = { origin_.x, origin_.y + floorHeight_, origin_.z };
-		const Vector3 forward = GetViewForward();
+		const Vector3 forward = GetOrbitForward(0.0f);
 		const Vector3 toTarget = target - cameraPosition;
 		const float depth = toTarget.x * forward.x + toTarget.y * forward.y + toTarget.z * forward.z;
 		return toTarget - forward * depth;

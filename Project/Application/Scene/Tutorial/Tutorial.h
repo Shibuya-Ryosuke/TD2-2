@@ -29,12 +29,16 @@ namespace App
 		Tutorial(const Tutorial&) = delete;
 		Tutorial& operator=(const Tutorial&) = delete;
 
+		static void EnterFromTitle();
+
 		void Initialize() override; //カメラとチュートリアルの床と寝ているボスを用意する
 		void Update() override; //ポーズとチュートリアルを進めて、終わったらゲームシーンへ
 		void Draw() override; //床とキャラと積み木とやることの文字を描く
 		void Finalize() override; //シーンを出るときにエンジンの設定を戻す
 
 	private:
+		void UpdateIntro(float deltaTime);
+		void ApplyIntroCamera(float pullBack);
 		void UpdatePause(); //ポーズメニューで選んだものに合わせて戻るかシーンを変える
 		void UpdateVisuals(); //見た目を確定する
 		void HandOver(); //プレイヤーとボスの位置とダメージをゲームシーンへ渡して切り替える
@@ -50,6 +54,9 @@ namespace App
 		TutorialFlow flow_; //チュートリアルの流れ
 		int32_t bossDamage_ = 0; //残った足場で寝ているボスに当てたダメージ
 		bool isHandedOver_ = false; //ゲームシーンへ切り替えたか
+		bool isIntroActive_ = false; //タイトルから来たときの落下演出中か
+		float introTime_ = 0.0f; //導入の落下が始まってからの秒数
+		RyoEngine::Vector3 introLanding_{}; //導入で着地するチュートリアルの開始位置
 
 		PauseMenu pauseMenu_; //TABかメニューボタンで開くポーズメニュー
 		NearFadeSwitch nearFade_; //チュートリアル中だけNearFadeを切る

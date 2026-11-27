@@ -1,4 +1,6 @@
 #include "Player.h"
+#include "../../Config/DirectionConfig.h"
+#include "../../Direction/Player/PlayerParticles.h"
 #include "../../Config/PlayerConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include "../../Stage/Grid/GridDirection.h"
@@ -23,6 +25,9 @@ namespace App
 		//着地でピカッと光るシェーダーをつける着地の演出と、じたばたと尻もちで見せる分けたパーツ
 		bounce_.Initialize(*body_);
 		rig_.Initialize();
+
+		//体のシェーダーをつけたあとに、腕のメッシュだけ肩から大きくするシェーダーにする
+		arms_.Initialize(*body_, PlayerConfig::kPlayerModel);
 	}
 
 	//位置に置いて動きの状態を全部戻す
@@ -39,8 +44,8 @@ namespace App
 		isKnockbackOverFence_ = false;
 		isGrounded_ = true;
 		turnAround_.Reset(facingYawDeg_);
+		isDefeatPose_ = false;
 		isPosing_ = false;
-		canLeaveFloor_ = false;
 		pose_.Reset();
 		animation_.PlayIdle();
 		hammer_.Hide();
@@ -138,9 +143,10 @@ namespace App
 		//移動の入力で上下左右のとなりのマスへ跳び、押しっぱなしなら着地してすぐ次へ跳ぶ
 		if (isGrounded_ && knockbackTime_ <= 0.0f && hasMovement && !isJumping_)
 		{
-			//穴は飛び越えず、もう穴になっているマスへは跳ばない
+			//ふだんは見えない壁があって穴と床の外へは跳ばず、チュートリアルだけは飛び降りられる
 			const Cell destination = cell + GridDirection::FromInput(move);
-			if (floor.Contains(destination) && !floor.IsHole(destination))
+			const bool isStandable = floor.Contains(destination) && !floor.IsHole(destination);
+			if (isStandable || canLeaveFloor_)
 			{
 				++jumpCount_;
 				jumpOrigin_ = position;
@@ -169,7 +175,11 @@ namespace App
 			//着地先が穴ならそのままの勢いで落ちていく
 			isJumping_ = false;
 			isGrounded_ = floor.IsSolid(jumpDestination_);
-			if (!isGrounded_)
+			if (isGrounded_)
+			{
+				PlayLandingParticles();
+			}
+			else
 			{
 				verticalSpeed_ = -4.0f * PlayerConfig::kJumpHeight / PlayerConfig::kJumpDuration;
 			}
@@ -183,8 +193,8 @@ namespace App
 			knockbackTime_ = std::max(0.0f, knockbackTime_ - deltaTime);
 		}
 
-		//ボスに触れてはじかれたとき以外は床のふちで止める
-		if (!isKnockbackOverFence_)
+		//ボスに触れてはじかれたときと、飛び降りられるとき以外は床のふちで止める
+		if (!isKnockbackOverFence_ && !canLeaveFloor_)
 		{
 			position = floor.ClampToBoundary(position, PlayerConfig::kPlayerContactRadius);
 		}
@@ -210,6 +220,7 @@ namespace App
 				verticalSpeed_ = 0.0f;
 				isGrounded_ = true;
 				isKnockbackOverFence_ = false;
+				PlayerParticles::Landing(position);
 			}
 		}
 
@@ -218,6 +229,31 @@ namespace App
 
 		//床より下まで落ちたら落ちたことにする
 		return position.y < floorHeight - PlayerConfig::kFallThreshold;
+	}
+
+	//ハンマーが当たった位置からハートを出す
+	void Player::BurstHammerHearts(const Vector3& contact)
+	{
+		bounce_.Burst(contact, DirectionConfig::kHammerImpactHearts, DirectionConfig::kHammerHeartSizeScale);
+	}
+
+	//顔の前を空けて肩の外で淡いハートと白い星を弾けさせる
+	void Player::PlayVictoryParticles(const Vector3& center, const Vector3& right, const Vector3& up, const Vector3& forward)
+	{
+		const Vector3 foreground = center - forward * DirectionConfig::kVictoryForward + up * DirectionConfig::kVictoryLift;
+		const Vector3 left = right * -1.0f;
+		const Vector3 leftShoulder = foreground + left * DirectionConfig::kVictoryShoulder;
+		const Vector3 rightShoulder = foreground + right * DirectionConfig::kVictoryShoulder;
+		bounce_.BurstVictory(leftShoulder, left, up);
+		bounce_.BurstVictory(rightShoulder, right, up);
+		PlayerParticles::VictoryStars(leftShoulder + left * DirectionConfig::kVictoryStarOut);
+		PlayerParticles::VictoryStars(rightShoulder + right * DirectionConfig::kVictoryStarOut);
+	}
+
+	//足元からピンクの光を弾けさせる
+	void Player::PlayLandingParticles() const
+	{
+		PlayerParticles::Landing(position_);
 	}
 
 	//見た目
@@ -245,6 +281,7 @@ namespace App
 		body_->SetRotate({ 0.0f, yawDeg, 0.0f });
 		body_->SetTranslate({ position_.x, position_.y + lift, position_.z });
 		body_->TransferMatrix();
+		arms_.Update();
 
 		//じたばたと尻もちの間は分けたパーツをコードで動かす
 		if (pose_.IsRigVisible())
@@ -253,13 +290,26 @@ namespace App
 		}
 
 		//右手について振り、頭が床より下に行かないようにするハンマー
-		hammer_.Update(animation_.IsSwinging(), floorHeight_);
+		hammer_.Update(animation_.IsSwinging(), floorHeight_, arms_);
+	}
+
+	//やられ演出の姿勢をパーツのモデルに反映する
+	void Player::ApplyDefeatPose(const RigPose& pose, const Vector3& position, float yaw)
+	{
+		isDefeatPose_ = true;
+		position_ = position;
+		rig_.Apply(pose, position_, yaw, PlayerConfig::kPlayerModelScale);
 	}
 
 	//点滅中以外の体とハンマーと、いつものほこりを描く
 	void Player::Draw()
 	{
 		bounce_.DrawHearts();
+		if (isDefeatPose_)
+		{
+			rig_.Draw();
+			return;
+		}
 		if (!isVisible_)
 		{
 			return;

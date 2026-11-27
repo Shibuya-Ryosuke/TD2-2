@@ -1,6 +1,5 @@
 #pragma once
 #include <RyoEngine.h>
-#include <cstdint>
 #include <random>
 #include "TransitionDebris.h"
 #include "TransitionView.h"
@@ -10,7 +9,7 @@ namespace App
 {
 	class StageCamera;
 
-	//積み木で画面を埋めて切り替え、次のシーンで横に吹き飛ばす場面切り替え
+	//積み木で画面を覆って切り替え、次のシーンで積み木を落とす
 	class BlockTransition
 	{
 	public:
@@ -20,40 +19,30 @@ namespace App
 		BlockTransition(const BlockTransition&) = delete;
 		BlockTransition& operator=(const BlockTransition&) = delete;
 
-		//ブロックを用意して、前のシーンが埋めて来たら吹き飛ぶ演出から始める
-		void Initialize(const RyoEngine::Camera* camera); //遠近法のカメラで使う
-		void Initialize(const StageCamera* camera); //ゲームシーンの平行投影のカメラで使う
+		void Initialize(const RyoEngine::Camera* camera);
+		void Initialize(const StageCamera* camera);
 
-		//次のシーンへ行く演出を始める
+		//次のシーンを予約して積み木で画面を覆い始める
 		template <class NextScene>
 		void Start()
 		{
-			if (phase_ != Phase::Idle)
-			{
-				return;
-			}
-			changeScene_ = &ChangeTo<NextScene>;
-			BeginDebris();
+			Start(&ChangeTo<NextScene>);
 		}
+		void Start(void (*changeScene)());
 
-		//演出を進めて、演出中で操作させない間はtrueを返す
+		//演出中はゲームの操作を止めるためにtrueを返す
 		bool Update();
-		//シーンのDrawの最後でブロックを描く
 		void Draw();
-
 		bool IsBusy() const { return phase_ != Phase::Idle; }
 
 	private:
 		enum class Phase
 		{
-			Idle, //何もしていない
-			Debris, //がれきが落ちてくる
-			Stack, //積み木が積み上がる
-			Hold, //画面が埋まって少し待つ
-			Blow, //次のシーンで横に吹き飛ぶ
+			Idle,
+			Cover,
+			Drop,
 		};
 
-		//Startで決めたシーンを切り替える関数
 		template <class NextScene>
 		static void ChangeTo()
 		{
@@ -61,26 +50,20 @@ namespace App
 		}
 
 		void Setup(const RyoEngine::Camera* camera);
-		void BeginDebris();
-		void BeginBlow();
-		void FinishBlow();
-		//ブロックの親をカメラの位置と向きに合わせる
+		void BeginCover();
 		void UpdateFrame();
-		//横風のポストエフェクトの強さ
-		void SetGust(float strength);
 
 		const RyoEngine::Camera* camera_ = nullptr;
-		const StageCamera* stageCamera_ = nullptr; //ゲームシーンのカメラ
-
-		RyoEngine::WorldTransform frame_; //カメラに合わせるブロックの親
+		const StageCamera* stageCamera_ = nullptr;
+		RyoEngine::WorldTransform frame_;
 		TransitionView view_{};
 		TransitionDebris debris_;
 		TransitionWall wall_;
 
 		Phase phase_ = Phase::Idle;
 		float timer_ = 0.0f;
+		uint32_t coverSeed_ = 0;
 		void (*changeScene_)() = nullptr;
-		uint32_t windEffect_ = 0; //横風のポストエフェクトの番号
 		std::mt19937 random_{ std::random_device{}() };
 	};
 }

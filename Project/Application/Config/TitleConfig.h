@@ -37,5 +37,8 @@ namespace App::TitleConfig
 	inline constexpr float kFlipDelay = 0.3f; //落ち始めてから仰向けに倒れ始めるまでの秒数
 	inline constexpr float kFlipTime = 0.6f; //仰向けに倒れきるまでの秒数
 	inline constexpr float kSupineTurn = 75.0f; //仰向けのとき体の長さが画面で見えるように横へ向ける度
+	inline constexpr float kSupineSpinDelay = 0.28f; //仰向けになり始めてから回転を始めるまでの秒数
+	inline constexpr float kSupineSpinTime = 0.92f; //仰向けで一回転する秒数
+	inline constexpr float kSupineSpinDegrees = 360.0f; //足をばたつかせながら水平に回る角度
 	inline constexpr float kTransitionTime = 4.4f; //スタートから場面切り替えを始めるまでの秒数で、仰向けのじたばたを少し見せてから
 }

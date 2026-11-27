@@ -13,6 +13,9 @@
     <Filter Include="Application\Direction">
       <UniqueIdentifier>{8456f59e-c7d3-4fa4-b437-c49f08853441}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Direction\BossFall">
+      <UniqueIdentifier>{02c166a1-b7cf-4253-b018-84125dcfeec1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Application\Direction\Floor">
       <UniqueIdentifier>{c3c70a7c-49fd-4466-839a-569e7bcb0832}</UniqueIdentifier>
     </Filter>
@@ -75,6 +78,9 @@
     </Filter>
     <Filter Include="Application\Stage\Sky">
       <UniqueIdentifier>{180b0f9a-f8c5-4f23-8aa0-9b3389fb5ffa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Stage\Light">
+      <UniqueIdentifier>{dbd40a58-b2e6-448b-bbf4-886dab22808b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{410416bb-c79b-4e16-94ed-8ae276e5fd76}</UniqueIdentifier>
@@ -747,13 +753,34 @@
     <ClCompile Include="Application\Scene\Game\ClearPose.cpp">
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Scene\Game\DefeatBossFade.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\DefeatPoses.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\DefeatSequence.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
     <ClCompile Include="Application\Scene\Game\GamePause.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\GameBossFall.cpp">
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
     <ClInclude Include="Application\Scene\Game\PauseMenu.h">
       <Filter>Application\Scene\Game</Filter>
     </ClInclude>
     <ClInclude Include="Application\Scene\Game\ClearPose.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\DefeatBossFade.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\DefeatPoses.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\DefeatSequence.h">
       <Filter>Application\Scene\Game</Filter>
     </ClInclude>
     <ClInclude Include="Application\Config\DirectionConfig.h">
@@ -792,6 +819,9 @@
     <ClCompile Include="Application\Direction\Player\PlayerBounce.cpp">
       <Filter>Application\Direction\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Direction\Player\PlayerParticles.cpp">
+      <Filter>Application\Direction\Player</Filter>
+    </ClCompile>
     <ClCompile Include="Application\Direction\Player\PlayerAnimation.cpp">
       <Filter>Application\Direction\Player</Filter>
     </ClCompile>
@@ -802,6 +832,9 @@
       <Filter>Application\Direction\Player</Filter>
     </ClCompile>
     <ClInclude Include="Application\Direction\Player\PlayerBounce.h">
+      <Filter>Application\Direction\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\Player\PlayerParticles.h">
       <Filter>Application\Direction\Player</Filter>
     </ClInclude>
     <ClInclude Include="Application\Direction\Player\PlayerAnimation.h">
@@ -874,9 +907,6 @@
       <Filter>Application\Scene\Tutorial</Filter>
     </ClCompile>
     <ClCompile Include="Application\Scene\Game\BossWake.cpp">
-      <Filter>Application\Scene\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Application\Scene\Game\PlayerTumble.cpp">
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
     <ClCompile Include="Application\Object\Tsumiki\Tsumiki.cpp">
@@ -954,9 +984,6 @@
     <ClInclude Include="Application\Scene\Game\BossWake.h">
       <Filter>Application\Scene\Game</Filter>
     </ClInclude>
-    <ClInclude Include="Application\Scene\Game\PlayerTumble.h">
-      <Filter>Application\Scene\Game</Filter>
-    </ClInclude>
     <ClInclude Include="Application\Object\Tsumiki\Tsumiki.h">
       <Filter>Application\Object\Tsumiki</Filter>
     </ClInclude>
@@ -991,6 +1018,9 @@
       <Filter>Application\Config</Filter>
     </ClInclude>
     <ClInclude Include="Application\Config\TitleConfig.h">
+      <Filter>Application\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\LightConfig.h">
       <Filter>Application\Config</Filter>
     </ClInclude>
     <ClInclude Include="Application\Config\ClearConfig.h">
@@ -1080,16 +1110,28 @@
     <ClCompile Include="Application\Object\ModelColor.cpp">
       <Filter>Application\Object</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Object\GlbJson.cpp">
+      <Filter>Application\Object</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Object\Boss\BossView.h">
       <Filter>Application\Object\Boss</Filter>
     </ClInclude>
     <ClInclude Include="Application\Object\ModelColor.h">
       <Filter>Application\Object</Filter>
     </ClInclude>
+    <ClInclude Include="Application\Object\GlbJson.h">
+      <Filter>Application\Object</Filter>
+    </ClInclude>
     <ClCompile Include="Application\Object\Player\Player.cpp">
       <Filter>Application\Object\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Object\Player\PlayerArms.cpp">
+      <Filter>Application\Object\Player</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Object\Player\Player.h">
+      <Filter>Application\Object\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Object\Player\PlayerArms.h">
       <Filter>Application\Object\Player</Filter>
     </ClInclude>
     <ClCompile Include="Application\Object\Player\FrontBreak.cpp">
@@ -1137,8 +1179,65 @@
     <ClCompile Include="Application\Scene\Game\BossFallFlow.cpp">
       <Filter>Application\Scene\Game</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Direction\BossFall\BossFallPoses.cpp">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\BossFall\BossFallRig.cpp">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\BossFall\BossFallShow.cpp">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\BossFall\BossFallParticles.cpp">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Direction\BossFall\TileLift.cpp">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\BossFallCamera.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\PlayerDive.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\PlayerEdgeHop.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Scene\Game\BossFallStages.cpp">
+      <Filter>Application\Scene\Game</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Scene\Game\BossFallFlow.h">
       <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\BossFallPoses.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\BossFallRig.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\BossFallShow.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\BossFallParticles.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\TileLift.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\BossFallCamera.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\PlayerDive.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Scene\Game\PlayerEdgeHop.h">
+      <Filter>Application\Scene\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Direction\BossFall\BossPose.h">
+      <Filter>Application\Direction\BossFall</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Config\BossFallConfig.h">
+      <Filter>Application\Config</Filter>
     </ClInclude>
     <ClCompile Include="Application\Scene\Game\DescentSequence.cpp">
       <Filter>Application\Scene\Game</Filter>
@@ -1230,11 +1329,17 @@
     <ClCompile Include="Application\Stage\Sky\SkyDome.cpp">
       <Filter>Application\Stage\Sky</Filter>
     </ClCompile>
+    <ClCompile Include="Application\Stage\Light\SunLight.cpp">
+      <Filter>Application\Stage\Light</Filter>
+    </ClCompile>
     <ClInclude Include="Application\Stage\Floor\LayerFloors.h">
       <Filter>Application\Stage\Floor</Filter>
     </ClInclude>
     <ClInclude Include="Application\Stage\Sky\SkyDome.h">
       <Filter>Application\Stage\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Stage\Light\SunLight.h">
+      <Filter>Application\Stage\Light</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

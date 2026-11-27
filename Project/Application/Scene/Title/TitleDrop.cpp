@@ -67,7 +67,12 @@ namespace App
 		const float flipStart = fallStart + TitleConfig::kFlipDelay;
 		if (startTimer_ >= flipStart)
 		{
-			return LerpPose(TitlePoses::FallPose(timer_), TitlePoses::SupinePose(timer_), Smooth((startTimer_ - flipStart) / TitleConfig::kFlipTime));
+			const float sinceFlip = startTimer_ - flipStart;
+			RigPose pose = LerpPose(TitlePoses::FallPose(timer_), TitlePoses::SupinePose(timer_), Smooth(sinceFlip / TitleConfig::kFlipTime));
+			//手足を動かしながら仰向けのまま水平にひと回りする
+			const float turn = Smooth((sinceFlip - TitleConfig::kSupineSpinDelay) / TitleConfig::kSupineSpinTime);
+			pose.spin += TitleConfig::kSupineSpinDegrees * turn;
+			return pose;
 		}
 		if (startTimer_ >= fallStart)
 		{

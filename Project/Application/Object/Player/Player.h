@@ -8,6 +8,7 @@
 #include "../../Direction/Player/PlayerBounce.h"
 #include "../../Direction/Player/PlayerPose.h"
 #include "../../Direction/Player/PlayerTurnAround.h"
+#include "PlayerArms.h"
 #include "Rig/PlayerRig.h"
 
 namespace App
@@ -46,11 +47,18 @@ namespace App
 		bool IsPoseFinished() const { return animation_.IsPoseFinished(); }
 		//落ちるときのじたばたや尻もちの姿勢にして、Normalでいつもに戻す
 		void SetPose(PlayerPose::Kind kind);
+		void SetPoseSpin(float spin) { pose_.SetSpin(spin); }
+		void ApplyDefeatPose(const RigPose& pose, const RyoEngine::Vector3& position, float yaw);
 		//足元からハートをはじけさせる
 		void BurstHearts(float power) { bounce_.Burst(position_, power); }
+		void BurstHammerHearts(const RyoEngine::Vector3& contact);
+		//atから強さpowerと大きさの倍率sizeScaleでハートをはじけさせる
+		void BurstHeartsAt(const RyoEngine::Vector3& at, float power, float sizeScale) { bounce_.Burst(at, power, sizeScale); }
+		void PlayVictoryParticles(const RyoEngine::Vector3& center, const RyoEngine::Vector3& right, const RyoEngine::Vector3& up, const RyoEngine::Vector3& forward);
+		void PlayLandingParticles() const;
 		//このフレームでハンマーが床に当たったか
 		bool WasHammerImpact() const { return animation_.WasImpact(); }
-		//trueなら床の外へも跳べて落ちる
+		//trueなら見えない壁がなくなり、穴にも床の外へも跳べて落ちる
 		void SetCanLeaveFloor(bool canLeave) { canLeaveFloor_ = canLeave; }
 		//跳び始めた回数
 		int32_t GetJumpCount() const { return jumpCount_; }
@@ -76,7 +84,7 @@ namespace App
 		void SetVisible(bool isVisible) { isVisible_ = isVisible; }
 
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
-		// //持っている間は穴2つまで飛び越えられる2マス乗り越え
+		//ジャンプ強化中は穴を2マスまで飛び越える
 		// void SetJumpBoost(bool hasJumpBoost) { hasJumpBoost_ = hasJumpBoost; }
 		// bool HasJumpBoost() const { return hasJumpBoost_; }
 
@@ -89,6 +97,8 @@ namespace App
 		PlayerTurnAround turnAround_; //向きが変わったときにクルッと回る見た目の向き
 		PlayerPose pose_; //じたばたと尻もち
 		PlayerRig rig_; //じたばたと尻もちの間だけ見せる分けたパーツのプレイヤー
+		PlayerArms arms_; //ボーンつきのモデルの腕を肩から大きくする
+		bool isDefeatPose_ = false; //やられ演出中はパーツの姿勢を描く
 		bool isPosing_ = false; //クリアのポーズでカメラの方を向いているか
 		float poseYawDeg_ = 0.0f; //クリアのポーズで向く度数
 
@@ -112,7 +122,7 @@ namespace App
 		bool isKnockbackOverFence_ = false; //床のふちで止めないか
 
 		bool isVisible_ = true;
-		bool canLeaveFloor_ = false; //床の外へも跳べるか
+		bool canLeaveFloor_ = false; //穴と床の外へも跳べるか
 		int32_t jumpCount_ = 0; //跳び始めた回数
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// bool hasJumpBoost_ = false;              //2マス乗り越えを持っているか

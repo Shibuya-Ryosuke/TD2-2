@@ -30,6 +30,16 @@ namespace App::TutorialConfig
 	inline constexpr float kSpotFadeTime = 0.35f; //光がふわっと出たり消えたりする秒数
 	inline constexpr float kRejectTextTime = 1.0f; //壊せないマスを叩いたときの文字を出す秒数
 
+	//タイトルから来たプレイヤーを空から落として通常のカメラに戻す
+	inline constexpr float kIntroHeight = 10.4f;
+	inline constexpr float kIntroFallTime = 1.25f;
+	inline constexpr float kIntroPullBackTime = 1.10f;
+	inline constexpr float kIntroSitTime = 0.23f;
+	inline constexpr float kIntroOrthoSize = 3.8f;
+	inline constexpr float kIntroPitch = -0.23f;
+	inline constexpr float kIntroCameraLead = 5.2f;
+	inline constexpr float kIntroFocusHeight = 0.9f;
+
 	//積み木
 	inline constexpr float kBlockSizeRate = 0.8f; //1マスに対する積み木の大きさ
 	inline constexpr RyoEngine::Vector4 kBlockColor = { 1.0f, 0.62f, 0.82f, 1.0f }; //パステルピンクの積み木

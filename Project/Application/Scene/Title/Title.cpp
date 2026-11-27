@@ -73,7 +73,7 @@ namespace App
 		if (!isTransitionStarted_ && drop_.GetStartTime() >= TitleConfig::kTransitionTime)
 		{
 			isTransitionStarted_ = true;
-			transition_.Start<Tutorial>();
+			transition_.Start(&Tutorial::EnterFromTitle);
 		}
 	}
 
@@ -115,13 +115,15 @@ namespace App
 		stage_.Draw();
 		drop_.Draw();
 
-		//1920x1080が基準の画面の左上あたり
-		const float width = static_cast<float>(DirectXCommon::GetGameWidth());
-		const float height = static_cast<float>(DirectXCommon::GetGameHeight());
-		PrintText("ASHIBA GA OCHIRU GAME", { width * 0.08f, height * 0.12f });
-		if (!drop_.IsStarted())
+		if (!transition_.IsBusy())
 		{
-			PrintText("PRESS ENTER / A", { width * 0.08f, height * 0.17f });
+			const float width = static_cast<float>(DirectXCommon::GetGameWidth());
+			const float height = static_cast<float>(DirectXCommon::GetGameHeight());
+			PrintText("ASHIBA GA OCHIRU GAME", { width * 0.08f, height * 0.12f });
+			if (!drop_.IsStarted())
+			{
+				PrintText("PRESS ENTER / A", { width * 0.08f, height * 0.17f });
+			}
 		}
 
 		//いちばん手前に場面切り替えの積み木

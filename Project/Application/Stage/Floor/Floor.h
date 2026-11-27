@@ -82,6 +82,13 @@ namespace App
 		void ClearPreview();
 		const RyoEngine::Vector4& GetPreviewColor() const { return previewColor_; }
 		float GetPreviewBlend() const { return previewBlend_; }
+		//残った足場が浮いてボスへ飛ぶ前に、全部のタイルを光らせる色と強さで、強さ0で消す
+		void SetChargeGlow(const RyoEngine::Vector3& color, float strength) { chargeColor_ = color; chargeGlow_ = strength; }
+		const RyoEngine::Vector3& GetChargeColor() const { return chargeColor_; }
+		float GetChargeGlow() const { return chargeGlow_; }
+		//ボスやプレイヤーが落ちるのを見せるために、床があるタイルをalphaの濃さに透かし、0で描かない
+		void SetFade(float alpha) { fade_ = alpha; }
+		float GetFade() const { return fade_; }
 
 		//切り離し
 		//ボスの島がより大きい島から切り離されていたら切り離された床にしてtrue
@@ -118,6 +125,9 @@ namespace App
 
 		RyoEngine::Vector4 previewColor_ = { 1.0f, 1.0f, 1.0f, 1.0f }; //光る色にも使う予告の色
 		float previewBlend_ = 0.0f; //予告の色をどれだけ混ぜるか
+		RyoEngine::Vector3 chargeColor_{}; //ためるときに光らせる色
+		float chargeGlow_ = 0.0f; //ためるときの光の強さで、0なら光らない
+		float fade_ = 1.0f; //床があるタイルの濃さで、1で透けていない
 
 		std::vector<FloorTile> tiles_; //手前の行から順に左から右へ並ぶタイル
 		std::vector<Cell> dropping_; //切り離されて落ちる床

@@ -45,7 +45,8 @@ namespace App
 		bool wasBreakRejected_ = false; //このフレームではじかれたか
 		float rejectTimer_ = -1.0f; //はじかれたマスにハンマーが当たるまでの残りで、マイナスならなし
 		Cell rejectCell_{}; //はじかれたマス
-		Cell breakCell_{}; //崩してハンマーが当たるのを待っているマス
+		Cell impactCell_{}; //ハンマーが当たる予定のマス
+		bool doesImpactBreak_ = false; //打撃に合わせて足場を崩すか
 		bool isWaitingImpact_ = false; //ハンマーが当たるのを待っているか
 	};
 }

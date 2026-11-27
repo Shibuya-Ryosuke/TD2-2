@@ -3,6 +3,7 @@
 #include "../../Config/ModelConfig.h"
 #include "../../Config/ShowcaseConfig.h"
 #include "../../Direction/Transition/TransitionCamera.h"
+#include "../../Stage/Light/SunLight.h"
 #include <algorithm>
 #include <cmath>
 
@@ -22,6 +23,7 @@ namespace App
 		sky_.Initialize();
 		toneMap_.Apply();
 		nearFade_.Disable();
+		SunLight::Apply();
 
 		//足元を原点にしたピンクの床を並べる
 		tiles_.clear();

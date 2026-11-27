@@ -25,7 +25,7 @@ namespace App
 		glow_ = 0.0f;
 	}
 
-	//足元の位置から着地を見つけてハートを出し、ピカッと光る
+	//足元の位置から着地を見つけて体を光らせる
 	void PlayerBounce::Update(const Vector3& feet)
 	{
 		const float deltaTime = GetDeltaTime();
@@ -50,7 +50,6 @@ namespace App
 		{
 			const float power = -lastSpeedY_ / DirectionConfig::kPlayerLandSpeedRef; //1でふつうの着地
 			glow_ = DirectionConfig::kPlayerLandGlow * std::min(power, 1.5f);
-			hearts_.Burst(feet, power);
 			landingPower_ = power;
 		}
 		lastSpeedY_ = speedY;

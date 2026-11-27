@@ -25,9 +25,9 @@ namespace App
 		//1個ずつ落ち方を決める
 		void Begin(std::mt19937& random, const TransitionView& view);
 		//落ち始めてからの時間で落とす
-		void Update(float time, const TransitionView& view);
+		void Update(float time);
 		void Hide(); //全部消す
-		void Draw();
+		void Draw(const TransitionView& view);
 
 	private:
 		//1個ずつの落ち方

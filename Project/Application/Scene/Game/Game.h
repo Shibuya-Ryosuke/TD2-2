@@ -7,6 +7,7 @@
 #include "../../Object/Boss/BossTuning.h"
 #include "GamePhase.h"
 #include "ClearPose.h"
+#include "DefeatSequence.h"
 #include "PauseMenu.h"
 //[アイテム] アイテムは一旦使わないのでコメントアウト
 // #include "../../Object/Item/ItemManager.h"
@@ -76,6 +77,7 @@ namespace App
 		void FailFall(); //穴に落ちた
 		void DamageBoss(int32_t amount); //ボスのダメージ
 		void Defeat(); //HPが0になってゲームオーバー
+		void UpdateDefeat(); //やられ演出を進めて、終わったらゲームオーバーへ
 
 		//場面の切り替え
 		void StartBattle(); //すぐに戦闘を始める
@@ -104,6 +106,7 @@ namespace App
 		PauseMenu pauseMenu_; //TABかメニューボタンで開くポーズメニュー
 		bool isGameOver_ = false;
 		bool isCleared_ = false;
+		DefeatSequence defeatSequence_; //やられ演出でカメラとプレイヤーだけ進める
 		ClearPose clearPose_; //クリアのときにプレイヤーへ寄せてポーズを見せる
 
 		NearFadeSwitch nearFade_; //ゲーム中だけNearFadeを切る

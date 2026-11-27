@@ -30,10 +30,13 @@ namespace App
 
 		//クリアのときなどに映す所をずらす
 		void SetFocusOffset(const RyoEngine::Vector3& offset) { focusOffset_ = offset; }
+		const RyoEngine::Vector3& GetFocusOffset() const { return focusOffset_; }
 		//見上げたり見下ろしたりするのに、いつもの向きから縦に傾けるラジアン
 		void SetPitchOffset(float pitch) { pitchOffset_ = pitch; }
 		//画面を揺らすのにずらす分
 		void SetShakeOffset(const RyoEngine::Vector3& offset) { shakeOffset_ = offset; }
+		//pivotを通る縦の軸のまわりにyawOffsetラジアンだけ横へ回り込む
+		void SetOrbit(float yawOffset, const RyoEngine::Vector3& pivot) { yawOffset_ = yawOffset; orbitPivot_ = pivot; }
 
 		//寄せる・ずらす・傾ける・揺らすを全部やめていつもの映し方に戻す
 		void ResetShot();
@@ -44,6 +47,8 @@ namespace App
 		RyoEngine::Vector3 GetViewRotate() const;
 		//傾けた分も入れたこのフレームの正面の向き
 		RyoEngine::Vector3 GetViewForward() const;
+		//縦の傾きは今のままで、yawOffsetラジアンだけ横へ回り込んだときの正面の向き
+		RyoEngine::Vector3 GetOrbitForward(float yawOffset) const;
 		//targetが画面の真ん中に来るようにするSetFocusOffsetの値
 		RyoEngine::Vector3 GetCenteringOffset(const RyoEngine::Vector3& target) const;
 		//ワールドの位置を1920x1080が基準のデバッグ表示の画面の位置にする
@@ -61,5 +66,7 @@ namespace App
 		float zoomOrthoSize_ = 0.0f; //寄せたときの広さで0なら寄せていない
 		float pitchOffset_ = 0.0f; //縦に傾けたラジアン
 		RyoEngine::Vector3 shakeOffset_{}; //揺らしてずらした分
+		float yawOffset_ = 0.0f; //横へ回り込んだラジアン
+		RyoEngine::Vector3 orbitPivot_{}; //横へ回り込むときの中心
 	};
 }

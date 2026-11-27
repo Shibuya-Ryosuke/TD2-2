@@ -14,11 +14,13 @@ namespace App
 			Normal, //いつもの姿勢でボーンつきのモデルのアニメーション
 			Flail, //落ちながら手足をじたばた
 			Sit, //尻もち
+			Dangle, //空中で足をぶらつかせる
 		};
 
 		//なりたい姿勢を決める
 		void Set(Kind kind) { kind_ = kind; }
 		Kind Get() const { return kind_; }
+		void SetSpin(float spin) { spin_ = spin; }
 		//すぐにいつもの姿勢へ戻す
 		void Reset();
 
@@ -33,6 +35,7 @@ namespace App
 		Kind kind_ = Kind::Normal;
 		float flail_ = 0.0f; //じたばたの強さ
 		float sit_ = 0.0f; //尻もちの割合
+		float spin_ = 0.0f; //落下演出で体を回す角度
 		float time_ = 0.0f; //じたばたの手足を動かす時間
 	};
 }

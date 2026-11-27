@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Scene/SceneSetup.h"
+#include "Direction/Player/PlayerParticles.h"
 #include "Object/Boss/Phase/BossPhaseTable.h"
 
 using namespace RyoEngine;
@@ -17,6 +18,7 @@ namespace App
 		ParamEditor::Load();
 		LightManager::Load();
 		ParticleManager::Load();
+		PlayerParticles::Initialize();
 		BossPhaseTable::Load();
 
 		//シーンを登録して起動時のシーンを決める

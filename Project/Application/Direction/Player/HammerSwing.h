@@ -4,6 +4,8 @@
 
 namespace App
 {
+	class PlayerArms;
+
 	//足場を壊すアニメーションの間だけ右手に持たせて、床にめり込まないように振るハンマー
 	class HammerSwing
 	{
@@ -20,8 +22,8 @@ namespace App
 		void Start(); //振り始めにポンっと出す
 		void Hide(); //置き直したときなどにすぐ消す
 
-		//振っている間は手について動き、終わったらしゅっと消える
-		void Update(bool isSwinging, float floorY);
+		//振っている間は大きくした腕の手について動き、終わったらしゅっと消える
+		void Update(bool isSwinging, float floorY, const PlayerArms& arms);
 		//出ている間だけ描く
 		void Draw();
 
@@ -35,6 +37,8 @@ namespace App
 
 		std::unique_ptr<RyoEngine::Model> model_{}; //ハンマー
 		RyoEngine::WorldTransform* hand_ = nullptr; //持ち主はプレイヤーのモデルの右手のボーン
+		RyoEngine::WorldTransform heldHand_; //大きくした腕の手の位置に動かした右手で、ハンマーの親
+		float handGrow_ = 1.0f; //大きくした腕で手が大きくなった倍率で、ハンマーの大きさはこれで割って元のままにする
 		bool isShown_ = false; //出ているか
 		float scale_ = 0.0f; //ポンっと出てしゅっと消える大きさの倍率
 	};

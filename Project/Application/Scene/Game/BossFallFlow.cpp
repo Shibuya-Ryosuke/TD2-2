@@ -1,19 +1,30 @@
 #include "BossFallFlow.h"
 #include "../../Camera/StageCamera.h"
-#include "../../Config/DirectionConfig.h"
 #include "../../Config/BossConfig.h"
+#include "../../Config/BossFallConfig.h"
 #include "../../Config/FloorConfig.h"
-#include "../../Config/LayerConfig.h"
+#include "../../Direction/GameDirection.h"
 #include "../../Stage/Floor/LayerFloors.h"
 #include "SpawnPlanner.h"
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Player/Player.h"
 #include <algorithm>
+#include <cmath>
 
 using namespace RyoEngine;
 
 namespace App
 {
+	namespace
+	{
+		//ゆっくり始まってゆっくり止まる進み具合
+		float Smooth(float t)
+		{
+			const float clamped = std::clamp(t, 0.0f, 1.0f);
+			return clamped * clamped * (3.0f - 2.0f * clamped);
+		}
+	}
+
 	//プレイヤーを動かせない場面か
 	bool BossFallFlow::IsLockedPhase(GamePhase phase)
 	{
@@ -31,22 +42,56 @@ namespace App
 		timer_ = FloorConfig::kEscapeDelay;
 	}
 
-	//ボスが下の層へ落ち始めて、プレイヤーは上の層の床の上に立たせておく
-	void BossFallFlow::BeginDrop(LayerFloors& floors, Player& player, const Boss& boss)
+	//段階を変えて、その段階の場面にする
+	void BossFallFlow::SetStage(Stage stage)
+	{
+		stage_ = stage;
+		stageTimer_ = 0.0f;
+		if (stage == Stage::ZoomIn || stage == Stage::Drop || stage == Stage::Slam || stage == Stage::Widen)
+		{
+			phase_ = GamePhase::Descent;
+		}
+		else if (stage == Stage::Hop || stage == Stage::Dive || stage == Stage::Hammer)
+		{
+			phase_ = GamePhase::LandingImpact;
+		}
+		else
+		{
+			phase_ = GamePhase::TileBarrage;
+		}
+	}
+
+	//ボスをパーツのボスに入れかえてカメラを寄せ始め、プレイヤーは上の層の近くの足場へ着地しなおさせる
+	void BossFallFlow::BeginDrop(LayerFloors& floors, Player& player, Boss& boss, const StageCamera& camera)
 	{
 		floors.EnsureBelow();
 		const Floor& current = floors.GetCurrent();
+		const Floor& below = *floors.GetBelow();
+		upperHeight_ = current.GetHeight();
+		lowerHeight_ = below.GetHeight();
+		isAdvanced_ = false;
+
+		//跳んでいる途中なら着く先から、近くの立てる足場を探す
 		Vector3 stand = player.GetPosition();
 		if (player.IsJumping())
 		{
 			stand = current.GetCellCenter(player.GetJumpDestination());
 		}
-		player.Place(SpawnPlanner::FindNearestStand(current, stand));
-		descent_.Begin(boss.GetPosition());
-		isPlayerDropped_ = false;
-		isUpperReleased_ = false;
-		isCameraReturning_ = false;
-		phase_ = GamePhase::Descent;
+		settleFrom_ = player.GetPosition();
+		settleTo_ = SpawnPlanner::FindNearestStand(current, stand);
+		isSettled_ = false;
+
+		//ボスは下の層の着地点へ落ちて、パーツのボスはカメラの方を少しななめに向く
+		bossLanding_ = SpawnPlanner::FindBossPosition(below, boss.GetPosition());
+		const Vector3 forward = camera.GetViewForward();
+		show_.Begin(boss.GetPosition(), ToYawDeg({ -forward.x, 0.0f, -forward.z }) + BossFallConfig::kFaceCameraOffsetDeg);
+		boss.SetFade(0.0f);
+
+		camera_.Begin(camera);
+		isGetUpDecided_ = false;
+		isBossStaysDown_ = false;
+		isBossRevealed_ = false;
+		SetStage(Stage::ZoomIn);
 	}
 
 	//場面ごとに1フレーム進める
@@ -55,34 +100,58 @@ namespace App
 		Result result{};
 		if (phase_ == GamePhase::Escape)
 		{
-			UpdateEscape(deltaTime, floors, player, boss, result);
+			UpdateEscape(deltaTime, floors, player, boss, camera, result);
+			show_.Update(deltaTime);
+			return result;
 		}
-		else if (phase_ == GamePhase::Descent)
+
+		stageTimer_ += deltaTime;
+		if (stage_ == Stage::ZoomIn)
 		{
-			UpdateDescent(deltaTime, floors, boss, camera, result);
+			UpdateZoomIn(floors, player, boss, camera);
 		}
-		else if (phase_ == GamePhase::LandingImpact)
+		else if (stage_ == Stage::Drop)
 		{
-			//少し待ってから足場を飛ばし始める
-			timer_ += deltaTime;
-			if (timer_ >= LayerConfig::kLandingImpactDuration)
-			{
-				BeginBarrage(floors);
-			}
+			UpdateDrop(deltaTime, floors, boss, camera, direction, result);
 		}
-		else if (phase_ == GamePhase::TileBarrage && isCameraReturning_)
+		else if (stage_ == Stage::Slam)
 		{
-			UpdateCameraReturn(deltaTime, floors, camera, result);
+			UpdateSlam(camera);
 		}
-		else if (phase_ == GamePhase::TileBarrage)
+		else if (stage_ == Stage::Widen)
 		{
-			UpdateBarrage(deltaTime, floors, player, boss, direction, result);
+			UpdateWiden(floors, player, camera);
 		}
+		else if (stage_ == Stage::Hop)
+		{
+			UpdateHop(deltaTime, player, camera);
+		}
+		else if (stage_ == Stage::Dive)
+		{
+			UpdateDive(deltaTime, floors, player, boss, camera, direction);
+		}
+		else if (stage_ == Stage::Hammer)
+		{
+			UpdateHammer(floors, player, camera, direction);
+		}
+		else if (stage_ == Stage::Lift)
+		{
+			UpdateLift(deltaTime, floors, camera);
+		}
+		else if (stage_ == Stage::Barrage)
+		{
+			UpdateBarrage(deltaTime, floors, camera, direction, result);
+		}
+		else
+		{
+			UpdateGetUp(floors, boss, camera, result);
+		}
+		show_.Update(deltaTime);
 		return result;
 	}
 
 	//揺れて時間が来たらボスごと落とす
-	void BossFallFlow::UpdateEscape(float deltaTime, LayerFloors& floors, Player& player, Boss& boss, Result& result)
+	void BossFallFlow::UpdateEscape(float deltaTime, LayerFloors& floors, Player& player, Boss& boss, const StageCamera& camera, Result& result)
 	{
 		Floor& floor = floors.GetCurrent();
 		timer_ -= deltaTime;
@@ -108,112 +177,106 @@ namespace App
 		//切り離された床を穴にしてボスを落とす
 		floor.Release();
 		boss.Stop();
-		BeginDrop(floors, player, boss);
+		BeginDrop(floors, player, boss, camera);
 		result.isDropStarted = true;
 	}
 
-	//ボスが落ちて、カメラは上の層と下の層の両方が見える所まで下がる
-	void BossFallFlow::UpdateDescent(float deltaTime, LayerFloors& floors, Boss& boss, StageCamera& camera, Result& result)
+	//ボスへ寄りながら今の層のタイルを透かして、ボスは足元がなくなって「えっ」となる
+	void BossFallFlow::UpdateZoomIn(LayerFloors& floors, Player& player, Boss& boss, StageCamera& camera)
 	{
-		const DescentSequence::Result descent = descent_.Advance(deltaTime, floors.GetCurrent(), *floors.GetBelow(), boss, camera);
-		if (descent.isBossLandedNow)
+		//跳んでいる途中だったプレイヤーは近くの足場へ小さく跳んで立ちなおす
+		if (!isSettled_)
 		{
-			result.bossDamage += BossConfig::kBossFallDamage;
-		}
-		if (!descent.isFinished)
-		{
-			return;
-		}
-
-		//ボスが着いたら層を1つ進めて、プレイヤーは上の層に立ったまま
-		floors.AdvanceLayer();
-		timer_ = 0.0f;
-		phase_ = GamePhase::LandingImpact;
-		result.isArrived = true;
-	}
-
-	//上の層に残った足場をボスへ飛ばし始める
-	void BossFallFlow::BeginBarrage(LayerFloors& floors)
-	{
-		barrage_.Begin(floors.GetUpper());
-		phase_ = GamePhase::TileBarrage;
-	}
-
-	//足場を飛ばして届いた分だけダメージ、プレイヤーの足場が飛び立ったらプレイヤーもばたばた落ちる
-	void BossFallFlow::UpdateBarrage(float deltaTime, LayerFloors& floors, Player& player, const Boss& boss, GameDirection& direction, Result& result)
-	{
-		Floor* upper = floors.GetUpper();
-		if (upper != nullptr)
-		{
-			const Vector3 target = boss.GetPosition() + Vector3{ 0.0f, 0.75f, 0.0f };
-			result.bossDamage += barrage_.Advance(*upper, target, deltaTime);
+			const float t = std::clamp(stageTimer_ / BossFallConfig::kSettleTime, 0.0f, 1.0f);
+			Vector3 position = settleFrom_ + (settleTo_ - settleFrom_) * t;
+			position.y += 4.0f * BossFallConfig::kSettleHop * t * (1.0f - t);
+			player.SetPosition(position);
+			if (t >= 1.0f)
+			{
+				player.Place(settleTo_);
+				isSettled_ = true;
+			}
 		}
 
-		//立っている足場が飛び立ったら、下の層のボスの反対側へ落ちる
-		bool isFootingGone = upper == nullptr || barrage_.IsFinished();
-		if (upper != nullptr && IsFootingGone(*upper, player))
-		{
-			isFootingGone = true;
-		}
-		if (!isPlayerDropped_ && isFootingGone)
-		{
-			isPlayerDropped_ = true;
-			tumble_.Begin(player.GetPosition(), playerLanding_, player);
-		}
-		if (tumble_.IsActive())
-		{
-			tumble_.Update(deltaTime, player, floors.GetCurrent(), direction);
-		}
-
-		//全部届いたら上の層を消す
-		if (barrage_.IsFinished() && !isUpperReleased_)
-		{
-			isUpperReleased_ = true;
-			floors.ReleaseUpper();
-		}
-
-		//足場が全部届いてプレイヤーも立ち上がったらカメラを戻し始める
-		if (isUpperReleased_ && isPlayerDropped_ && !tumble_.IsActive())
-		{
-			isCameraReturning_ = true;
-			returnTimer_ = 0.0f;
-			returnFromHeight_ = 0.0f;
-			returnFromSize_ = 0.0f;
-		}
-	}
-
-	//カメラを下の層のいつもの映し方へ戻して終わる
-	void BossFallFlow::UpdateCameraReturn(float deltaTime, LayerFloors& floors, StageCamera& camera, Result& result)
-	{
-		if (returnTimer_ <= 0.0f)
-		{
-			returnFromHeight_ = camera.GetFloorHeight();
-			returnFromSize_ = camera.GetOrthoSize();
-		}
-		returnTimer_ += deltaTime;
-		const float t = std::clamp(returnTimer_ / DirectionConfig::kBossFallViewReturnTime, 0.0f, 1.0f);
-		const float smooth = t * t * (3.0f - 2.0f * t);
-		const float height = floors.GetCurrent().GetHeight();
-		camera.SetFloorHeight(returnFromHeight_ + (height - returnFromHeight_) * smooth);
-		camera.SetOrthoSize(returnFromSize_ + (camera.GetBaseOrthoSize() - returnFromSize_) * smooth);
+		const float t = stageTimer_ / BossFallConfig::kZoomInTime;
+		camera_.Focus(camera, show_.GetFocus(), BossFallConfig::kBossZoomOrthoSize, t);
+		SetTopFade(floors, 1.0f + (BossFallConfig::kTileFadeAlpha - 1.0f) * Smooth(t));
 		if (t < 1.0f)
 		{
 			return;
 		}
-		camera.ResetShot();
-		camera.SetFloorHeight(height);
-		isCameraReturning_ = false;
-		result.isFinished = true;
+
+		//寄りきったらじたばた落ち始める
+		if (!isSettled_)
+		{
+			player.Place(settleTo_);
+			isSettled_ = true;
+		}
+		descent_.Begin(boss.GetPosition(), bossLanding_);
+		show_.StartFlail();
+		SetStage(Stage::Drop);
 	}
 
-	//プレイヤーの立っている足場が飛び立ったか、もうないか
-	bool BossFallFlow::IsFootingGone(const Floor& upper, const Player& player) const
+	//ボスはじたばた落ちてカメラがついていき、着いたらドスンと叩きつけられて層を進める
+	void BossFallFlow::UpdateDrop(float deltaTime, LayerFloors& floors, Boss& boss, StageCamera& camera, GameDirection& direction, Result& result)
 	{
-		const Cell cell = upper.GetCellAt(player.GetPosition());
-		if (!upper.IsSolid(cell))
+		const bool isLanded = descent_.Advance(deltaTime, floors.GetCurrent(), boss);
+		show_.SetFeet(boss.GetPosition());
+		camera_.Focus(camera, show_.GetFocus(), BossFallConfig::kBossZoomOrthoSize, 1.0f);
+		if (!isLanded)
 		{
-			return true;
+			return;
 		}
-		return barrage_.IsLaunched(cell);
+
+		//着いたら落下ダメージを入れて層を1つ進める
+		result.bossDamage += BossConfig::kBossFallDamage;
+		floors.AdvanceLayer();
+		isAdvanced_ = true;
+		result.isArrived = true;
+
+		//ドスンでつぶれて煙が出て、画面と床が揺れる
+		show_.Slam();
+		direction.Shake(BossFallConfig::kSlamShake);
+		Floor& lower = floors.GetCurrent();
+		lower.Jiggle(lower.GetCellAt(boss.GetPosition()), BossFallConfig::kSlamJiggle);
+		SetStage(Stage::Slam);
+	}
+
+	//座りこんで頭を押さえるのを寄ったまま見せる
+	void BossFallFlow::UpdateSlam(StageCamera& camera)
+	{
+		camera_.Focus(camera, show_.GetFocus(), BossFallConfig::kBossZoomOrthoSize, 1.0f);
+		if (stageTimer_ < BossFallConfig::kSlamHoldTime)
+		{
+			return;
+		}
+		camera_.Cut(camera);
+		SetStage(Stage::Widen);
+	}
+
+	//両方の層を映す所まで引いて、透かしたタイルを戻し、プレイヤーが跳ぶ穴のふちを決める
+	void BossFallFlow::UpdateWiden(LayerFloors& floors, Player& player, StageCamera& camera)
+	{
+		const float t = stageTimer_ / BossFallConfig::kWideReturnTime;
+		camera_.Wide(camera, upperHeight_, lowerHeight_, t);
+		SetTopFade(floors, BossFallConfig::kTileFadeAlpha + (1.0f - BossFallConfig::kTileFadeAlpha) * Smooth(t));
+		if (t < 1.0f)
+		{
+			return;
+		}
+		SetTopFade(floors, 1.0f);
+
+		//いちばん近い穴のふちまで跳んでから、その穴へ飛びこむ
+		Vector3 edge = settleTo_;
+		diveHole_ = settleTo_;
+		float tileSize = 1.0f;
+		const Floor* top = GetTopFloor(floors);
+		if (top != nullptr)
+		{
+			FindDiveEdge(*top, player.GetPosition(), edge, diveHole_);
+			tileSize = top->GetTileSizeX();
+		}
+		hop_.Begin(player.GetPosition(), edge, tileSize, player);
+		SetStage(Stage::Hop);
 	}
 }

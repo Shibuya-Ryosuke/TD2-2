@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
+#include <optional>
 
 using namespace RyoEngine;
 
@@ -11,181 +12,135 @@ namespace App
 {
 	namespace
 	{
-		//前のシーンが画面を埋めてから切り替えたか
-		bool sIsCovered = false;
-
+		//切り替え先で積み木に覆われた画面から演出を続ける
+		std::optional<uint32_t> sCoveredSeed;
 		constexpr float kRadToDeg = 180.0f / std::numbers::pi_v<float>;
 	}
 
-	//遠近法のカメラで使う
 	void BlockTransition::Initialize(const Camera* camera)
 	{
 		stageCamera_ = nullptr;
 		view_.isOrthographic = false;
 		view_.refDepth = DirectionConfig::kTransitionDepth;
-		view_.halfHeight = DirectionConfig::kTransitionDepth * std::tan(camera->GetFovY() * 0.5f);
 		Setup(camera);
 	}
 
-	//ゲームシーンの平行投影のカメラで使う
 	void BlockTransition::Initialize(const StageCamera* camera)
 	{
 		stageCamera_ = camera;
 		view_.isOrthographic = true;
 		view_.refDepth = DirectionConfig::kTransitionOrthoDepth;
-		view_.halfHeight = camera->GetOrthoSize();
 		Setup(camera);
 	}
 
-	//ブロックとシェーダーを用意する
+	//積み木と紙吹雪を用意し、切り替え先では全面を覆った状態から始める
 	void BlockTransition::Setup(const Camera* camera)
 	{
 		camera_ = camera;
-		view_.aspectRatio = camera->GetAspectRatio();
-
-		//紙吹雪も積み木もTransitionBlockシェーダーを使う
 		const uint32_t blockShader = ShaderManager::Load(DirectionConfig::kTransitionBlockShader);
 		debris_.Initialize(&frame_, blockShader);
 		wall_.Initialize(&frame_, blockShader);
 		phase_ = Phase::Idle;
+		timer_ = 0.0f;
+		changeScene_ = nullptr;
 
-		//前のシーンが埋めて来たら吹き飛ぶ演出を始める
-		if (sIsCovered)
+		if (sCoveredSeed.has_value())
 		{
-			sIsCovered = false;
-			BeginBlow();
+			phase_ = Phase::Drop;
+			wall_.Begin(*sCoveredSeed);
+			sCoveredSeed.reset();
+			UpdateFrame();
+			wall_.UpdateDrop(0.0f, view_);
 		}
 	}
 
-	//がれきから始める
-	void BlockTransition::BeginDebris()
+	void BlockTransition::Start(void (*changeScene)())
 	{
-		phase_ = Phase::Debris;
+		if (IsBusy())
+		{
+			return;
+		}
+		changeScene_ = changeScene;
+		BeginCover();
+	}
+
+	void BlockTransition::BeginCover()
+	{
+		phase_ = Phase::Cover;
 		timer_ = 0.0f;
+		coverSeed_ = static_cast<uint32_t>(random_());
+		wall_.Begin(coverSeed_);
 		UpdateFrame();
 		debris_.Begin(random_, view_);
 	}
 
-	//吹き飛ぶ演出と横風を始める
-	void BlockTransition::BeginBlow()
-	{
-		phase_ = Phase::Blow;
-		timer_ = 0.0f;
-		UpdateFrame();
-		wall_.BeginBlow(random_, view_);
-		windEffect_ = PostEffectManager::Add(ShaderManager::LoadPostEffect(DirectionConfig::kGustLinesShader));
-		SetGust(0.0f);
-	}
-
-	//吹き飛び終わったら片付けて操作できるようにする
-	void BlockTransition::FinishBlow()
-	{
-		phase_ = Phase::Idle;
-		wall_.Hide();
-		if (windEffect_ != PostEffectManager::kInvalidEffect)
-		{
-			PostEffectManager::Remove(windEffect_);
-			windEffect_ = PostEffectManager::kInvalidEffect;
-		}
-	}
-
-	//演出を進める
 	bool BlockTransition::Update()
 	{
-		if (phase_ == Phase::Idle)
+		if (!IsBusy())
 		{
 			return false;
 		}
-		//読み込み直後の長い1フレームで一気に進まないようにする
+
+		//読み込み直後の長いフレームで演出を飛ばさない
 		timer_ += std::min(GetDeltaTime(), DirectionConfig::kTransitionMaxDeltaTime);
 		UpdateFrame();
 
-		if (phase_ == Phase::Debris)
+		if (phase_ == Phase::Cover)
 		{
-			//がれきが落ちきったら積み上げる
-			debris_.Update(timer_, view_);
-			if (timer_ >= DirectionConfig::kTransitionDebrisTime)
+			wall_.UpdateCover(std::min(timer_, DirectionConfig::kTransitionCoverTime), view_);
+			debris_.Update(timer_);
+			if (timer_ >= DirectionConfig::kTransitionCoverTime && changeScene_ != nullptr)
 			{
-				debris_.Hide();
-				phase_ = Phase::Stack;
-				timer_ = 0.0f;
-			}
-		}
-		if (phase_ == Phase::Stack)
-		{
-			//積み上がったら少し待つ
-			wall_.UpdateStack(timer_, view_);
-			if (timer_ >= DirectionConfig::kTransitionStackTime)
-			{
-				phase_ = Phase::Hold;
-				timer_ = 0.0f;
-			}
-		}
-		if (phase_ == Phase::Hold)
-		{
-			//埋まったら次のシーンへ行き、最後の積み木のぽよよんは続ける
-			wall_.UpdateStack(DirectionConfig::kTransitionStackTime + timer_, view_);
-			if (timer_ >= DirectionConfig::kTransitionHoldTime && changeScene_ != nullptr)
-			{
-				sIsCovered = true;
+				sCoveredSeed = coverSeed_;
 				changeScene_();
 				changeScene_ = nullptr;
 			}
 		}
-		if (phase_ == Phase::Blow)
+		else
 		{
-			//横に吹き飛び終わったら次のフレームから操作できる
-			wall_.UpdateBlow(timer_, view_);
-			const float progress = std::clamp(timer_ / DirectionConfig::kTransitionBlowTime, 0.0f, 1.0f);
-			SetGust(std::sin(std::numbers::pi_v<float> * std::sqrt(progress)));
-			if (timer_ >= DirectionConfig::kTransitionBlowTime)
+			wall_.UpdateDrop(timer_, view_);
+			if (timer_ >= DirectionConfig::kTransitionDropTime)
 			{
-				FinishBlow();
+				wall_.Hide();
+				phase_ = Phase::Idle;
 			}
 		}
 		return true;
 	}
 
-	//ブロックの親をカメラの位置と向きに合わせる
+	//カメラの位置と画角に合わせて手前の積み木を配置する
 	void BlockTransition::UpdateFrame()
 	{
-		//ゲームシーンは今の床の高さからこのフレームのカメラの位置を出す
+		view_.aspectRatio = camera_->GetAspectRatio();
 		Vector3 position = camera_->GetTranslate();
+		Vector3 rotate = camera_->GetRotate();
+		float scale = DirectionConfig::kTransitionNearScale;
 		if (stageCamera_ != nullptr)
 		{
 			position = stageCamera_->GetViewPosition();
-			view_.halfHeight = stageCamera_->GetOrthoSize(); //ImGuiで広さを変えても合わせる
-		}
-		//シーンのどのモデルよりも手前に来るように、遠近法は見た目の大きさを変えずにカメラの近くへ縮め、平行投影は近くに置く
-		float scale = DirectionConfig::kTransitionNearScale;
-		if (view_.isOrthographic)
-		{
+			rotate = stageCamera_->GetViewRotate();
+			view_.halfHeight = stageCamera_->GetOrthoSize();
 			scale = 1.0f;
 		}
-		const Vector3 rotate = camera_->GetRotate();
-		frame_.SetLocal({ { scale, scale, scale }, { rotate.x * kRadToDeg, rotate.y * kRadToDeg, rotate.z * kRadToDeg }, position });
+		else
+		{
+			view_.halfHeight = view_.refDepth * std::tan(camera_->GetFovY() * 0.5f);
+		}
+		frame_.SetLocal({ { scale, scale, scale }, rotate * kRadToDeg, position });
 		frame_.UpdateMatrix();
 	}
 
-	//横風の強さ
-	void BlockTransition::SetGust(float strength)
-	{
-		if (windEffect_ != PostEffectManager::kInvalidEffect)
-		{
-			PostEffectManager::SetParam(windEffect_, 0, strength * DirectionConfig::kGustLinesStrength);
-		}
-	}
-
-	//ブロックを描く
 	void BlockTransition::Draw()
 	{
-		if (phase_ == Phase::Debris)
+		if (!IsBusy())
 		{
-			debris_.Draw();
+			return;
 		}
-		if (phase_ == Phase::Stack || phase_ == Phase::Hold || phase_ == Phase::Blow)
+		UpdateFrame();
+		if (phase_ == Phase::Cover)
 		{
-			wall_.Draw();
+			debris_.Draw(view_);
 		}
+		wall_.Draw(view_);
 	}
 }

@@ -51,7 +51,7 @@ namespace App
 	}
 
 	//回りながら左右にひらひらしてだんだん速く落とす
-	void TransitionDebris::Update(float time, const TransitionView& view)
+	void TransitionDebris::Update(float time)
 	{
 		for (size_t i = 0; i < pieces_.size(); ++i)
 		{
@@ -67,7 +67,6 @@ namespace App
 			const float sway = std::sin(time * DirectionConfig::kTransitionDebrisSwaySpeed + motion.swayPhase) * motion.swayWidth;
 			piece.position = { motion.start.x + sway, motion.start.y - motion.travel * t * t, motion.start.z };
 			piece.rotate = { motion.spin.x * t, motion.spin.y * t, motion.spin.z * t };
-			piece.Apply(view);
 		}
 	}
 
@@ -81,10 +80,11 @@ namespace App
 	}
 
 	//見えているものだけ描く
-	void TransitionDebris::Draw()
+	void TransitionDebris::Draw(const TransitionView& view)
 	{
 		for (TransitionPiece& piece : pieces_)
 		{
+			piece.Apply(view);
 			piece.Draw();
 		}
 	}

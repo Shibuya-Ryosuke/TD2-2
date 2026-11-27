@@ -2,6 +2,7 @@
 #include "Floor.h"
 #include "../../Config/FloorConfig.h"
 #include "../../Config/LayerConfig.h"
+#include "../../Config/LightConfig.h"
 #include "../../Config/ModelConfig.h"
 #include "../../Config/DirectionConfig.h"
 #include <algorithm>
@@ -30,6 +31,7 @@ namespace App
 			}
 			models_[i] = Model::Create(ModelConfig::kCubeModel);
 			models_[i]->SetShader(shader);
+			models_[i]->SetCastShadow(LightConfig::kFloorCastsShadow);
 		}
 	}
 
@@ -69,11 +71,25 @@ namespace App
 			model->SetTranslate(tile.position + crumble.shake + Vector3{ 0.0f, jiggle.offsetY, 0.0f });
 			model->SetRotate(tile.rotate);
 			model->SetScale({ sizeX * scale * jiggle.scaleXZ, sizeY * scale * jiggle.scaleY, sizeZ * scale * jiggle.scaleXZ });
-			model->SetColor(GetTileColor(floor, cell));
+			//床があるタイルだけ透かして、落ちていく途中のタイルはそのまま見せる
+			Vector4 color = GetTileColor(floor, cell);
+			BlendMode blend = BlendMode::None;
+			if (tile.isSolid && floor.GetFade() < 1.0f)
+			{
+				color.w *= std::max(floor.GetFade(), 0.0f);
+				blend = BlendMode::Normal;
+			}
+			model->SetColor(color);
+			model->SetBlendMode(blend);
 			crumble_.Apply(i, *model, crumble, floor, cell);
 
+			//残った足場をためているときは全部のタイルを光らせる
+			if (floor.GetChargeGlow() > 0.0f)
+			{
+				model->SetEmissive(floor.GetChargeColor(), floor.GetChargeGlow());
+			}
 			//予告のマスの上の面のふちの枠を予告の色で光らせてブルームでにじませる
-			if (IsPreviewGlowing(floor, cell))
+			else if (IsPreviewGlowing(floor, cell))
 			{
 				model->SetEmissive(glowColor, glow);
 			}
@@ -103,7 +119,13 @@ namespace App
 	{
 		for (size_t i = 0; i < models_.size(); ++i)
 		{
-			if (models_[i] == nullptr || !floor.GetTile(floor.ToCell(i)).isVisible)
+			const FloorTile& tile = floor.GetTile(floor.ToCell(i));
+			if (models_[i] == nullptr || !tile.isVisible)
+			{
+				continue;
+			}
+			//透けきったタイルは描かない
+			if (tile.isSolid && floor.GetFade() <= 0.0f)
 			{
 				continue;
 			}

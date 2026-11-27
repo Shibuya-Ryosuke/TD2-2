@@ -1,6 +1,7 @@
 #include "HammerSwing.h"
 #include "../../Config/DirectionConfig.h"
 #include "../../Object/ModelColor.h"
+#include "../../Object/Player/PlayerArms.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -29,13 +30,18 @@ namespace App
 		}
 	}
 
-	//ハンマーを作ってプレイヤーの右手のボーンにつける
+	//ハンマーを作って、プレイヤーの右手のボーンを大きくした腕の手へ動かした所につける
 	void HammerSwing::Initialize(Model& body)
 	{
 		model_ = Model::Create(DirectionConfig::kHammerModel);
 		ModelColor::Apply(*model_, DirectionConfig::kHammerModel);
 		hand_ = body.GetJointTransform(DirectionConfig::kHammerJoint);
-		model_->SetParent(hand_);
+		if (hand_ != nullptr)
+		{
+			heldHand_.SetParent(hand_->GetParent());
+		}
+		model_->SetParent(&heldHand_);
+		handGrow_ = 1.0f;
 		isShown_ = false;
 		scale_ = 0.0f;
 	}
@@ -74,7 +80,7 @@ namespace App
 	//その行列のときのハンマーの頭のいちばん低い高さ
 	float HammerSwing::FindLowestHeadY(const Matrix4x4& local) const
 	{
-		const Matrix4x4 world = local * hand_->GetWorldMatrix();
+		const Matrix4x4 world = local * heldHand_.GetWorldMatrix();
 		const Vector3& low = DirectionConfig::kHammerHeadMin;
 		const Vector3& high = DirectionConfig::kHammerHeadMax;
 
@@ -110,7 +116,8 @@ namespace App
 	float HammerSwing::FindLiftAngle(float floorY) const
 	{
 		//そのままで床より上ならそのまま
-		if (FindLowestHeadY(MakeLocalMatrix(0.0f, 1.0f)) >= floorY)
+		const float size = 1.0f / handGrow_;
+		if (FindLowestHeadY(MakeLocalMatrix(0.0f, size)) >= floorY)
 		{
 			return 0.0f;
 		}
@@ -118,7 +125,7 @@ namespace App
 		//少し回して高くなる向きに起こす
 		const float probeDeg = 5.0f;
 		float direction = 1.0f;
-		if (FindLowestHeadY(MakeLocalMatrix(-probeDeg, 1.0f)) > FindLowestHeadY(MakeLocalMatrix(probeDeg, 1.0f)))
+		if (FindLowestHeadY(MakeLocalMatrix(-probeDeg, size)) > FindLowestHeadY(MakeLocalMatrix(probeDeg, size)))
 		{
 			direction = -1.0f;
 		}
@@ -129,7 +136,7 @@ namespace App
 		for (int32_t step = 0; step < kLiftSearchCount; ++step)
 		{
 			const float middle = (low + high) * 0.5f;
-			if (FindLowestHeadY(MakeLocalMatrix(middle * direction, 1.0f)) >= floorY)
+			if (FindLowestHeadY(MakeLocalMatrix(middle * direction, size)) >= floorY)
 			{
 				high = middle;
 			}
@@ -141,8 +148,8 @@ namespace App
 		return high * direction;
 	}
 
-	//振っている間は手について動き、終わったらしゅっと消える
-	void HammerSwing::Update(bool isSwinging, float floorY)
+	//振っている間は大きくした腕の手について動き、終わったらしゅっと消える
+	void HammerSwing::Update(bool isSwinging, float floorY, const PlayerArms& arms)
 	{
 		if (!isShown_ || hand_ == nullptr)
 		{
@@ -165,12 +172,20 @@ namespace App
 			}
 		}
 
-		//右手のボーンの今のフレームの位置で、頭が床より下なら起こす
-		hand_->UpdateMatrix();
+		//右手のボーンの今のフレームの位置を大きくした腕の手へ動かして、頭が床より下なら起こす
+		const Transform hand = hand_->GetLocal();
+		const Transform held = arms.ScaleRightHand(hand);
+		heldHand_.SetLocal(held);
+		heldHand_.UpdateMatrix();
+		handGrow_ = 1.0f;
+		if (std::abs(hand.scale.x) > kMinScale)
+		{
+			handGrow_ = held.scale.x / hand.scale.x;
+		}
 		const float liftDeg = FindLiftAngle(floorY);
 
-		//ポンっと出る大きさをかけた右手から見た行列を位置と向きと大きさに分ける
-		const float scale = std::max(scale_, kMinScale);
+		//ポンっと出る大きさをかけた右手から見た行列を位置と向きと大きさに分け、手が大きくなった分は小さくして元の大きさにする
+		const float scale = std::max(scale_, kMinScale) / handGrow_;
 		const Matrix4x4 local = MakeLocalMatrix(liftDeg, scale);
 		model_->SetScale({ scale, scale, scale });
 		model_->SetRotate(ToEulerDeg(local, scale));

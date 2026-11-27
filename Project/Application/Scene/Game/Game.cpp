@@ -9,6 +9,7 @@
 #include "../../Object/Boss/Boss.h"
 #include "../../Object/Boss/Phase/BossPhaseTable.h"
 #include "../../Object/Player/Player.h"
+#include "../../Stage/Light/SunLight.h"
 #include "BossContact.h"
 #include "GameHud.h"
 #include "SpawnPlanner.h"
@@ -30,14 +31,16 @@ namespace App
 
 		//平行投影だと全部網目に消えてしまうのでNearFadeを切る
 		nearFade_.Disable();
-		//空の画像の色がそのまま出るようにゲーム中だけACESを切る
+		//空の画像の色がそのまま出るようにゲーム中だけACESを切って、太陽の光をそろえる
 		toneMap_.Apply();
+		SunLight::Apply();
 
 		//プレイヤーとボスを作る
 		player_ = std::make_unique<Player>();
 		player_->Initialize();
 		boss_ = std::make_unique<Boss>();
 		boss_->Initialize();
+		bossFall_.Initialize(); //ボスが落ちる間だけ見せるパーツのボスを用意する
 		direction_.Initialize(); //UpdateVisualsより先に画面の演出を用意する
 		sky_.Initialize(); //UpdateVisualsより先に背景の天球を用意する
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
@@ -58,7 +61,7 @@ namespace App
 		//次にこのシーンを開き直したらボス戦の最初から
 		startMode_ = StartMode::Battle;
 		UpdateVisuals();
-		//タイトルから来たら積み木が吹き飛ぶ演出から始まる
+		//前のシーンから画面を覆っていた積み木を落とす
 		transition_.Initialize(camera_);
 	}
 
@@ -66,12 +69,18 @@ namespace App
 	void Game::Finalize()
 	{
 		//ほかのシーンのために元に戻す
+		defeatSequence_.RestoreTime();
 		nearFade_.Restore();
 		toneMap_.Restore();
 	}
 
 	void Game::Update()
 	{
+		if (isGameOver_)
+		{
+			UpdateDefeat();
+			return;
+		}
 		//ボスの形態エディタ。デバッグのときだけ出る
 		BossPhaseTable::DrawEditor(boss_.get());
 
@@ -96,10 +105,10 @@ namespace App
 		}
 		UpdateGame(GetDeltaTime());
 		UpdateVisuals();
-		//積み木で画面を埋めてからクリアかゲームオーバーへ
 		if (isGameOver_)
 		{
-			transition_.Start<GameOver>();
+			defeatSequence_.Begin(floors_.GetCurrent(), floors_.GetBelow(), *camera_, *player_, *boss_);
+			sky_.Update(*camera_, 0.0f);
 			return;
 		}
 		//クリアはプレイヤーのポーズを見せてから
@@ -187,35 +196,6 @@ namespace App
 		}
 	}
 
-	//ボスを落とす流れを進める
-	void Game::UpdateBossFall(float deltaTime)
-	{
-		const BossFallFlow::Result result = bossFall_.Update(deltaTime, floors_, *player_, *boss_, *camera_, direction_);
-		DamageBoss(result.bossDamage);
-
-		//揺れ終わったとき切り離された床にいたらプレイヤーも落ちる
-		if (result.isPlayerCaught)
-		{
-			FailFall();
-			return;
-		}
-		//[アイテム] アイテムは一旦使わないのでコメントアウト
-		// //ボスが落ち始めたら置いてあるアイテムを消して持っているものは持ち越す
-		// if (result.isDropStarted)
-		// {
-			// items_.ClearFieldItem();
-		// }
-		phase_ = bossFall_.GetPhase();
-		if (result.isArrived)
-		{
-			OnArrivedBelow();
-		}
-		if (result.isFinished)
-		{
-			FinishBossFall();
-		}
-	}
-
 	//戦闘中に起きたことに合わせて場面を変える
 	void Game::HandleBattleEvent(BossBattle::Event event)
 	{
@@ -257,18 +237,21 @@ namespace App
 
 	void Game::Draw()
 	{
-		//背景の天球、床とキャラと積み木の順に描く
+		//背景の天球、床とキャラと落ちている間のパーツのボスと積み木の順に描く
 		sky_.Draw();
 		floors_.Draw();
 		player_->Draw();
 		boss_->Draw();
+		bossFall_.Draw();
 		//[アイテム] アイテムは一旦使わないのでコメントアウト
 		// items_.Draw();
 		//いちばん手前に場面切り替えの積み木
 		transition_.Draw();
-		//デバッグ表示
-		GameHud::Draw(GameHud::MakeInfo(health_, floors_, *boss_, phase_, pauseMenu_.IsOpen(), bossFall_));
-		pauseMenu_.Draw();
+		if (!transition_.IsBusy() && !isGameOver_)
+		{
+			GameHud::Draw(GameHud::MakeInfo(health_, floors_, *boss_, phase_, pauseMenu_.IsOpen(), bossFall_));
+			pauseMenu_.Draw();
+		}
 	}
 
 	//床を元に戻して最初の位置からすぐに戦闘を始める
@@ -328,11 +311,20 @@ namespace App
 		phase_ = GamePhase::PlayerFall;
 	}
 
-	//HPが0になったらボスを止めてゲームオーバー
+	//HPがなくなったら進行をやられ演出へ切り替える
 	void Game::Defeat()
 	{
-		boss_->Stop();
 		isGameOver_ = true;
+	}
+
+	//ボスや床を止めたまま倒れる姿を映し、最後に積み木で画面を覆う
+	void Game::UpdateDefeat()
+	{
+		if (!transition_.Update() && defeatSequence_.Update(GetDeltaTime(), *camera_, *player_, *boss_))
+		{
+			transition_.Start<GameOver>();
+		}
+		sky_.Update(*camera_, 0.0f);
 	}
 
 	//今の層のボスの強さに、今の形態の速さなどを入れたもの
@@ -353,52 +345,5 @@ namespace App
 	{
 		battle_.ClearSeparationCheck();
 		phase_ = GamePhase::Battle;
-	}
-
-	//ボスの島が切り離されたら揺れ始める
-	void Game::BeginEscape()
-	{
-		boss_->Stop();
-		bossFall_.BeginEscape();
-		phase_ = bossFall_.GetPhase();
-	}
-
-	//ボスが下の層へ落ち始める
-	void Game::BeginBossDrop()
-	{
-		//ボスを止める
-		boss_->Stop();
-		//[アイテム] 置いてあるアイテムを消して持っているものは持ち越すのでコメントアウト
-		// items_.ClearFieldItem();
-		bossFall_.BeginDrop(floors_, *player_, *boss_);
-		phase_ = bossFall_.GetPhase();
-	}
-
-	//ボスが下の層に着いたらハートを少し回復して、ボスを置き直してプレイヤーが尻もちをつく所を決める
-	void Game::OnArrivedBelow()
-	{
-		//[アイテム] 新しい層でアイテムがまた出るようにするのでコメントアウト
-		// items_.ResetForNewLayer();
-		health_.Heal(PlayerConfig::kDescentHeal);
-		health_.ClearInvincible();
-		const Floor& floor = floors_.GetCurrent();
-		const Vector3 bossPosition = SpawnPlanner::FindBossPosition(floor, boss_->GetPosition());
-		battle_.Reset();
-		boss_->SetActive(true);
-		boss_->Place(floor, bossPosition);
-		bossFall_.SetPlayerLanding(SpawnPlanner::FindPlayerPosition(floor, bossPosition));
-	}
-
-	//足場を飛ばし終わったらクリアか次の戦闘へ
-	void Game::FinishBossFall()
-	{
-		if (boss_->IsDefeated())
-		{
-			boss_->SetActive(false);
-			isCleared_ = true;
-			clearPose_.Start(*camera_, *player_);
-			return;
-		}
-		StartBattle();
 	}
 }

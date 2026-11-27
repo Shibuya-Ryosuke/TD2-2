@@ -10,12 +10,11 @@ namespace App::DirectionConfig
 
 	//場面切り替えの積み木
 	inline constexpr const char* kTransitionBlockShader = "TransitionBlock"; //積み木と紙吹雪のシェーダー
-	inline constexpr const char* kGustLinesShader = "GustLines"; //吹き飛ぶときの横風のポストエフェクト
 	inline constexpr float kTransitionDepth = 20.0f; //遠近法のカメラから積み木の壁までの縮める前の距離
 	inline constexpr float kTransitionNearScale = 0.05f; //遠近法のときに積み木をカメラの近くへ縮める倍率で、壁はカメラから1の所に来る
 	inline constexpr float kTransitionOrthoDepth = 2.0f; //平行投影のカメラから積み木の壁までの距離で、床より手前
 	inline constexpr float kTransitionNearHide = 0.5f; //これよりカメラに近づいたブロックは消す
-	inline constexpr float kTransitionMaxDeltaTime = 1.0f / 30.0f; //読み込み直後に一気に進まないよう1フレームで進める秒数の上限
+	inline constexpr float kTransitionMaxDeltaTime = 0.1f; //重いフレームで演出が飛ばないように進む秒数を制限する
 	//がれき
 	inline constexpr int32_t kTransitionDebrisCount = 20; //がれきの数
 	inline constexpr float kTransitionDebrisTime = 0.35f; //がれきが落ちきるまでの秒数
@@ -33,26 +32,12 @@ namespace App::DirectionConfig
 		{ 0.78f, 0.6f, 1.0f, 1.0f }, //むらさき
 		{ 1.0f, 0.68f, 0.45f, 1.0f }, //オレンジ
 	} };
-	//積み上がる
-	inline constexpr int32_t kTransitionColumns = 10; //横に並べられるいちばん多い数で、画面の横幅に合わせて使う数を決める
-	inline constexpr int32_t kTransitionRows = 5; //縦の数で、積み木の大きさは画面の高さをこれで割った正方形
-	inline constexpr float kTransitionBlockGap = 0.015f; //マスに対する積み木どうしのすき間
-	inline constexpr float kTransitionStackTime = 0.9f; //全部積み上がるまでの秒数
-	inline constexpr float kTransitionBlockFallTime = 0.15f; //1個が落ちてくる秒数
-	inline constexpr float kTransitionGlowTime = 0.2f; //ドン！の縁の光が消えるまでの秒数
-	inline constexpr float kTransitionSquash = 0.3f; //ドン！で高さに対してつぶれる量
-	inline constexpr float kTransitionSquashDamping = 8.0f; //ぽよよんが収まる速さ
-	inline constexpr float kTransitionSquashSpeed = 36.0f; //ぽよよんの細かさ
-	inline constexpr float kTransitionSquashWiden = 0.7f; //つぶれたとき横にふくらむ量
-	inline constexpr float kTransitionFallStretch = 0.15f; //落ちている間に縦にのびる量
-	inline constexpr float kTransitionHoldTime = 0.1f; //埋まってから次のシーンへ行くまでの秒数
-	//次のシーンで吹き飛ぶ間は操作させない
-	inline constexpr float kTransitionBlowTime = 0.9f; //全部吹き飛ぶまでの秒数
-	inline constexpr float kTransitionBlowColumnDelay = 0.06f; //風は左からなので1列右ごとに飛び始めが遅れる秒数
-	inline constexpr float kTransitionBlowRandomDelay = 0.08f; //飛び始めのばらつきの秒数
-	inline constexpr float kTransitionBlowDistance = 1.2f; //画面の外へ出てからさらに飛ぶ長さ
-	inline constexpr float kTransitionBlowLift = 0.35f; //ふわっと上下に流れる量
-	inline constexpr float kGustLinesStrength = 1.0f; //横風の線の強さ
+	//積み木が外側から中央へ埋まり、切り替え後に下へ落ちる
+	inline constexpr int32_t kTransitionColumns = 9; //画面を覆う最大の列数
+	inline constexpr int32_t kTransitionRows = 5; //画面を覆う段数
+	inline constexpr float kTransitionImpactTime = 2.20f; //中央の積み木がぶつかるまでの秒数
+	inline constexpr float kTransitionCoverTime = 2.45f; //次のシーンへ切り替えるまでの秒数
+	inline constexpr float kTransitionDropTime = 1.55f; //切り替え後に積み木が画面から落ちきるまでの秒数
 
 	//床が崩れる演出
 	//ハートがポンっ、ガン！でヒビ、ガン！でぱっかーん、ガタガタ、ひびにそって砕ける
@@ -75,6 +60,11 @@ namespace App::DirectionConfig
 	inline constexpr float kIsolatedDissolveStart = 0.3f; //切り離された床がどこまで落ちたら砕け始めるか
 	//砕けたときに飛び散るピンクの欠片
 	inline constexpr size_t kShardPoolSize = 96; //使い回す欠片の数
+	inline constexpr int32_t kWoodShardsPerTile = 8; //砕けた1マスから飛ぶ木片の数
+	inline constexpr float kWoodShardSize = 0.14f; //タイルの幅に対する木片の基準サイズ
+	inline constexpr float kWoodShardSpeed = 2.7f; //木片が外へ飛ぶ速さ
+	inline constexpr float kWoodShardJump = 2.2f; //木片が上へはじける速さ
+	inline constexpr float kWoodShardLife = 0.72f; //木片が消えるまでの秒数
 	inline constexpr int32_t kShardsPerTile = 6; //1マスで飛ぶ欠片の数
 	inline constexpr float kShardSize = 0.2f; //タイルの幅に対する欠片の大きさ
 	inline constexpr float kShardSpeed = 3.0f; //外へ飛ぶ速さ
@@ -96,19 +86,21 @@ namespace App::DirectionConfig
 	inline constexpr float kPlayerTurnSpeed = 1800.0f; //1秒に回る度数で、半回転が0.1秒
 
 	//プレイヤーのアニメーションで、名前はglbの中のアニメーションの名前
-	inline constexpr const char* kPlayerJumpFile = "animation/Player/playerJump.glb"; //移動のアニメーションのファイル
-	inline constexpr const char* kPlayerSwingFile = "animation/Player/playerSwingDown.glb"; //足場を壊すアニメーションのファイル
-	inline constexpr const char* kPlayerPoseFile = "animation/Player/playerPice.glb"; //クリアのポーズのファイル
+	inline constexpr const char* kPlayerJumpFile = "Model/player/animation/Player/playerJump.glb"; //移動のアニメーションのファイル
+	inline constexpr const char* kPlayerSwingFile = "Model/player/animation/Player/playerSwingDown.glb"; //足場を壊すアニメーションのファイル
+	inline constexpr const char* kPlayerPoseFile = "Model/player/animation/Player/playerPice.glb"; //クリアのポーズのファイル
 	inline constexpr const char* kPlayerIdleClip = "Animation"; //モデルのplayerIdol.glbに入っている待機のループ
 	inline constexpr const char* kPlayerJumpClip = "Jump"; //移動で1回跳ぶ
 	inline constexpr const char* kPlayerSwingClip = "Swing"; //ハンマーを振り下ろして首をかしげる
 	inline constexpr const char* kPlayerPoseClip = "Pose"; //クリアのポーズ
 	inline constexpr float kPlayerAnimBlend = 0.12f; //アニメーションを切り替えるときに混ぜる秒数
 	inline constexpr float kPlayerJumpLandTime = 0.69f; //ジャンプのアニメーションで足が床に着く秒
-	inline constexpr float kPlayerSwingSpeed = 2.8f; //振り上げてから振り下ろすまでの再生の速さ
+	inline constexpr float kPlayerSwingStartTime = 0.12f; //振るアニメーションの、腕がほとんど動かない最初をとばして始める秒
+	inline constexpr float kPlayerSwingBlend = 0.04f; //振るアニメーションに切り替えるときに混ぜる秒数で、すぐ振り始める
+	inline constexpr float kPlayerSwingSpeed = 3.3f; //振り上げてから振り下ろすまでの再生の速さ
 	inline constexpr float kPlayerSwingImpactTime = 1.39f; //振るアニメーションでハンマーが床に当たる秒
-	inline constexpr float kPlayerSwingAfterSpeed = 1.2f; //当たってから首をかしげ終わるまでの再生の速さ
-	inline constexpr float kSwingImpactDelay = kPlayerSwingImpactTime / kPlayerSwingSpeed; //ボタンを押してからハンマーが当たるまでの秒数
+	inline constexpr float kPlayerSwingAfterSpeed = 1.6f; //当たってから首をかしげ終わるまでの再生の速さ
+	inline constexpr float kSwingImpactDelay = (kPlayerSwingImpactTime - kPlayerSwingStartTime) / kPlayerSwingSpeed; //ボタンを押してからハンマーが当たるまでの秒数
 	inline constexpr float kBreakRejectJiggle = 1.3f; //チュートリアルで壊せないマスを叩いたときのぷるるんの強さ
 
 	//足場を壊すときに右手で振るハンマー
@@ -119,15 +111,40 @@ namespace App::DirectionConfig
 	inline constexpr float kHammerGrip = 0.35f; //手で持つ所の柄の下からの高さで、床にめり込むときはここを中心に起こす
 	inline constexpr RyoEngine::Vector3 kHammerHeadMin = { -0.94f, 1.78f, -0.5f }; //ハンマーの頭の箱のいちばん小さい角
 	inline constexpr RyoEngine::Vector3 kHammerHeadMax = { 0.94f, 3.14f, 0.88f }; //ハンマーの頭の箱のいちばん大きい角
-	inline constexpr float kHammerPopTime = 0.1f; //振り始めにポンっと出てくる秒数
+	inline constexpr float kHammerPopTime = 0.05f; //振り始めにポンっと出てくる秒数
 	inline constexpr float kHammerHideTime = 0.12f; //首をかしげ終わってからしゅっと消える秒数
 
 	//クリアのときにプレイヤーをアップにしてポーズ
 	inline constexpr float kClearZoomTime = 1.0f; //カメラがプレイヤーへ寄っていく秒数
-	inline constexpr float kClearZoomOrthoSize = 4.5f; //寄ったときに画面の縦の半分に映す長さ
+	inline constexpr float kClearZoomOrthoSize = 3.55f; //寄ったときに画面の縦の半分に映す長さ
 	inline constexpr float kClearFocusHeight = 1.2f; //画面の真ん中に来るプレイヤーの足元からの高さ
 	inline constexpr float kClearHoldTime = 1.0f; //ポーズのあとクリア画面へ行くまで待つ秒数
 
+	//やられ演出で寄ってから吹っ飛ばし、倒れて二度跳ねる
+	inline constexpr float kDefeatZoomTime = 0.48f; //プレイヤーへ寄りきるまでの秒数
+	inline constexpr float kDefeatOrthoSize = 3.75f; //寄ったときに画面の縦の半分に映す長さ
+	inline constexpr float kDefeatFlightTime = 0.82f; //となりのマスへ吹っ飛ぶ秒数
+	inline constexpr float kDefeatHopHeight = 1.08f; //吹っ飛ぶときの山の高さ
+	inline constexpr float kDefeatTipTime = 0.64f; //着いてから仰向けに倒れきるまでの秒数
+	inline constexpr float kDefeatBounceTime = 0.23f; //倒れて1回目に跳ねる秒数
+	inline constexpr float kDefeatBounceHeight = 0.21f; //1回目に跳ねる高さ
+	inline constexpr float kDefeatSecondBounceTime = 0.16f; //2回目に跳ねる秒数
+	inline constexpr float kDefeatSecondBounceHeight = 0.075f; //2回目に跳ねる高さ
+	inline constexpr float kDefeatHoldTime = 0.30f; //止まってから積み木の切り替えを始めるまでの秒数
+	inline constexpr float kDefeatMaxDeltaTime = 0.08f; //重いフレームで演出が飛ばないように進む秒数を制限する
+	inline constexpr float kDefeatFocusHeight = 1.4f; //吹っ飛ぶ間に画面の真ん中に来る足元からの高さ
+	inline constexpr float kDefeatDownFocusHeight = 0.7f; //倒れたあとに画面の真ん中に来る足元からの高さ
+	inline constexpr float kDefeatBounceTilt = 7.0f; //1回目に跳ねたときに起き上がる度数
+	inline constexpr float kDefeatSecondBounceTilt = 3.0f; //2回目に跳ねたときに起き上がる度数
+	//寄りながらカメラを斜め横へ回り込ませて、ボスが画面の上で重なったら透かす
+	inline constexpr float kDefeatOrbitDeg = 35.0f; //回り込む度数で、吹っ飛ぶ向きが横から見える方へ回る
+	inline constexpr float kDefeatOrbitAxisMargin = 20.0f; //回った先がマスの線の向きからこの度数より近いと、タイルのすき間から奥の空が線に見えるので選ばない
+	inline constexpr float kDefeatBossFadeTime = 0.25f; //ボスが透けきるまでの秒数
+	inline constexpr float kDefeatBossFadeAlpha = 0.0f; //透けきったときのボスの濃さで、0で消えて0.3くらいなら半透明で残る
+	inline constexpr float kDefeatBossViewRadius = 2.7f; //重なりを見るときのボスの横の半分で、腕を広げたモデルの端まで入れる
+	inline constexpr float kDefeatBossViewHeight = 6.0f; //重なりを見るときのボスの高さ
+	inline constexpr float kDefeatPlayerViewHalfWidth = 0.7f; //重なりを見るときのプレイヤーの横の半分
+	inline constexpr float kDefeatPlayerViewHeight = 1.9f; //重なりを見るときのプレイヤーの高さ
 	//じたばたと尻もちの姿勢
 	inline constexpr float kPoseBlendSpeed = 10.0f; //姿勢が切りかわる速さ
 	inline constexpr float kSitDropSpeed = 25.0f; //尻もちでどすんと座る速さ
@@ -140,6 +157,8 @@ namespace App::DirectionConfig
 	inline constexpr float kFallZoomOrthoSize = 6.0f; //寄ったときに画面の縦の半分に映す長さ
 	inline constexpr float kFallFloorShrinkTime = 0.5f; //落ちた層の床が小さくなって消えるまでの秒数
 	inline constexpr float kFallLandJiggle = 1.6f; //尻もちで足場が揺れる強さ
+	inline constexpr float kHammerImpactHearts = 1.15f; //打撃で足場から出るハートの強さ
+	inline constexpr float kHammerHeartSizeScale = 1.25f; //打撃で出るハートの大きさの倍率
 	inline constexpr float kFallLandHearts = 1.6f; //尻もちで出るハートの強さ
 	inline constexpr float kFallLandShake = 0.35f; //尻もちで画面が揺れる強さ
 	inline constexpr float kFallSitTime = 0.9f; //尻もちをついている秒数
@@ -147,13 +166,6 @@ namespace App::DirectionConfig
 	inline constexpr float kFallBossDropHeight = 14.0f; //ボスが降り始める高さ
 	inline constexpr float kFallBossLandShake = 0.6f; //ボスが着いたときに画面が揺れる強さ
 	inline constexpr float kFallZoomOutTime = 0.5f; //ボスが着いてからカメラが戻りきるまでの秒数
-
-	//ボスが落ちて足場が当たったあと、足場がなくなったプレイヤーも落ちる
-	inline constexpr float kBossFallViewHeight = 0.5f; //上の層から下の層までのどこにカメラを置くかで0.5はまん中
-	inline constexpr float kBossFallViewZoom = 1.15f; //上の層と下の層の両方が入るようにいつもより引く倍率
-	inline constexpr float kBossFallViewReturnTime = 0.6f; //プレイヤーが立ち上がってからカメラが下の層へ戻る秒数
-	inline constexpr float kTumbleTime = 0.9f; //足場がなくなってから下の層に尻もちをつくまでの秒数
-	inline constexpr float kTumbleSitTime = 0.6f; //尻もちをついている秒数
 
 	//跳んだときと着地で足場からはじけて舞い上がるハート
 	inline constexpr const char* kHeartPopShader = "HeartPop";
@@ -181,6 +193,71 @@ namespace App::DirectionConfig
 		{ 0.45f, 0.85f, 1.0f, 1.0f },
 		{ 1.0f, 0.7f, 0.5f, 1.0f } } };
 
+	//クリアのポーズが決まった瞬間に肩の外で弾けるハートと星
+	inline constexpr float kVictoryForward = 0.5f; //胸からカメラの方へ出す長さで、顔より手前にする
+	inline constexpr float kVictoryLift = 0.43f; //胸から上へずらす高さ
+	inline constexpr float kVictoryParticleScale = 1.5f; //ハートと白い星の大きさの倍率
+	inline constexpr float kVictoryShoulder = 2.1f; //胸から肩の外まで横へ離す長さで、大きくしたハートが顔にかからないようにする
+	inline constexpr float kVictoryStarOut = 0.6f; //ハートからさらに外へ星を離す長さ
+	inline constexpr int32_t kVictoryHeartsPerSide = 4; //片側に出すハートの数
+	inline constexpr float kVictoryHeartSpacing = 0.29f; //ハートを縦にずらす間かく
+	inline constexpr float kVictoryHeartOutMin = 0.06f; //外へずらして出す長さの最小
+	inline constexpr float kVictoryHeartOutRange = 0.46f; //外へずらして出す長さのばらつき
+	inline constexpr float kVictoryHeartSpeedMin = 0.55f; //外へ飛ぶ速さの最小
+	inline constexpr float kVictoryHeartSpeedRange = 0.95f; //外へ飛ぶ速さのばらつき
+	inline constexpr float kVictoryHeartRiseMin = 0.38f; //上へ飛ぶ速さの最小
+	inline constexpr float kVictoryHeartRiseRange = 0.75f; //上へ飛ぶ速さのばらつき
+	inline constexpr float kVictoryHeartSizeMin = 0.28f; //大きさの最小
+	inline constexpr float kVictoryHeartSizeRange = 0.20f; //大きさのばらつき
+	inline constexpr float kVictoryHeartLifeMin = 0.62f; //消えるまでの秒数の最小
+	inline constexpr float kVictoryHeartLifeRange = 0.22f; //消えるまでの秒数のばらつき
+	inline constexpr float kVictoryHeartPopSkip = 0.55f; //ぽんっと出る時間をどれだけとばして始めるか
+	inline constexpr RyoEngine::Vector4 kVictoryHeartPale = { 1.0f, 0.63f, 0.84f, 1.0f }; //いちばん濃い淡いピンク
+	inline constexpr RyoEngine::Vector4 kVictoryHeartPaleRange = { 0.0f, 0.17f, 0.12f, 0.0f }; //白っぽくなる方へのばらつき
+	//エンジンのパーティクルで出す着地の光と勝利の星で、エディターに保存した値があるとそちらが優先
+	inline constexpr const char* kLandingSparkName = "PlayerLandingSpark"; //着地の火花の名前
+	inline constexpr const char* kLandingGlowName = "PlayerLandingGlow"; //着地の丸い光の名前
+	inline constexpr const char* kVictoryStarName = "GalPeaceWhiteStar"; //勝利の白い星の名前
+	inline constexpr float kLandingLift = 0.12f; //床に埋まらないように足元から上げる高さ
+	inline constexpr uint32_t kLandingMaxParticles = 96; //着地の火花の最大の数
+	inline constexpr uint32_t kLandingSparkCount = 16; //1回の着地で出す火花の数
+	inline constexpr float kLandingRadius = 0.46f; //火花が出る輪の半径
+	inline constexpr float kLandingInnerRatio = 0.5f; //輪の内側の空ける割合
+	inline constexpr RyoEngine::Vector3 kLandingVelocityMin = { -2.45f, 0.9f, -2.45f }; //火花の速さの最小
+	inline constexpr RyoEngine::Vector3 kLandingVelocityMax = { 2.45f, 3.1f, 2.45f }; //火花の速さの最大
+	inline constexpr float kLandingGravity = 4.5f; //火花が落ちる強さ
+	inline constexpr float kLandingDrag = 1.8f; //火花が遅くなる強さ
+	inline constexpr float kLandingLifeMin = 0.27f; //火花が消えるまでの秒数の最小
+	inline constexpr float kLandingLifeMax = 0.51f; //火花が消えるまでの秒数の最大
+	inline constexpr float kLandingScaleMin = 0.14f; //火花の大きさの最小
+	inline constexpr float kLandingScaleMax = 0.30f; //火花の大きさの最大
+	inline constexpr float kLandingEndScale = 0.15f; //消えるときの大きさの割合
+	inline constexpr RyoEngine::Vector4 kLandingColorA = { 1.0f, 0.18f, 0.53f, 0.72f }; //火花の濃いピンク
+	inline constexpr RyoEngine::Vector4 kLandingColorB = { 1.0f, 0.64f, 0.85f, 0.94f }; //火花の淡いピンク
+	inline constexpr float kLandingIntensity = 2.1f; //火花の明るさ
+	inline constexpr uint32_t kLandingGlowCount = 10; //火花に重ねる丸い光の数
+	inline constexpr float kLandingGlowScaleMin = 0.225f; //丸い光の大きさの最小
+	inline constexpr float kLandingGlowScaleMax = 0.46f; //丸い光の大きさの最大
+	inline constexpr float kLandingGlowLifeMin = 0.18f; //丸い光が消えるまでの秒数の最小
+	inline constexpr float kLandingGlowLifeMax = 0.35f; //丸い光が消えるまでの秒数の最大
+	inline constexpr float kLandingGlowAlphaA = 0.32f; //丸い光の濃いピンクの濃さ
+	inline constexpr float kLandingGlowAlphaB = 0.53f; //丸い光の淡いピンクの濃さ
+	inline constexpr uint32_t kVictoryStarMaxParticles = 96; //勝利の星の最大の数
+	inline constexpr uint32_t kVictoryStarCount = 13; //1回に出す星の数
+	inline constexpr float kVictoryStarRadius = 0.48f; //星が出る輪の半径
+	inline constexpr float kVictoryStarInnerRatio = 0.35f; //輪の内側の空ける割合
+	inline constexpr float kVictoryStarSpeedMin = 0.65f; //外へ飛ぶ速さの最小
+	inline constexpr float kVictoryStarSpeedMax = 1.45f; //外へ飛ぶ速さの最大
+	inline constexpr float kVictoryStarDrag = 2.3f; //星が遅くなる強さ
+	inline constexpr float kVictoryStarLifeMin = 0.4f; //星が消えるまでの秒数の最小
+	inline constexpr float kVictoryStarLifeMax = 0.81f; //星が消えるまでの秒数の最大
+	inline constexpr float kVictoryStarScaleMin = 0.08f; //星の大きさの最小
+	inline constexpr float kVictoryStarScaleMax = 0.20f; //星の大きさの最大
+	inline constexpr float kVictoryStarEndScale = 0.35f; //消えるときの大きさの割合
+	inline constexpr float kVictoryStarSpin = 50.0f; //1秒に回るいちばん大きい度数
+	inline constexpr RyoEngine::Vector4 kVictoryStarColorA = { 1.0f, 0.97f, 0.99f, 0.60f }; //ほんのりピンクの白
+	inline constexpr RyoEngine::Vector4 kVictoryStarColorB = { 1.0f, 1.0f, 1.0f, 0.90f }; //まっ白
+	inline constexpr float kVictoryStarIntensity = 2.10f; //星の明るさ
 	//ゲームシーンの色の仕上げ
 	inline constexpr bool kGameUsesAces = false; //trueで明るい所をなめらかに詰めるACESを使い、falseで画像の色のまま出す
 

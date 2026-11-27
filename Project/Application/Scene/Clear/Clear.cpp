@@ -50,7 +50,7 @@ namespace App
 		show_.Draw();
 
 		//踊り始めたら1920x1080が基準の画面の左寄りにタイトルへ戻るメニュー
-		if (show_.IsDancing())
+		if (!transition_.IsBusy() && show_.IsDancing())
 		{
 			const float width = static_cast<float>(DirectXCommon::GetGameWidth());
 			const float height = static_cast<float>(DirectXCommon::GetGameHeight());

@@ -28,20 +28,20 @@ namespace App
 	}
 
 	//カメラの位置と向きに合わせて置き、雲をゆっくり横に流す
-	void SkyDome::Update(const StageCamera& camera)
+	void SkyDome::Update(const StageCamera& camera, float deltaTime)
 	{
-		Place(camera.GetRotate(), camera.GetViewPosition(), camera.GetOrthoSize(), camera.GetAspectRatio());
+		Place(camera.GetViewRotate(), camera.GetViewPosition(), camera.GetOrthoSize(), camera.GetAspectRatio(), deltaTime);
 	}
 
 	//遠近法のカメラは天球の奥の深さで見える縦の半分の長さに合わせる
 	void SkyDome::UpdatePerspective(const Camera& camera)
 	{
 		const float halfHeight = SkyConfig::kSkyDomeDepth * std::tan(camera.GetFovY() * 0.5f);
-		Place(camera.GetRotate(), camera.GetTranslate(), halfHeight, camera.GetAspectRatio());
+		Place(camera.GetRotate(), camera.GetTranslate(), halfHeight, camera.GetAspectRatio(), GetDeltaTime());
 	}
 
 	//カメラの向きと位置と画面の縦の半分の長さと縦横比に合わせて置き、雲を流す
-	void SkyDome::Place(const Vector3& rotate, const Vector3& position, float halfHeight, float aspectRatio)
+	void SkyDome::Place(const Vector3& rotate, const Vector3& position, float halfHeight, float aspectRatio, float deltaTime)
 	{
 		//カメラと同じ向きにすると天球の上が画面の上、奥が画面の奥になる
 		model_->SetRotate({ rotate.x * kRadToDeg, rotate.y * kRadToDeg, rotate.z * kRadToDeg });
@@ -62,7 +62,7 @@ namespace App
 		model_->SetUVScale({ scaleU, scaleV });
 
 		//真ん中を画像の真ん中に合わせ、テクスチャを横にずらして雲を流す
-		scroll_ = std::fmod(scroll_ + SkyConfig::kSkyScrollSpeed * GetDeltaTime(), 1.0f);
+		scroll_ = std::fmod(scroll_ + SkyConfig::kSkyScrollSpeed * deltaTime, 1.0f);
 		model_->SetUVTranslate({ scroll_, 0.5f - 0.5f * scaleV });
 		model_->TransferMatrix();
 	}

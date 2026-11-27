@@ -111,14 +111,14 @@ namespace App
 			return;
 		}
 
-		//どすんと尻もちでハートが飛ぶ
+		//尻もちでピンクの光が弾ける
 		floors.AdvanceLayer();
 		camera.SetFloorHeight(floors.GetCurrent().GetHeight());
 		player.Place(landing_);
 		player.SetPose(PlayerPose::Kind::Sit);
 		Floor& current = floors.GetCurrent();
 		current.Jiggle(current.GetCellAt(landing_), DirectionConfig::kFallLandJiggle);
-		player.BurstHearts(DirectionConfig::kFallLandHearts);
+		player.PlayLandingParticles();
 		direction.Shake(DirectionConfig::kFallLandShake);
 		stage_ = Stage::Sit;
 		timer_ = 0.0f;

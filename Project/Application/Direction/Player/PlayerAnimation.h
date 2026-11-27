@@ -38,6 +38,8 @@ namespace App
 
 		//アニメーションを最初から速さを決めて流す
 		void Play(const char* clip, bool isLoop, float speed, State state);
+		//混ぜる秒数も決めて流す
+		void Play(const char* clip, bool isLoop, float speed, State state, float blend);
 
 		RyoEngine::Model* body_ = nullptr; //持ち主はPlayer
 		State state_ = State::Idle; //今流しているアニメーション

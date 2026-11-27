@@ -1,6 +1,6 @@
 #include "TileBarrage.h"
 #include "../../Config/BossConfig.h"
-#include "../../Config/LayerConfig.h"
+#include "../../Config/BossFallConfig.h"
 #include "../../Stage/Floor/Floor.h"
 #include <algorithm>
 
@@ -15,6 +15,7 @@ namespace App
 		adjacentCount_ = 0;
 		timer_ = 0.0f;
 		arrived_ = 0;
+		arrivedNow_ = 0;
 		damageApplied_ = 0;
 		if (upper == nullptr)
 		{
@@ -40,7 +41,7 @@ namespace App
 					{
 						damage = BossConfig::kAdjacentTileDamage;
 					}
-					tiles_.push_back(BarrageTile{ cell, std::max(0, damage) });
+					tiles_.push_back(BarrageTile{ cell, std::max(0, damage), upper->GetTile(cell).position });
 				}
 			}
 			if (isAdjacentGroup)
@@ -51,14 +52,13 @@ namespace App
 		return GetTileCount();
 	}
 
-	//穴のとなりの足場が全部届いて少し待ってからふつうの足場が飛び立つ
+	//穴のとなりの足場が飛び立ち終わったら続けてふつうの足場が飛び立つ
 	float TileBarrage::GetLaunchTime(int32_t index) const
 	{
-		const float flight = std::max(0.01f, LayerConfig::kTileFlightDuration);
-		const float window = std::max(0.0f, LayerConfig::kTileLaunchWindow);
+		const float window = std::max(0.0f, BossFallConfig::kBarrageWindow);
 		const int32_t count = GetTileCount();
 
-		//穴のとなりの足場が飛び終わるまでの秒数
+		//穴のとなりの足場が飛び立ち終わるまでの秒数で、テンポよく続けてふつうの足場が飛び立つ
 		float ordinaryStart = 0.0f;
 		if (adjacentCount_ > 0)
 		{
@@ -67,7 +67,7 @@ namespace App
 			{
 				adjacentWindow = window;
 			}
-			ordinaryStart = adjacentWindow + flight + std::max(0.0f, LayerConfig::kTileBarrageGroupPause);
+			ordinaryStart = adjacentWindow + std::max(0.0f, BossFallConfig::kBarrageGroupPause);
 		}
 
 		//まとまりの中で少しずつ遅れて飛び立つ
@@ -84,10 +84,11 @@ namespace App
 	int32_t TileBarrage::Advance(Floor& upper, const Vector3& target, float deltaTime)
 	{
 		timer_ += deltaTime;
+		const int32_t arrivedBefore = arrived_;
 		arrived_ = 0;
 		int64_t damageUnits = 0;
 		const int32_t count = GetTileCount();
-		const float flight = std::max(0.01f, LayerConfig::kTileFlightDuration);
+		const float flight = std::max(0.01f, BossFallConfig::kBarrageFlight);
 
 		for (int32_t i = 0; i < count; ++i)
 		{
@@ -108,7 +109,7 @@ namespace App
 			}
 
 			//山なりに飛んで小さくなりながら回る
-			Vector3 position = Lerp(upper.GetRestPosition(tile.cell), target, t * t);
+			Vector3 position = Lerp(tile.start, target, t * t);
 			position.y += 4.0f * t * (1.0f - t);
 			float spin = 1.0f;
 			if (i % 2 != 0)
@@ -117,6 +118,8 @@ namespace App
 			}
 			upper.SetTileMotion(tile.cell, position, { 180.0f * t, 90.0f * t * spin, 0.0f }, 1.0f + (0.25f - 1.0f) * t);
 		}
+
+		arrivedNow_ = std::max(0, arrived_ - arrivedBefore);
 
 		//上限ありで、前のフレームから増えたダメージを返す
 		const int64_t totalDamage = std::min(damageUnits, static_cast<int64_t>(BossConfig::kMaxTileDamage));

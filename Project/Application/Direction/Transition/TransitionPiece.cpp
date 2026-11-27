@@ -23,6 +23,7 @@ namespace App
 		model_->SetParent(frame);
 		model_->SetShader(shader);
 		model_->SetCastShadow(false);
+		model_->SetEnableLighting(false);
 	}
 
 	//行列を確定する

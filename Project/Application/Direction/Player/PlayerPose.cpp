@@ -13,6 +13,8 @@ namespace App
 		kind_ = Kind::Normal;
 		flail_ = 0.0f;
 		sit_ = 0.0f;
+		spin_ = 0.0f;
+		time_ = 0.0f;
 	}
 
 	//なりたい姿勢へ近づける
@@ -21,7 +23,7 @@ namespace App
 		time_ += deltaTime;
 		float flailTarget = 0.0f;
 		float sitTarget = 0.0f;
-		if (kind_ == Kind::Flail)
+		if (kind_ == Kind::Flail || kind_ == Kind::Dangle)
 		{
 			flailTarget = 1.0f;
 		}
@@ -44,6 +46,26 @@ namespace App
 	//今のじたばたと尻もちの割合からパーツの姿勢を作る
 	RigPose PlayerPose::MakeRigPose() const
 	{
+		if (kind_ == Kind::Dangle)
+		{
+			//足を垂らして交互に揺らし、腕を広げたまま体を回す
+			const float swing = std::sin(time_ * 11.0f);
+			RigPose dangle;
+			dangle.armForwardL = 45.0f + 9.0f * swing;
+			dangle.armForwardR = 45.0f - 9.0f * swing;
+			dangle.armOutL = 37.0f;
+			dangle.armOutR = 37.0f;
+			dangle.legForwardL = 13.0f + 23.0f * swing;
+			dangle.legForwardR = 13.0f - 23.0f * swing;
+			dangle.legOutL = 7.0f;
+			dangle.legOutR = 7.0f;
+			dangle.bodyTilt = 14.0f;
+			dangle.headRoll = 8.0f * swing;
+			RigPose pose = LerpPose(RigPose{}, dangle, flail_);
+			pose.spin = spin_;
+			return pose;
+		}
+
 		//じたばたは腕を上下にばたばた、足を交互にけって、頭をふるふる
 		const float speed = DirectionConfig::kFlailSpeed;
 		RigPose flail;

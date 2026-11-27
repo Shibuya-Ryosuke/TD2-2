@@ -8,7 +8,7 @@
 
 namespace App
 {
-	//跳んだときと着地で足場からカラフルなハートがぶわっとはじけて上へ舞う
+	//打撃や勝利の演出で舞い上がるハートを描く
 	class HeartBurst
 	{
 	public:
@@ -21,7 +21,9 @@ namespace App
 		void Initialize(); //ハートのモデルを作る
 
 		//足元から強さpowerに合わせた数のハートをはじけさせる
-		void Burst(const RyoEngine::Vector3& feet, float power);
+		void Burst(const RyoEngine::Vector3& feet, float power, float sizeScale = 1.0f);
+		//肩の外側からさらに外へ淡いピンクのハートを飛ばす
+		void BurstVictory(const RyoEngine::Vector3& origin, const RyoEngine::Vector3& outward, const RyoEngine::Vector3& up);
 
 		void Update(); //ハートを舞い上がらせて消す
 		void Draw();
@@ -46,6 +48,11 @@ namespace App
 			float life = 0.0f; //残りの時間で0以下は使っていない
 			float maxLife = 0.0f; //出たときの時間
 		};
+
+		//今の位置と大きさとカメラの向きで行列を確定する
+		static void Place(Heart& heart, const RyoEngine::Vector3& cameraRotateDeg);
+		//今のカメラの回転を度で
+		static RyoEngine::Vector3 GetCameraRotateDeg();
 
 		std::array<Heart, DirectionConfig::kHeartPoolSize> hearts_;
 		size_t next_ = 0; //次に使うハート
